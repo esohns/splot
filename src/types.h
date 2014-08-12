@@ -63,29 +63,29 @@ enum Mode_t
   MODE_SHOW_VERSION = 0,
   MODE_GAME,
   ///////////////////////////////////////
-  MODE_MAX
+  MAX_MODE_TYPES
 };
 
 enum GameMode_t
 {
   GAMEMODE_GAME_INVALID = -1,
   GAMEMODE_GAME = 0,
+  GAMEMODE_GAME_OVER,
+  GAMEMODE_LEVEL_END,
   GAMEMODE_MENU,
-  GAMEMODE_LEVELOVER,
-  GAMEMODE_HERODEAD,
   ///////////////////////////////////////
-  GAMEMODE_MAX
+  MAX_GAMEMODE_TYPES
 };
 
 #include "stdio.h"
 
 // forward declarations
-class HeroAircraft;
-class HeroAmmo;
-class EnemyFleet;
+class Splot_PlayerAircraft;
+class Splot_PlayerBullets;
+class Splot_Enemies;
 class EnemyAmmo;
 class Explosions;
-class PowerUps;
+class Splot_PowerUps;
 class Audio;
 class Ground;
 class MenuGL;
@@ -124,28 +124,30 @@ struct State_t
 
   GameMode_t       game_mode;
 
-  HeroAircraft*    hero;
-  EnemyFleet*      enemy_fleet;
-  HeroAmmo*        hero_ammo;
-  EnemyAmmo*       enemy_ammo;
-  ScreenItemAdd*   item_add;
+  Splot_PlayerAircraft* player;
+  Splot_Enemies*        enemies;
+  Splot_PlayerBullets*  player_bullets;
+  EnemyAmmo*            enemy_ammo;
+  ScreenItemAdd*        item_add;
 
-  Explosions*      explosions;
-  PowerUps*        power_ups;
-  Audio*           audio;
-  Ground*          ground;
-  Ground*          ground_game;
-  Ground*          ground_menu;
-  MenuGL*          menu;
-  MainGL*          main_GL;
-  StatusDisplay*   status_display;
+  Explosions*           explosions;
+  Splot_PowerUps*       power_ups;
+  Audio*                audio;
+  Ground*               ground;
+  Ground*               ground_game;
+  Ground*               ground_menu;
+  MenuGL*               menu;
+  MainGL*               main_GL;
+  StatusDisplay*        status_display;
 
   float            cursor_pos[3];
 
-  int              randI[256];
-  float            randF[256];
-  float            randS[256];
-  int              rand_index;
+  // *TODO*: save randomness/state with static savegames
+  // *TODO*: keep randomness/state here to support re-entrant code
+  //int              randomI[256];
+  //float            randomF[256];
+  //float            randomS[256];
+  //int              random_index;
 
   FILE*            event_file;
 
@@ -153,20 +155,58 @@ struct State_t
   int              tip_super_shield;
 };
 
+#include "defines.h"
+
 struct GameState_t
 {
-  float	damage;
-  float	shields;
-  float	score;
+  float damage;
+  float shields;
+
+  float score;
+  float score_step;
+  float score_target;
+
+  float death_stereo;
+
+  int ships;
+  int super_bomb_exploding;
+
+  float ammo_stock[NUM_PLAYER_AMMO_TYPES];
+  float gun_pause[NUM_PLAYER_AMMO_TYPES];
+  bool gun_swap;
+  bool gun_trigger;
+
+  int current_item_index;
+  float use_item_armed;
 };
 
 enum GameToolkit_t
 {
   TOOLKIT_INVALID = -1,
+#if defined (USE_GLUT)
   TOOLKIT_GLUT = 0,
+#elif defined (USE_SDL)
   TOOLKIT_SDL,
+#else
+#error "USE_SDL or USE_GLUT must be defined"
+#endif
   ///////////////////////////////////////
   TOOLKIT_MAX
 };
+
+struct bullet_t
+{
+  float position[3];
+  float translation_step[3];
+  float damage;
+
+  static int count;
+};
+
+#include <vector>
+
+typedef std::vector<bullet_t> bullets_t;
+typedef bullets_t::iterator bullets_iterator_t;
+typedef bullets_t::const_iterator bullets_const_iterator_t;
 
 #endif // TYPES_H

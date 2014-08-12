@@ -15,18 +15,23 @@ class Splot_State
                              ACE_Thread_Mutex>;
 
  public:
-  bool init ();
+  static void initialize ();
+
+  bool initialize (GameToolkit_t, // toolkit
+                   int,           // argc
+                   char**);       // argv
   void run ();
 
-  const State_t& get () const { return state_; };
-  const GameState_t& gameState() const { return game_state_; };
+  State_t& get () { return state_; };
+  GameState_t& gameState () { return game_state_; };
 
   void newGame ();
   void gotoNextLevel ();
-  void generateRandom (bool = true); // true randomness ?
-  bool setToolkit (GameToolkit_t, // toolkit
-                   int,           // argc
-                   char**);       // argv
+
+  static int   randomI[256];
+  static float randomF[256];
+  static float randomS[256];
+  static int   random_index;
 
  private:
   State_t state_;
@@ -37,11 +42,17 @@ class Splot_State
   ACE_UNIMPLEMENTED_FUNC (Splot_State (const Splot_State&));
   ACE_UNIMPLEMENTED_FUNC (Splot_State& operator= (const Splot_State&));
 
+  void initializeRandomness ();
+
   void createGame ();
   void deleteGame ();
 
-  void deleteTextures ();
   void loadTextures ();
+  void deleteTextures ();
+
+#if defined (USE_STATIC_RANDOMNESS)
+  static int randomData[256];
+#endif
 };
 
 typedef ACE_Singleton<Splot_State,

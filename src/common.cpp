@@ -8,7 +8,10 @@
 #include "ace/OS.h"
 #include "ace/OS_Memory.h"
 
-#define SPLOT_DATA_DIR_ENV_SYMBOL "SPLOT_DATA"
+#include "types.h"
+
+// init statics
+int bullet_t::count = 0;
 
 std::string
 alterPathForPlatform (char* filename_in)

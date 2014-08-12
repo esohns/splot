@@ -48,7 +48,7 @@
 #include "highscore.h"
 #include "state.h"
 
-#include "EnemyAircraft.h"
+#include "enemy_aircraft.h"
 
 #include "common.h"
 
@@ -195,22 +195,6 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 
-  // step3: init state
-  if (!SPLOT_STATE_SINGLETON::instance ()->init ())
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize state, aborting\n")));
-
-    // *PORTABILITY*: on Windows, need to fini ACE...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    if (ACE::fini() == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
-
-    return EXIT_FAILURE;
-  } // end IF
-
 #ifdef ENABLE_NLS
   setlocale (LC_ALL, "");
   bindtextdomain (PACKAGE, LOCALEDIR);
@@ -227,12 +211,13 @@ ACE_TMAIN (int argc_in,
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance()->get();
   if (configuration.debug)
-    ACE_OS::atexit (EnemyAircraft::printNumAllocated,
-                    NULL);
+    if (ACE_OS::atexit (Splot_EnemyAircraft::printNumAllocated,
+                        NULL))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_OS::atexit (): \"%m\", continuing\n")));
 
-  ACE_OS::srand (ACE_OS::time (NULL));
-  SPLOT_STATE_SINGLETON::instance ()->generateRandom (true);
-
+  // step3: initialize (game-)state
+  ACE_OS::srand ((u_int)ACE_OS::time (NULL));
   GameToolkit_t toolkit = STATE_DEFAULT_TOOLKIT;
 #if defined (USE_SDL)
   toolkit = TOOLKIT_SDL;
@@ -241,17 +226,17 @@ ACE_TMAIN (int argc_in,
 #else
 #error "USE_SDL or USE_GLUT must be defined"
 #endif
-  if (!SPLOT_STATE_SINGLETON::instance ()->setToolkit (toolkit,
-                                                       argc_in,
-                                                       argv_in))
+  if (!SPLOT_STATE_SINGLETON::instance()->initialize (toolkit,
+                                                      argc_in,
+                                                      argv_in))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT("failed to Splot_State::setToolkit (%d), aborting\n"),
+                ACE_TEXT ("failed to Splot_State::initialize (%d), aborting\n"),
                 toolkit));
 
     // *PORTABILITY*: on Windows, need to fini ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    if (ACE::fini() == -1)
+    if (ACE::fini () == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
@@ -263,7 +248,10 @@ ACE_TMAIN (int argc_in,
   if (configuration.debug)
     state.highscore->print (SPLOT_CONFIGURATION_SINGLETON::instance ()->intSkill ());
 
+  // step4: run game
   SPLOT_STATE_SINGLETON::instance ()->run ();
+
+  // step5: clean up
 
   // *PORTABILITY*: on Windows, must fini ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
