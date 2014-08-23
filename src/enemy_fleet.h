@@ -26,7 +26,7 @@ class Splot_EnemyFleet
   void clear ();
 
   void addEnemy (Splot_EnemyAircraft*);
-  void killEnemy (Splot_EnemyAircraft*);
+  //void killEnemy (Splot_EnemyAircraft*);
   void destroyAll ();
   void retarget (EnemyAircraftType_t, Splot_GameElement*);
 
@@ -53,8 +53,8 @@ class Splot_EnemyFleet
 
   void bossExplosion (Splot_EnemyAircraft*);
 
-  GLuint               shipTex_[ENEMYAIRCRAFT_MAX_TYPES];
-  GLuint               extraTex_[ENEMYAIRCRAFT_MAX_TYPES];
+  GLuint               shipTex_[MAX_ENEMYAIRCRAFT_TYPES];
+  GLuint               extraTex_[MAX_ENEMYAIRCRAFT_TYPES];
 
   Splot_EnemyAircraft* currentShip_;
 };

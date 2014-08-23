@@ -47,7 +47,7 @@ class Splot_PowerUp
                  float = 1.0);  // potency
   virtual ~Splot_PowerUp ();
 
-  virtual Splot_PowerUp* get_next() { return dynamic_cast<Splot_PowerUp*> (inherited::get_next()); };
+  virtual Splot_PowerUp* get_next() { return dynamic_cast<Splot_PowerUp*> (inherited::get_next ()); };
 
   PowerUpType_t type () { return type_; }
 

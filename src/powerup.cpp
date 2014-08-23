@@ -38,7 +38,7 @@
 //#include "EnemyFleet.h"
 //#include "EnemyAircraft.h"
 #include "player_aircraft.h"
-#include "ScreenItemAdd.h"
+#include "screen.h"
 #include "image.h"
 
 Splot_PowerUps::Splot_PowerUps ()
@@ -171,7 +171,7 @@ Splot_PowerUps::clear ()
 
     ACE_ASSERT (cur);
     del = cur;
-    state.item_add->killScreenItem (del);
+    Splot_Screen::remove (del);
   } while (true);
 
   currentPwrUp_ = NULL;
@@ -214,8 +214,7 @@ Splot_PowerUps::remove (Splot_PowerUp* pwr_in)
   prev->set_next (pwr_in->get_next ());
   inherited::size_--;
 
-  State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-  state.item_add->killScreenItem (pwr_in);
+  Splot_Screen::remove (pwr_in);
 
   const Configuration_t& configuration =
    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
@@ -229,12 +228,13 @@ void
 Splot_PowerUps::update ()
 {
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
+  GameState_t& game_state = SPLOT_STATE_SINGLETON::instance ()->gameState ();
   const Configuration_t& configuration =
    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
 
   Splot_PowerUp* pwrUp = inherited::free_list_;
   Splot_PowerUp* delUp = NULL;
-  float s = 0.0;
+  float s = 0.0, score = 0.0F;
   float b = configuration.screen_bound[0] - 1.0F;
   while (pwrUp &&
          (pwrUp->type_ != POWERUP_INVALID))
@@ -263,16 +263,16 @@ Splot_PowerUps::update ()
         {
           case POWERUP_SHIELD_SUPER:
             state.player->addShip ();
-            state.player->addScore (SCORE_POWERUP_SHIELD_SUPER);
+            score += SCORE_POWERUP_SHIELD_SUPER;
             break;
           case POWERUP_SHIELD:
-            state.player->addScore (SCORE_POWERUP_SHIELD);
+            score += SCORE_POWERUP_SHIELD;
             break;
           case POWERUP_REPAIR:
-            state.player->addScore (SCORE_POWERUP_REPAIR);
+            score += SCORE_POWERUP_REPAIR;
             break;
           default:
-            state.player->addScore (SCORE_POWERUP_AMMUNITION);
+            score += SCORE_POWERUP_AMMUNITION;
             break;
         } // end SWITCH
       delUp = pwrUp;
@@ -282,6 +282,7 @@ Splot_PowerUps::update ()
     else
       pwrUp = pwrUp->get_next ();
   } // end WHILE
+  game_state.score += score;
 }
 
 void
@@ -301,7 +302,7 @@ Splot_PowerUps::drawGL ()
     glTranslatef (pwrUp->position_[0] + wobble_0_[pwrUp->age_%WOBBLE_0],
                   pwrUp->position_[1] + wobble_1_[pwrUp->age_%WOBBLE_1],
                   pwrUp->position_[2]);
-    glRotatef (FRAND, 0.0F, 0.0F, 1.0F);
+    glRotatef ((float)IRAND, 0.0, 0.0, 1.0);
     glBegin (GL_QUADS);
     glTexCoord2f (0.0F, 0.0F); glVertex3f (-szp,  szp, 0.0F );
     glTexCoord2f (0.0F, 1.0F); glVertex3f (-szp, -szp, 0.0F );

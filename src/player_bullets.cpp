@@ -30,7 +30,7 @@
 #include "common.h"
 #include "configuration.h"
 #include "state.h"
-#include "Explosions.h"
+#include "explosion.h"
 #include "enemy_fleet.h"
 //#include "EnemyAircraft.h"
 #include "image.h"
@@ -174,14 +174,14 @@ Splot_PlayerBullets::addBullet (int type_in,
                 ACE_TEXT ("adding bullet (type/position): %d / [%f,%f,%f]\n"),
                 type_in, position_in[0], position_in[1], position_in[2]));
 
-  bullet_t bullet;
+  Bullet_t bullet;
   bullet.damage = bullet_damage[type_in];
   //bullet.position = position_in;
   ACE_OS::memcpy (&(bullet.position), &position_in, sizeof (position_in));
   //bullet.translation_step = v;
   ACE_OS::memcpy (&(bullet.translation_step), &v, sizeof (v));
   bullets_[type_in].push_back(bullet);
-  bullet_t::count++;
+  Bullet_t::count++;
 }
 
 void
@@ -190,7 +190,7 @@ Splot_PlayerBullets::print (int type_in)
   ACE_ASSERT (type_in >= 0 && type_in < NUM_PLAYER_AMMO_TYPES);
 
   int i = 0;
-  for (bullets_iterator_t iterator = bullets_[type_in].begin ();
+  for (BulletsIterator_t iterator = bullets_[type_in].begin ();
        iterator != bullets_[type_in].end ();
        iterator++, i++)
     ACE_DEBUG ((LM_DEBUG,
@@ -206,11 +206,11 @@ Splot_PlayerBullets::update ()
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
 
-  std::vector<bullets_iterator_t> bullets;
+  std::vector<BulletsIterator_t> bullets;
   for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
   {
     bullets.clear ();
-    for (bullets_iterator_t iterator = bullets_[i].begin ();
+    for (BulletsIterator_t iterator = bullets_[i].begin ();
          iterator != bullets_[i].end ();
          iterator++)
     {
@@ -218,18 +218,18 @@ Splot_PlayerBullets::update ()
         bullets.push_back (iterator);
       else
       {
-        bullet_t& current = *iterator;
+        Bullet_t& current = *iterator;
         current.position[0] += current.translation_step[0];
         current.position[1] += current.translation_step[1];
         current.position[2] += current.translation_step[2];
       } // end ELSE
     } // end FOR
 
-    for (std::vector<bullets_iterator_t>::reverse_iterator iterator = bullets.rbegin ();
+    for (std::vector<BulletsIterator_t>::reverse_iterator iterator = bullets.rbegin ();
          iterator != bullets.rend ();
          iterator++)
       bullets_[i].erase (*iterator);
-    bullet_t::count -= bullets.size ();
+    Bullet_t::count -= bullets.size ();
   } // end FOR
 }
 
@@ -248,11 +248,11 @@ Splot_PlayerBullets::checkForHits (Splot_EnemyFleet* fleet_in)
 
   //-- Go through all the ammunition and check for hits
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-  std::vector<bullets_iterator_t> bullets;
+  std::vector<BulletsIterator_t> bullets;
   for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
   {
     bullets.clear ();
-    for (bullets_iterator_t iterator = bullets_[i].begin ();
+    for (BulletsIterator_t iterator = bullets_[i].begin ();
          iterator != bullets_[i].end ();
          iterator++)
     {
@@ -270,7 +270,7 @@ Splot_PlayerBullets::checkForHits (Splot_EnemyFleet* fleet_in)
           enemy->damage_ += Splot_PlayerBullets::bullet_damage[i]*state.speed_adj;
         else
           enemy->damage_ += Splot_PlayerBullets::bullet_damage[i];
-        state.explosions->addExplo ((Explosions::ExploType)(Explosions::HeroAmmo00+i), (*iterator).position);
+        state.explosions->add ((ExplosionType_t)(EXPLOSION_PLAYER_AMMUNITION_0+i), (*iterator).position);
 
         if (i != 1) // bullet type 1 doesn't get removed immediately
         {
@@ -280,11 +280,11 @@ Splot_PlayerBullets::checkForHits (Splot_EnemyFleet* fleet_in)
       } // end WHILE
     } // end FOR
 
-    for (std::vector<bullets_iterator_t>::reverse_iterator iterator = bullets.rbegin ();
+    for (std::vector<BulletsIterator_t>::reverse_iterator iterator = bullets.rbegin ();
          iterator != bullets.rend ();
          iterator++)
       bullets_[i].erase (*iterator);
-    bullet_t::count -= bullets.size();
+    Bullet_t::count -= bullets.size ();
   } // end FOR
 }
 
@@ -296,11 +296,11 @@ Splot_PlayerBullets::drawGL ()
     glColor4f (1.0F, 1.0F, 1.0F, 1.0F);
     glBindTexture (GL_TEXTURE_2D, bulletTex_[i]);
     glBegin (GL_QUADS);
-    for (bullets_iterator_t iterator = bullets_[i].begin ();
+    for (BulletsIterator_t iterator = bullets_[i].begin ();
          iterator != bullets_[i].end ();
          iterator++)
     {
-      bullet_t& current = *iterator;
+      Bullet_t& current = *iterator;
       glTexCoord2f (0.0F, 0.0F);
       glVertex3f (current.position[0]-Splot_PlayerBullets::bullet_size[i][0],
                   current.position[1],

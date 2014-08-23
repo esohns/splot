@@ -218,7 +218,7 @@ ACE_TMAIN (int argc_in,
 
   // step3: initialize (game-)state
   ACE_OS::srand ((u_int)ACE_OS::time (NULL));
-  GameToolkit_t toolkit = STATE_DEFAULT_TOOLKIT;
+  GameToolkitType_t toolkit = STATE_DEFAULT_TOOLKIT;
 #if defined (USE_SDL)
   toolkit = TOOLKIT_SDL;
 #elif defined (USE_GLUT)

@@ -75,30 +75,6 @@ Splot_EnemyAircraft::~Splot_EnemyAircraft ()
 }
 
 void
-Splot_EnemyAircraft::reset (float position_in[3],
-                            float randFact)
-{
-  // *NOTE*: assignment not possible
-  //inherited::position_ = position_in;
-  ACE_OS::memcpy (&(inherited::position_), 0, sizeof (position_in));
-  ACE_OS::memset (&(inherited::velocity_), 0, sizeof (inherited::velocity_));
-  inherited::reset ();
-  
-  over_ = NULL; //-- if this points to another aircraft, this aircraft will be inserted after that
-                //   aircraft in the fleet list
-  shootInterval_ = 1;
-  shootSwap_     = 0;
-  randMoveX_     = randFact*FRAND;
-  lastMoveX_     = 0.0F;
-  lastMoveY_     = 0.0F;
-  preFire_       = 0.0F;
-  target_        = SPLOT_STATE_SINGLETON::instance ()->get ().player;
-  ACE_OS::memset (&secondaryMove_, 0, sizeof (secondaryMove_));
-  ACE_OS::memset (&shootVec_, 0, sizeof (shootVec_));
-  shootVec_[1]   = -0.2F;
-}
-
-void
 Splot_EnemyAircraft::printNumAllocated ()
 {
   ACE_DEBUG ((LM_DEBUG,
@@ -106,161 +82,123 @@ Splot_EnemyAircraft::printNumAllocated ()
               count, inherited::count));
 }
 
-//Splot_EnemyAircraft* Splot_EnemyAircraft::make(EnemyType et, float p[3], float randFact)
-//{
-//	Splot_EnemyAircraft *enemy = 0;
-//	
-//	switch(et)
-//	{
-//		case EnemyStraight:
-//			enemy = new Splot_EnemyAircraft_Straight(et, p, randFact);
-//			break;
-//		case EnemyOmni:
-//			enemy = new Splot_EnemyAircraft_Omni(et, p, randFact);
-//			break;
-//		case EnemyRayGun:
-//			enemy = new Splot_EnemyAircraft_RayGun(et, p, randFact);
-//			break;
-//		case EnemyTank:
-//			enemy = new Splot_EnemyAircraft_Tank(et, p, randFact);
-//			break;
-//		case EnemyGnat:
-//			enemy = new Splot_EnemyAircraft_Gnat(et, p, randFact);
-//			break;
-//		case EnemyBoss00:
-//			enemy = new Splot_EnemyAircraft_Boss00(et, p, randFact);
-//			break;
-//		case EnemyBoss01:
-//			enemy = new Splot_EnemyAircraft_Boss01(et, p, randFact);
-//			break;
-//		case NumEnemyTypes:
-//		default:
-//			enemy = 0;
-//			break;
-//	}
-//	return enemy;
-//}
+void
+Splot_EnemyAircraft::drawGL (GLuint tex_in, GLuint xtraTex_in)
+{
+  glBindTexture (GL_TEXTURE_2D, tex_in);
+  glColor4f (1.0, 1.0, 1.0, 1.0);
+  glPushMatrix ();
+  glTranslatef (position_[0], position_[1], position_[2]);
+  glBegin (GL_TRIANGLE_STRIP);
+  glTexCoord2f (1.0, 0.0); glVertex3f ( size_[0],  size_[1], 0.0);
+  glTexCoord2f (0.0, 0.0); glVertex3f (-size_[0],  size_[1], 0.0);
+  glTexCoord2f (1.0, 1.0); glVertex3f ( size_[0], -size_[1], 0.0);
+  glTexCoord2f (0.0, 1.0); glVertex3f (-size_[0], -size_[1], 0.0);
+  glEnd ();
+  glPopMatrix ();
 
-////----------------------------------------------------------
-//void Splot_EnemyAircraft::drawGL(GLuint tex, GLuint xtraTex)
-//{
-//	float *p = pos;
-//	float szx = size[0];
-//	float szy = size[1];
-//	glBindTexture(GL_TEXTURE_2D, tex);
-//	glColor4f(1.0, 1.0, 1.0, 1.0);
-//
-//	glPushMatrix();
-//	glTranslatef( p[0],  p[1],  p[2] );
-//	glBegin(GL_TRIANGLE_STRIP);
-//		glTexCoord2f(1.0, 0.0); glVertex3f( szx,  szy, 0.0);
-//		glTexCoord2f(0.0, 0.0); glVertex3f(-szx,  szy, 0.0);
-//		glTexCoord2f(1.0, 1.0); glVertex3f( szx, -szy, 0.0);
-//		glTexCoord2f(0.0, 1.0); glVertex3f(-szx, -szy, 0.0);
-//	glEnd();
-//	glPopMatrix();
-//
-//	switch(type)
-//	{
-//		case EnemyStraight:
-//			if(preFire)
-//			{
-//				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-//				glBindTexture(GL_TEXTURE_2D, xtraTex);
-//				glColor4f(1.0, 1.0, 1.0, preFire);
-//				szx = 0.55*preFire;
-//				glPushMatrix();
-//				glTranslatef(p[0], p[1]-0.9, p[2]);
-//				glRotatef(IRAND, 0.0, 0.0, 1.0);
-//				drawQuad(szx,szx+0.1);
-//				glPopMatrix();
-//				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//				glColor4f(1.0, 1.0, 1.0, 1.0);
-//			}
-//			break;
-//		case EnemyOmni:
-//			glColor4f(1.0, 0.0, 0.0, 1.0);
-//			glBindTexture(GL_TEXTURE_2D, xtraTex);
-//			glPushMatrix();
-//			glTranslatef(p[0], p[1], p[2]);
-//			glRotatef(-(age*8), 0.0, 0.0, 1.0);
-//			drawQuad(szx,szy);
-//			glPopMatrix();
-//			glColor4f(1.0, 1.0, 1.0, 1.0);
-//			break;
-//		case EnemyTank:
-//			if(preFire)
-//			{
-//				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-//				glBindTexture(GL_TEXTURE_2D, xtraTex);
-//				glColor4f(1.0, 1.0, 1.0, preFire);
-//				glPushMatrix();
-//				glTranslatef(p[0], p[1]-0.63, p[2]);//NOTE: offset is ~szy*0.3
-//				glRotatef(IRAND, 0.0, 0.0, 1.0);
-//				szx = 0.4+0.6*preFire;
-//				drawQuad(szx,szx);
-//				glPopMatrix();
-//				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//				glColor4f(1.0, 1.0, 1.0, 1.0);
-//			}
-//			break;
-//		case EnemyBoss00:
-//			if(preFire)
-//			{
-//				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-//				glBindTexture(GL_TEXTURE_2D, xtraTex);
-//				glColor4f(1.0, 1.0, 1.0, preFire);
-//				szx = 0.4+0.6*preFire;
-//				glPushMatrix();
-//				glTranslatef(p[0]+1.1, p[1]-0.4, p[2]);
-//				glRotatef(IRAND, 0.0, 0.0, 1.0);
-//				drawQuad(szx,szx);
-//				glPopMatrix();
-//				glPushMatrix();
-//				glTranslatef(p[0]-1.1, p[1]-0.4, p[2]);
-//				glRotatef(IRAND, 0.0, 0.0, 1.0);
-//				drawQuad(szx,szx);
-//				glPopMatrix();
-//				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//				glColor4f(1.0, 1.0, 1.0, 1.0);
-//			}
-//			break;
-//		case EnemyBoss01:
-//			if(preFire)
-//			{
-//				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-//				glBindTexture(GL_TEXTURE_2D, xtraTex);
-//				glColor4f(1.0, 1.0, 1.0, preFire);
-//				szx = 0.9*preFire;
-//				if(shootSwap)
-//				{
-//					glPushMatrix();
-//					glTranslatef(p[0]-1.22, p[1]-1.22, p[2]);
-//					glRotatef(IRAND, 0.0, 0.0, 1.0);
-//					drawQuad(szx,szx);
-//					drawQuad(szx+0.2,szx+0.2);
-//					glPopMatrix();
-//				}
-//				else
-//				{
-//					glPushMatrix();
-//					glTranslatef(p[0]+0.55, p[1]-1.7, p[2]);
-//					glRotatef(IRAND, 0.0, 0.0, 1.0);
-//					drawQuad(szx,szx);
-//					drawQuad(szx+0.3,szx+0.3);
-//					glPopMatrix();
-//				}
-//				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//				glColor4f(1.0, 1.0, 1.0, 1.0);
-//			}
-//			break;
-//		default:
-//			break;
-//	}
-//}
+  float szx;//, szy;
+  switch (type_)
+  {
+    case ENEMYAIRCRAFT_STRAIGHT:
+      if (preFire_)
+      {
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE);
+        glBindTexture (GL_TEXTURE_2D, xtraTex_in);
+        glColor4f (1.0, 1.0, 1.0, preFire_);
+        szx = 0.55F*preFire_;
+        glPushMatrix ();
+        glTranslatef (position_[0], position_[1]-0.9F, position_[2]);
+        glRotatef ((float)IRAND, 0.0, 0.0, 1.0);
+        drawQuad (szx, szx+0.1F);
+        glPopMatrix ();
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor4f (1.0, 1.0, 1.0, 1.0);
+      }
+      break;
+    case ENEMYAIRCRAFT_OMNI:
+      glColor4f (1.0, 0.0, 0.0, 1.0);
+      glBindTexture (GL_TEXTURE_2D, xtraTex_in);
+      glPushMatrix ();
+      glTranslatef (position_[0], position_[1], position_[2]);
+      glRotatef ((float)-(inherited::age_*8), 0.0, 0.0, 1.0);
+      drawQuad (size_[0], size_[1]);
+      glPopMatrix ();
+      glColor4f (1.0, 1.0, 1.0, 1.0);
+      break;
+    case ENEMYAIRCRAFT_TANK:
+      if (preFire_)
+      {
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE);
+        glBindTexture (GL_TEXTURE_2D, xtraTex_in);
+        glColor4f (1.0, 1.0, 1.0, preFire_);
+        glPushMatrix ();
+        glTranslatef (position_[0], position_[1]-0.63F, position_[2]); //NOTE: offset is ~szy*0.3
+        glRotatef ((float)IRAND, 0.0, 0.0, 1.0);
+        szx = 0.4F+(0.6F*preFire_);
+        drawQuad (szx, szx);
+        glPopMatrix ();
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor4f (1.0, 1.0, 1.0, 1.0);
+      } // end IF
+      break;
+    case ENEMYAIRCRAFT_BOSS_0:
+      if (preFire_)
+      {
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE);
+        glBindTexture (GL_TEXTURE_2D, xtraTex_in);
+        glColor4f (1.0, 1.0, 1.0, preFire_);
+        szx = 0.4F+(0.6F*preFire_);
+        glPushMatrix ();
+        glTranslatef (position_[0]+1.1F, position_[1]-0.4F, position_[2]);
+        glRotatef ((float)IRAND, 0.0, 0.0, 1.0);
+        drawQuad (szx, szx);
+        glPopMatrix ();
+        glPushMatrix ();
+        glTranslatef (position_[0]-1.1F, position_[1]-0.4F, position_[2]);
+        glRotatef ((float)IRAND, 0.0, 0.0, 1.0);
+        drawQuad (szx, szx);
+        glPopMatrix ();
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor4f (1.0, 1.0, 1.0, 1.0);
+      } // end IF
+      break;
+    case ENEMYAIRCRAFT_BOSS_1:
+      if (preFire_)
+      {
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE);
+        glBindTexture (GL_TEXTURE_2D, xtraTex_in);
+        glColor4f (1.0, 1.0, 1.0, preFire_);
+        szx = 0.9F*preFire_;
+        if (shootSwap_)
+        {
+          glPushMatrix ();
+          glTranslatef (position_[0]-1.22F, position_[1]-1.22F, position_[2]);
+          glRotatef ((float)IRAND, 0.0, 0.0, 1.0);
+          drawQuad (szx, szx);
+          drawQuad (szx+0.2F, szx+0.2F);
+          glPopMatrix ();
+        } // end IF
+        else
+        {
+          glPushMatrix ();
+          glTranslatef (position_[0]+0.55F, position_[1]-1.7F, position_[2]);
+          glRotatef ((float)IRAND, 0.0, 0.0, 1.0);
+          drawQuad (szx, szx);
+          drawQuad (szx+0.3F, szx+0.3F);
+          glPopMatrix ();
+        } // end ELSE
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor4f (1.0, 1.0, 1.0, 1.0);
+      } // end IF
+      break;
+    default:
+      break;
+  } // end SWITCH
+}
 
 bool
-Splot_EnemyAircraft::checkHit (const bullet_t& bullet_in)
+Splot_EnemyAircraft::checkHit (const Bullet_t& bullet_in)
 {
   if (bullet_in.position[1] > (inherited::position_[1]-size_[1]))
     if ((bullet_in.position[1] < (inherited::position_[1]+size_[1])) &&
@@ -271,42 +209,43 @@ Splot_EnemyAircraft::checkHit (const bullet_t& bullet_in)
   return false;
 }
 
-void Splot_EnemyAircraft::calcShootInterval ()
+void
+Splot_EnemyAircraft::reset (float position_in[3],
+                            float randomMovementFactor_in)
 {
-  shootInterval_ = 1;
-}
+  inherited::reset ();
+  // *NOTE*: assignment not possible
+  //inherited::position_ = position_in;
+  ACE_OS::memcpy (&(inherited::position_), 0, sizeof (position_in));
 
-//void Splot_EnemyAircraft::init(float *p, float randFact)
-//{
-//	ScreenItem::init();
-//	over = 0;	//-- if this points to another aircraft, this aircraft will be inserted after that
-//				//   aircraft in the fleet list
-//	
-//	pos[0] = p[0];
-//	pos[1] = p[1];
-//	pos[2] = p[2];
-//	
-//	shootInterval = 1;
-//	shootSwap	= 0;
-//	randMoveX	= randFact*FRAND;
-//	lastMoveX	= 0.0;
-//	lastMoveY	= 0.0;
-//	preFire		= 0.0;
-//	target = game->hero;
-//	
-//	next = 0;
-//	back = 0;
-//	
-//	secondaryMove[0] = secondaryMove[1] = 0.0;
-//	
-//	shootVec[0] =  0.0;
-//	shootVec[1] = -0.2;
-//	shootVec[2] =  0.0;
-//	
-//	vel[0] = 0.0;
-//	vel[1] = 0.0;
-//	vel[2] = 0.0;
-//
+  //size_[0] = size_[1] = 0;
+
+  //damage_ = 0.0;
+  //baseDamage_ = 0.0;
+
+  //collisionMove_ = 0.0;
+  secondaryMove_[0] = secondaryMove_[1] = 0.0;
+
+  preFire_          = 0.0;
+
+  over_             = NULL; //-- this aircraft will be inserted after that
+                            //   aircraft in the fleet list
+
+  ACE_OS::memset (&shootVec_, 0, sizeof (shootVec_));
+  shootVec_[1]      = -0.2F;
+  //shootPause_ = 0;
+  shootInterval_    = 1;
+  shootSwap_        = 0;
+
+  randomMoveX_      = randomMovementFactor_in*FRAND;
+  lastMove_[0]      = 0.0;
+  lastMove_[1]      = 0.0;
+
+  //speedAdjustment_ = 0.0;
+
+  const State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
+  target_           = state.player;
+
 //	float frand = FRAND*randFact;
 //	switch(type)
 //	{
@@ -369,36 +308,36 @@ void Splot_EnemyAircraft::calcShootInterval ()
 //		case NumEnemyTypes:
 //			break;
 //	}
-//}
-//
-////-- NOTE: Many of the firing rates are not adjusted by game->speedAdj
-////-- so they will not be totally correct. Should be close enough for jazz, though.
-////----------------------------------------------------------
-//void Splot_EnemyAircraft::update()
-//{
-//	Config	*config = Config::instance();
-//	Splot_EnemyAircraft *tmpAircraft = 0;
-//	float	v[3] = { 0.0, -0.2, 0.0 };
-////	float	*hpos = target->getPos();
-//	float	*hpos = game->hero->getPos();
-//	float	a = hpos[0]-pos[0];
-//	float	b = hpos[1]-pos[1];
-//	float	dist;
-//	float	ammoSpeed = 0.35*game->speedAdj;
-//	
-//	int 	omniSwap = 108;
-//	int		tmpInt;
-//	//-- update age
-//	age++;
-//	shootInterval--;
-//	
-//	pos[0] += secondaryMove[0]*game->speedAdj;
-//	pos[1] += secondaryMove[1]*game->speedAdj;
-//	float s = (1.0-game->speedAdj)+(game->speedAdj*0.7);
-//	secondaryMove[0] *= s;
-//	secondaryMove[1] *= s;
-//	move();
-//	
+}
+
+//-- *TODO*: many of the firing rates are not adjusted by game->speedAdj
+//           so they will be inaccurate
+void
+Splot_EnemyAircraft::update ()
+{
+  const State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
+  inherited::position_[0] += secondaryMove_[0]*state.speed_adj;
+  inherited::position_[1] += secondaryMove_[1]*state.speed_adj;
+  inherited::age_++;
+
+  float s = (1.0F-state.speed_adj)+(state.speed_adj*0.7F);
+  secondaryMove_[0] *= s;
+  secondaryMove_[1] *= s;
+  move ();
+
+  shootInterval_--;
+
+  //ACE_ASSERT(target_);
+  ////float	*hpos = target->position_;
+  ////float	*hpos = game->hero->getPos();
+  //float a = target_->position_[0] - inherited::position_[0];
+  //float b = target_->position_[1] - inherited::position_[1];
+  //float bullet_speed = 0.35*state.speed_adj;
+  //int 	omniSwap = 108;
+  //int		tmpInt;
+  //float dist;
+  //float	v[3] = {0.0, -0.2, 0.0};
+  //Splot_EnemyAircraft *tmpAircraft = 0;
 //	float	p[3] = { pos[0], pos[1], pos[2] };
 //	switch(type)
 //	{
@@ -626,213 +565,227 @@ void Splot_EnemyAircraft::calcShootInterval ()
 //		case NumEnemyTypes:
 //			break;
 //	}
-//}
-//
-////----------------------------------------------------------
-//void Splot_EnemyAircraft::calcShootInterval()
+}
+
+void
+Splot_EnemyAircraft::calcShootInterval ()
+{
+  shootInterval_ = 1;
+}
+
+//void
+//Splot_EnemyAircraft::calcShootInterval ()
 //{
-//	switch(type)
-//	{
-//		case EnemyStraight:
-//			shootInterval = (int)((30.0 + FRAND*90.0)/game->speedAdj);
-//			break;
-//		case EnemyOmni:
-//			shootInterval = 1;
-//			break;
-//		case EnemyRayGun:
-//			shootInterval = 1;
-//			break;
-//		case EnemyTank:
-//			shootInterval = 1;
-//			break;
-//		case EnemyGnat:
-//			shootInterval = (int)((1.0 + FRAND*5.0)/game->speedAdj);
-//			break;
-//		case EnemyBoss00:
-//			shootInterval = 1;
-//			break;
-//		case EnemyBoss01:
-//			shootInterval = 1;
-//			break;
-//		case NumEnemyTypes:
-//			break;
-//	}
-//}	
-//	
-////----------------------------------------------------------
-//void Splot_EnemyAircraft::move()
-//{
-//	Config *config = Config::instance();
-//	float	*hpos;
-//	if(target)
-//		hpos = target->getPos();
-//	else
-//		hpos = pos;
-//	float	diff[2] = { hpos[0]-pos[0], hpos[1]-pos[1] };
-//	float	tmp  = 0.0;
-//	float	tmpd = 0.0;
-//	float	tmps = 0.0;
-//	float	randX;
-//	float	v0,v1;
-//	float	x,y,tmpX,tmpY,speed;
-//	float	dist;
-//	float	approachDist;
-//	switch(type)
-//	{
-//		case EnemyStraight:
-//			pos[1] += (game->speedAdj*(vel[1] * game->gameSkill));
-//			break;
-//		case EnemyOmni:
-//			lastMoveX = (0.9*lastMoveX)+(0.1*(0.01*diff[0]));
-//			pos[0] += game->speedAdj*(randMoveX*lastMoveX);
-//			pos[1] += (game->speedAdj*(vel[1] * game->gameSkill));
-//			break;
-//		case EnemyRayGun:
-//			if( (tmpd = fabs(diff[0])) < 3.0)
-//				tmps = ((3.0-tmpd)/3.0)*(0.1*sin(age*0.25));
-//			if(fabs(diff[1]) < 7.0)
-//				diff[1] *= 0.1;
-//			lastMoveX = (0.975*lastMoveX)+(0.0020*diff[0]);
-//			lastMoveY = (0.90*lastMoveY)+(0.001*diff[1]);
-//			pos[0] += game->speedAdj*(randMoveX*lastMoveX * (game->gameSkill+0.1) + tmps);
-//			pos[1] += game->speedAdj*(lastMoveY+vel[1] * (game->gameSkill+0.1));
-//			break;
-//		case EnemyTank:
-//			if(fabs(diff[0]) > 8.0)
-//				v1 = 0.04;
-//			else
-//			{
-//				v1 = 0.04*(fabs(diff[0])/8.0); 
-//			}
-//			vel[1] = 0.99*vel[1] + 0.01*v1;
-//			
-//			if(pos[1] < -3.0)
-//				vel[1] = -0.1;
-//			else if(pos[1] < 0.0)
-//				vel[1] *= 0.99;
-//				
-//			if(pos[0] < 0.0)
-//				pos[0] = game->speedAdj*(0.998*pos[0] + 0.002*(-config->screenBoundX()+2.85));
-//			else
-//				pos[0] = game->speedAdj*(0.998*pos[0] + 0.002*( config->screenBoundX()-2.85));
-//			switch((age/50)%8)
-//			{
-//				case 2:
-//					pos[1] += game->speedAdj*(0.05);
-//					break;
-//				default:
-//					pos[1] -= game->speedAdj*(vel[1]);
-//					break;
-//			}
-//			break;
-//		case EnemyGnat:
-//			if(target == game->hero)
-//				randX = randMoveX;
-//			else
-//				randX = 0.75+FRAND*0.15;
-//			tmps = 3.8;
-//			dist = sqrt(diff[0]*diff[0]+diff[1]*diff[1])*randX; 
-////			dist = fabs(diff[0])+fabs(diff[1])*randX;
-//			tmpd = 0.4+0.6*((dist+0.2*sin(age*0.001))/tmps);
-//			speed = tmpd*0.25*randX;
-//			tmp = (diff[0]/dist);
-//			x = speed*tmp;//*(1.0+tmp);
-//			tmp = (diff[1]/dist);
-//			y = speed*tmp;
-//			if(dist < tmps)
-//			{
-//				tmpX = x;
-//				tmpY = y;
-//				x = tmpd*tmpX + -(1.0-tmpd)*diff[1]/tmpd;
-//				y = tmpd*tmpY +  (1.0-tmpd)*diff[0]/tmpd;
-//				y += 0.01*sin(game->gameFrame*0.001);
-//			}
-//			else
-//			{
-//				tmpd = .97;
-//				tmpX = x;
-//				tmpY = y;
-//				if(randX < 0.65)
-//				{
-//					x = tmpd*tmpX +  (1.0-tmpd)*diff[1]/tmpd;
-//					y = tmpd*tmpY + -(1.0-tmpd)*diff[0]/tmpd;
-//				}
-//				else
-//				{
-//					x = tmpd*tmpX + -(1.0-tmpd)*diff[1]/tmpd;
-//					y = tmpd*tmpY +  (1.0-tmpd)*diff[0]/tmpd;
-//				}
-//			}
-//			
-//			tmp = randX*0.2;
-//			if( (age/8)%2 )
-//				v0 = vel[0]*(0.85-tmp) + (0.2+tmp)*(randX-0.2)*x;
-//			else
-//				v0 = vel[0];
-//			v1 = vel[1]*(0.85-tmp) + (0.2+tmp)*(randX-0.2)*y;
-//			
-//			if(age < 50)
-//			{
-//				float amt;
-//				if(age > 20)	amt = (age-20)/30.0;
-//				else			amt = 0.0;
-//				vel[0] = (1.0-amt)*vel[0] + amt*v0;
-//				vel[1] = (1.0-amt)*vel[1] + amt*v1;
-//			}
-//			else
-//			{
-//				vel[0] = v0;
-//				vel[1] = v1;
-//			}
-//			
-//			pos[0] += game->speedAdj*vel[0];
-//			pos[1] += game->speedAdj*vel[1];
-//			
-//			if(pos[1] < -10.0)
-//				pos[1] = -10.0;
-//			break;
-//		case EnemyBoss00:
-//			approachDist = 7.0*(2.0-game->gameSkill);
-//			if(fabs(diff[1]) < (approachDist+0.0*sin(game->frame*0.05)) )
-//			{
-//				diff[1] = diff[1] * diff[1]/approachDist;
-//			}
-//			diff[0] += 5.0*sin(age*0.1);
-//			lastMoveX = (0.98*lastMoveX)+(0.0005*game->gameSkill*diff[0]);
-//			lastMoveY = (0.90*lastMoveY)+(0.001*game->gameSkill*diff[1]);
-//			pos[0] += game->speedAdj*(lastMoveX);
-//			pos[1] += game->speedAdj*(lastMoveY+vel[1]);
-//			break;
-//		case EnemyBoss01:
-//			if( (((age+25)/512)%2) )
-//				approachDist = 9.0*(2.0-game->gameSkill);
-//			else
-//				approachDist = 12.0*(2.0-game->gameSkill);
-//				
-//			if(fabs(diff[1]) < (approachDist+2.0*sin(game->frame*0.05)) )
-//				diff[1] = diff[1] * diff[1]/approachDist;
-//			diff[0] += 5.0*sin(age*0.1);
-//			
-//			if( ((age/512)%2) )
-//			{
-//				lastMoveX = (0.98*lastMoveX)+(0.0010*game->gameSkill*diff[0]);
-//				lastMoveY = (0.90*lastMoveY)+(0.0020*game->gameSkill*diff[1]);
-//			}
-//			else //-- release gnats
-//			{
-//				lastMoveX = (0.90*lastMoveX)+(0.0003*game->gameSkill*diff[0]);
-//				lastMoveY = (0.90*lastMoveY)+(0.0010*game->gameSkill*diff[1]);
-//			}
-//			pos[0] += game->speedAdj*(lastMoveX);
-//			pos[1] += game->speedAdj*(lastMoveY+vel[1]);
-//			break;
-//		default:
-//			pos[1] -= game->speedAdj*0.02;
-//			break;
-//	}
-//	if(pos[0] < -config->screenBoundX())
-//		pos[0] = -config->screenBoundX();
-//	if(pos[0] >  config->screenBoundX())
-//		pos[0] =  config->screenBoundX();
+//  const State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
+//  switch (type_)
+//  {
+//    case ENEMYAIRCRAFT_STRAIGHT:
+//      shootInterval_ = (int)((30.0+FRAND*90.0)/state.speed_adj);
+//      break;
+//    case ENEMYAIRCRAFT_GNAT:
+//      shootInterval_ = (int)((1.0+FRAND*5.0)/state.speed_adj);
+//      break;
+//    case ENEMYAIRCRAFT_OMNI:
+//    case ENEMYAIRCRAFT_RAYGUN:
+//    case ENEMYAIRCRAFT_TANK:
+//    case ENEMYAIRCRAFT_BOSS_0:
+//    case ENEMYAIRCRAFT_BOSS_1:
+//      shootInterval_ = 1;
+//      break;
+//    default:
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("invalid/unknown enemy aircraft type (was: %d), returning\n"),
+//                  type_));
+//      return;
+//  } // end SWITCH
 //}
-//
+
+void
+Splot_EnemyAircraft::move ()
+{
+  float* position = NULL;
+  if (target_)
+    position = target_->position_;
+  else
+    position = inherited::position_;
+  float diff[2] = { position[0]-inherited::position_[0],
+                    position[1]-inherited::position_[1]};
+  float tmp  = 0.0;
+  float tmpd = 0.0;
+  float tmps = 0.0;
+  float randX;
+  float v0, v1;
+  float x, y, tmpX, tmpY, speed;
+  float dist;
+  float approachDist;
+  const State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
+  const Configuration_t& configuration =
+    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
+  switch (type_)
+  {
+    case ENEMYAIRCRAFT_STRAIGHT:
+      inherited::position_[1] +=
+        (state.speed_adj*(inherited::velocity_[1]*state.game_skill));
+      break;
+    case ENEMYAIRCRAFT_OMNI:
+      lastMove_[0] = (0.9F*lastMove_[0])+(0.1F*(0.01F*diff[0]));
+      inherited::position_[0] +=
+        (state.speed_adj*(randomMoveX_*lastMove_[0]));
+      inherited::position_[1] +=
+        (state.speed_adj*(inherited::velocity_[1]*state.game_skill));
+      break;
+    case ENEMYAIRCRAFT_RAYGUN:
+      if ((tmpd = fabs (diff[0])) < 3.0)
+        tmps = ((3.0F-tmpd)/3.0F)*(0.1F*sin (inherited::age_*0.25F));
+      if (fabs (diff[1]) < 7.0)
+        diff[1] *= 0.1F;
+      lastMove_[0] = (0.975F*lastMove_[0])+(0.002F*diff[0]);
+      lastMove_[1] = (0.9F*lastMove_[1])+(0.001F*diff[1]);
+      inherited::position_[0] +=
+        state.speed_adj*(randomMoveX_*lastMove_[0]*(state.game_skill+0.1F)+tmps);
+      inherited::position_[1] +=
+        state.speed_adj*(lastMove_[1]+inherited::velocity_[1]*(state.game_skill+0.1F));
+      break;
+    case ENEMYAIRCRAFT_TANK:
+      if (fabs (diff[0]) > 8.0)
+        v1 = 0.04F;
+      else
+        v1 = 0.04F*(fabs (diff[0])/8.0F); 
+      inherited::velocity_[1] = (0.99F*inherited::velocity_[1]+0.01F*v1);
+
+      if (inherited::position_[1] < -3.0)
+        inherited::velocity_[1] = -0.1F;
+      else if (inherited::position_[1] < 0.0)
+        inherited::velocity_[1] *= 0.99F;
+
+      if (inherited::position_[0] < 0.0)
+        inherited::position_[0] =
+          state.speed_adj*(0.998F*inherited::position_[0]+0.002F*(-configuration.screen_bound[0]+2.85F));
+      else
+        inherited::position_[0] =
+          state.speed_adj*(0.998F*inherited::position_[0]+0.002F*(configuration.screen_bound[0]-2.85F));
+      switch ((inherited::age_/50)%8)
+      {
+        case 2:
+          inherited::position_[1] += state.speed_adj*0.05F;
+          break;
+        default:
+          inherited::position_[1] -= state.speed_adj*inherited::velocity_[1];
+          break;
+      } // end SWITCH
+      break;
+    case ENEMYAIRCRAFT_GNAT:
+      if (target_ == state.player)
+        randX = randomMoveX_;
+      else
+        randX = (0.75F+FRAND)*0.15F;
+      tmps = 3.8F;
+      dist = sqrt (diff[0]*diff[0]+diff[1]*diff[1])*randX; 
+    //			dist = fabs(diff[0])+fabs(diff[1])*randX;
+      tmpd = 0.4F+(0.6F*((dist+(0.2F*sin (inherited::age_*0.001F)))/tmps));
+      speed = tmpd*0.25F*randX;
+      tmp = (diff[0]/dist);
+      x = speed*tmp;//*(1.0+tmp);
+      tmp = (diff[1]/dist);
+      y = speed*tmp;
+      if (dist < tmps)
+      {
+        tmpX = x;
+        tmpY = y;
+        x = (tmpd*tmpX)+(-(1.0F-tmpd)*diff[1]/tmpd);
+        y = (tmpd*tmpY)+( (1.0F-tmpd)*diff[0]/tmpd);
+        y += 0.01F*sin (state.game_frame*0.001F);
+      } // end IF
+      else
+      {
+        tmpd = 0.97F;
+        tmpX = x;
+        tmpY = y;
+        if (randX < 0.65)
+        {
+          x = (tmpd*tmpX)+( (1.0F-tmpd)*diff[1]/tmpd);
+          y = (tmpd*tmpY)+(-(1.0F-tmpd)*diff[0]/tmpd);
+        } // end IF
+        else
+        {
+          x = (tmpd*tmpX)+(-(1.0F-tmpd)*diff[1]/tmpd);
+          y = (tmpd*tmpY)+( (1.0F-tmpd)*diff[0]/tmpd);
+        } // end ELSE
+      } // end ELSE
+
+      tmp = randX*0.2F;
+      if ((inherited::age_/8)%2)
+        v0 = (inherited::velocity_[0]*(0.85F-tmp))+((0.2F+tmp)*(randX-0.2F)*x);
+      else
+        v0 = inherited::velocity_[0];
+      v1 = (inherited::velocity_[1]*(0.85F-tmp))+((0.2F+tmp)*(randX-0.2F)*y);
+
+      if (inherited::age_ < 50)
+      {
+        float amt;
+        if (inherited::age_ > 20)
+          amt = (inherited::age_-20)/30.0F;
+        else
+          amt = 0.0;
+        inherited::velocity_[0] = (1.0F-amt)*inherited::velocity_[0]+(amt*v0);
+        inherited::velocity_[1] = (1.0F-amt)*inherited::velocity_[1]+(amt*v1);
+      } // end IF
+      else
+      {
+        inherited::velocity_[0] = v0;
+        inherited::velocity_[1] = v1;
+      } // end ELSE
+
+      inherited::position_[0] += state.speed_adj*inherited::velocity_[0];
+      inherited::position_[1] += state.speed_adj*inherited::velocity_[1];
+
+      if (inherited::position_[1] < -10.0)
+        inherited::position_[1] = -10.0;
+      break;
+    case ENEMYAIRCRAFT_BOSS_0:
+      approachDist = 7.0F*(2.0F-state.game_skill);
+      if (fabs (diff[1]) < (approachDist+0.0*sin (state.frame*0.05)))
+        diff[1] = diff[1]*(diff[1]/approachDist);
+      diff[0] += 5.0F*sin (inherited::age_*0.1F);
+      lastMove_[0] = (0.98F*lastMove_[0])+(0.0005F*state.game_skill*diff[0]);
+      lastMove_[1] = (0.90F*lastMove_[1])+(0.001F *state.game_skill*diff[1]);
+      inherited::position_[0] += state.speed_adj*lastMove_[0];
+      inherited::position_[1] += state.speed_adj*(lastMove_[1] + inherited::velocity_[1]);
+      break;
+    case ENEMYAIRCRAFT_BOSS_1:
+      if (((inherited::age_+25)/512)%2)
+        approachDist = 9.0F *(2.0F-state.game_skill);
+      else
+        approachDist = 12.0F*(2.0F-state.game_skill);
+      if (fabs (diff[1]) < (approachDist+2.0F*sin (state.frame*0.05F)))
+        diff[1] = diff[1]*(diff[1]/approachDist);
+      diff[0] += 5.0F*sin (inherited::age_*0.1F);
+
+      if ((inherited::age_/512)%2)
+      {
+        lastMove_[0] = (0.98F*lastMove_[0])+(0.001F*state.game_skill*diff[0]);
+        lastMove_[1] = (0.9F *lastMove_[1])+(0.002F*state.game_skill*diff[1]);
+      } // end IF
+      else //-- release gnats
+      {
+        lastMove_[0] = (0.9F*lastMove_[0]) + (0.0003F*state.game_skill*diff[0]);
+        lastMove_[1] = (0.9F*lastMove_[1]) + (0.001F *state.game_skill*diff[1]);
+      } // end ELSE
+      inherited::position_[0] += state.speed_adj*lastMove_[0];
+      inherited::position_[1] +=
+        state.speed_adj*(lastMove_[1]+inherited::velocity_[1]);
+      break;
+    default:
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown enemy aircraft type (was: %d), continuing\n"),
+                  type_));
+      //inherited::position_[1] -= state.speed_adj*0.02;
+      break;
+  } // end SWITCH
+
+  // x-bounds clamp
+  if (inherited::position_[0] < -configuration.screen_bound[0])
+    inherited::position_[0] = -configuration.screen_bound[0];
+  if (inherited::position_[0] >  configuration.screen_bound[0])
+    inherited::position_[0] = configuration.screen_bound[0];
+}

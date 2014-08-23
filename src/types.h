@@ -7,7 +7,7 @@ enum AudioType_t
  AUDIO_OPENAL = 0,
  AUDIO_SDL_MIXER,
  ////////////////////////////////////////
- AUDIO_MAX_TYPES
+ MAX_AUDIO_TYPES
 };
 
 enum TextType_t
@@ -16,7 +16,7 @@ enum TextType_t
  TEXT_GLC = 0,
  TEXT_FTGL,
  ////////////////////////////////////////
- TEXT_MAX_TYPES
+ MAX_TEXT_TYPES
 };
 
 struct Configuration_t
@@ -77,14 +77,14 @@ enum GameMode_t
   MAX_GAMEMODE_TYPES
 };
 
-#include "stdio.h"
+#include <cstdio>
 
 // forward declarations
 class Splot_PlayerAircraft;
 class Splot_PlayerBullets;
 class Splot_Enemies;
 class EnemyAmmo;
-class Explosions;
+class Splot_Explosions;
 class Splot_PowerUps;
 class Audio;
 class Ground;
@@ -95,6 +95,17 @@ class ScreenItemAdd;
 class Text;
 class MainToolkit;
 class Splot_HighScore;
+class Splot_GameElement;
+
+#include <list>
+
+struct ScreenElement_t
+{
+  int                release_time;
+  Splot_GameElement* game_element;
+};
+typedef std::list<ScreenElement_t> ScreenElements_t;
+typedef ScreenElements_t::iterator ScreenElementsIterator_t;
 
 struct State_t
 {
@@ -110,8 +121,8 @@ struct State_t
   int              game_frame;
   float            game_speed;
   float            game_skill;
-  int              game_level;
-  int              max_level;
+  unsigned int     game_level;
+  unsigned int     max_level;
   float            speed_adj;
 
   float            scroll_speed;
@@ -128,9 +139,9 @@ struct State_t
   Splot_Enemies*        enemies;
   Splot_PlayerBullets*  player_bullets;
   EnemyAmmo*            enemy_ammo;
-  ScreenItemAdd*        item_add;
+  ScreenElements_t      screen_elements;
 
-  Explosions*           explosions;
+  Splot_Explosions*     explosions;
   Splot_PowerUps*       power_ups;
   Audio*                audio;
   Ground*               ground;
@@ -180,7 +191,7 @@ struct GameState_t
   float use_item_armed;
 };
 
-enum GameToolkit_t
+enum GameToolkitType_t
 {
   TOOLKIT_INVALID = -1,
 #if defined (USE_GLUT)
@@ -191,22 +202,50 @@ enum GameToolkit_t
 #error "USE_SDL or USE_GLUT must be defined"
 #endif
   ///////////////////////////////////////
-  TOOLKIT_MAX
+  MAX_TOOLKIT_TYPES
 };
 
-struct bullet_t
+struct Bullet_t
 {
   float position[3];
   float translation_step[3];
   float damage;
 
-  static int count;
+  static unsigned int count;
 };
 
 #include <vector>
 
-typedef std::vector<bullet_t> bullets_t;
-typedef bullets_t::iterator bullets_iterator_t;
-typedef bullets_t::const_iterator bullets_const_iterator_t;
+typedef std::vector<Bullet_t> Bullets_t;
+typedef Bullets_t::iterator BulletsIterator_t;
+typedef Bullets_t::const_iterator BulletsConstIterator_t;
+
+struct Explosion_t
+{
+  // *TODO*: remove these
+  Explosion_t ()
+   : age (0)
+   , size (1)
+  {
+    position[0] = 0.0; position[1] = 0.0; position[2] = 0.0;
+    velocity[0] = 0.0; velocity[1] = 0.0; velocity[2] = 0.0;
+    clr[0] = 1.0; clr[1] = 1.0; clr[2] = 1.0; clr[3] = 1.0;
+    count++;
+  }
+  ~Explosion_t () { count--; }
+  void init (float position_in[3], int a_in = 0, float size_in = 1.0);
+  void init (float position_in[3], float velocity_in[3], float color_in[4], int a_in = 0, float size_in = 1.0);
+
+  float position[3];
+  float velocity[3];
+  float clr[4];
+  int   age;
+  float size;
+
+  static unsigned int count;
+};
+
+typedef std::vector<Explosion_t*> Explosions_t;
+typedef Explosions_t::iterator ExplosionsIterator_t;
 
 #endif // TYPES_H

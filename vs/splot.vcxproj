@@ -61,6 +61,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>msvcrt.lib</IgnoreSpecificDefaultLibraries>
+      <AdditionalDependencies>OpenGL32.Lib;GlU32.Lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -87,12 +88,14 @@
     <ClInclude Include="..\src\enemies.h" />
     <ClInclude Include="..\src\enemy_aircraft.h" />
     <ClInclude Include="..\src\enemy_fleet.h" />
+    <ClInclude Include="..\src\explosion.h" />
     <ClInclude Include="..\src\game_element.h" />
     <ClInclude Include="..\src\highscore.h" />
     <ClInclude Include="..\src\image.h" />
     <ClInclude Include="..\src\player_aircraft.h" />
     <ClInclude Include="..\src\player_bullets.h" />
     <ClInclude Include="..\src\powerup.h" />
+    <ClInclude Include="..\src\screen.h" />
     <ClInclude Include="..\src\state.h" />
     <ClInclude Include="..\src\stdafx.h" />
     <ClInclude Include="..\src\targetver.h" />
@@ -104,12 +107,14 @@
     <ClCompile Include="..\src\enemies.cpp" />
     <ClCompile Include="..\src\enemy_aircraft.cpp" />
     <ClCompile Include="..\src\enemy_fleet.cpp" />
+    <ClCompile Include="..\src\explosion.cpp" />
     <ClCompile Include="..\src\game_element.cpp" />
     <ClCompile Include="..\src\highscore.cpp" />
     <ClCompile Include="..\src\image.cpp" />
     <ClCompile Include="..\src\player_aircraft.cpp" />
     <ClCompile Include="..\src\player_bullets.cpp" />
     <ClCompile Include="..\src\powerup.cpp" />
+    <ClCompile Include="..\src\screen.cpp" />
     <ClCompile Include="..\src\splot.cpp" />
     <ClCompile Include="..\src\state.cpp" />
     <ClCompile Include="..\src\stdafx.cpp">

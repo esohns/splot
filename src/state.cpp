@@ -20,9 +20,9 @@
 #include "player_bullets.h"
 #include "EnemyAmmo.h"
 #include "enemies.h"
-#include "Explosions.h"
+#include "explosion.h"
 #include "player_aircraft.h"
-#include "ScreenItemAdd.h"
+#include "screen.h"
 #include "StatusDisplay.h"
 #include "GroundMetal.h"
 #if defined (USE_GLUT)
@@ -68,7 +68,7 @@ Splot_State::Splot_State ()
   state_.enemies           = NULL;
   state_.player_bullets    = NULL;
   state_.enemy_ammo        = NULL;
-  state_.item_add          = NULL;
+  //state_.screen_elements.clear ();
   state_.explosions        = NULL;
   state_.power_ups         = NULL;
   state_.audio             = NULL;
@@ -127,7 +127,7 @@ Splot_State::initialize ()
 }
 
 bool
-Splot_State::initialize (GameToolkit_t toolkit_in,
+Splot_State::initialize (GameToolkitType_t toolkit_in,
                          int argc_in,
                          char** argv_in)
 {
@@ -200,8 +200,8 @@ Splot_State::newGame ()
   state_.enemy_ammo->clear ();
   ACE_ASSERT (state_.player_bullets);
   state_.player_bullets->clear ();
-  ACE_ASSERT (state_.item_add);
-  state_.item_add->clear ();
+  Splot_Screen::clear ();
+  ACE_ASSERT (state_.screen_elements.empty ());
   ACE_ASSERT (state_.explosions);
   state_.explosions->clear ();
   game_state_.score = 0;
@@ -211,8 +211,9 @@ Splot_State::newGame ()
 
   state_.game_pause = false;
 
-  ACE_ASSERT (state_.item_add);
-  state_.item_add->loadScreenItems ("");
+  if (!Splot_Screen::load ())
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Splot_Screen::load (), continuing\n")));
 
   if (state_.ground_game != state_.ground_menu)
   {
@@ -283,11 +284,14 @@ Splot_State::gotoNextLevel ()
   state_.power_ups->clear ();
   state_.enemy_ammo->clear ();
   state_.player_bullets->clear ();
-  state_.item_add->clear ();
+  Splot_Screen::clear ();
+  ACE_ASSERT (state_.screen_elements.empty ());
 
   state_.player->fullRepair ();
 
-  state_.item_add->loadScreenItems (ACE_TEXT_ALWAYS_CHAR (""));
+  if (!Splot_Screen::load ())
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Splot_Screen::load (), continuing\n")));
 
   // when more than one ground is used, check here if it need to be created
   state_.ground->nextVariation ();
@@ -308,7 +312,7 @@ Splot_State::createGame ()
   ACE_NEW (state_.main_GL,
            MainGL ());
   ACE_NEW (state_.explosions,
-           Explosions ());
+           Splot_Explosions ());
   ACE_NEW (state_.enemies,
            Splot_Enemies ());
   ACE_NEW (state_.player,
@@ -325,8 +329,7 @@ Splot_State::createGame ()
            GroundMetal ());
   ACE_NEW (state_.menu,
            MenuGL ());
-  ACE_NEW (state_.item_add,
-           ScreenItemAdd ());
+  //Splot_Screen::clear ();
 
  #if defined (AUDIO_OPENAL) && defined (AUDIO_SDLMIXER) 
   if (configuration.audio_type == AUDIO_OPENAL)
@@ -377,7 +380,7 @@ Splot_State::deleteGame ()
   delete state_.power_ups;
   delete state_.ground;
   delete state_.menu;
-  delete state_.item_add;
+  //state_.screen_elements.clear ();
   delete state_.audio;
 
   if (configuration.debug)

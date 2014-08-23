@@ -24,46 +24,52 @@ enum EnemyAircraftType_t
   ENEMYAIRCRAFT_BOSS_0,
   ENEMYAIRCRAFT_BOSS_1,
   ///////////////////////////////////////
-  ENEMYAIRCRAFT_MAX_TYPES
+  MAX_ENEMYAIRCRAFT_TYPES
 };
 
 class Splot_EnemyFleet;
-class EnemyAircraft_Boss01;
+//class EnemyAircraft_Boss01;
 
 class Splot_EnemyAircraft
  : public Splot_GameElement
 {
   friend class Splot_EnemyFleet;
   //friend class ScreenItemAdd;
-  friend class EnemyAircraft_Boss01;
+  //friend class EnemyAircraft_Boss01;
 
  public:
   Splot_EnemyAircraft (); // *WARNING*: do NOT use !
   Splot_EnemyAircraft (EnemyAircraftType_t, // type
                        float p[3],          // position
-                       float = 1.0);        // randFact
+                       float = 1.0);        // random movement factor
   virtual ~Splot_EnemyAircraft ();
 
   virtual Splot_EnemyAircraft* get_next () { return dynamic_cast<Splot_EnemyAircraft*> (inherited::get_next ()); };
 
   void update ();
   void reset (float p[3],   // position
-              float = 1.0); // randFact
+              float = 1.0); // random movement factor
 
   EnemyAircraftType_t type () const { return type_; };
 
-  bool checkHit (const bullet_t&); // bullet
+  bool checkHit (const Bullet_t&); // bullet
   void setTarget (Splot_GameElement* target_in) { target_ = target_in; }
 
   void drawGL (GLuint tex, GLuint xtraTex);
 
   float size_[2];
+
   float damage_;
   float baseDamage_;
+
   float collisionMove_;
   float secondaryMove_[2];
+
   float preFire_;
 
+  //static Splot_EnemyAircraft* make (EnemyAircraftType_t, // type
+  //                                  float p[3],          // position
+  //                                  int relTime);        // relTime
   static void printNumAllocated ();
 
  protected:
@@ -77,11 +83,10 @@ class Splot_EnemyAircraft
   int   shootInterval_;
   int   shootSwap_;
 
-  float randMoveX_;
-  float lastMoveX_;
-  float lastMoveY_;
+  float randomMoveX_;
+  float lastMove_[2];
 
-  float speedAdj_;
+  float speedAdjustment_;
 
   Splot_GameElement* target_;
 

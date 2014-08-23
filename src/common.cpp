@@ -11,7 +11,7 @@
 #include "types.h"
 
 // init statics
-int bullet_t::count = 0;
+unsigned int Bullet_t::count = 0;
 
 std::string
 alterPathForPlatform (char* filename_in)

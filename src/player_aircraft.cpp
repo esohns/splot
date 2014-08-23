@@ -29,7 +29,7 @@
 #include "configuration.h"
 #include "state.h"
 #include "player_bullets.h"
-#include "Explosions.h"
+#include "explosion.h"
 #include "enemy_fleet.h"
 //#include "enemy_aircraft.h"
 #include "powerup.h"
@@ -92,7 +92,7 @@ Splot_PlayerAircraft::loadTextures ()
                 ACE_TEXT (filename.c_str ())));
 }
 
-void Splot_PlayerAircraft::deleteTextures()
+void Splot_PlayerAircraft::deleteTextures ()
 {
   if (heroTex_)
     glDeleteTextures (1, &heroTex_);
@@ -152,17 +152,17 @@ Splot_PlayerAircraft::fullRepair ()
   float v0[3] = { 0.0F, 0.08F, 0.0F };
   float clr[4] = { 1.0F, 1.0F, 1.0F, 1.0F };
   p0[0] = -10.4F;
-  state.explosions->addElectric (p0, v0, clr, 0);
-  state.explosions->addElectric (p0, v0, clr, 0);
-  state.explosions->addElectric (p0, v0, clr, -1);
-  state.explosions->addElectric (p0, v0, clr, -3);
-  state.explosions->addElectric (p0, v0, clr, -4);
+  state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, 0);
+  state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, 0);
+  state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -1);
+  state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -3);
+  state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -4);
   p0[0] = 10.4F;
-  state.explosions->addElectric(p0, v0, clr, 0);
-  state.explosions->addElectric(p0, v0, clr, 0);
-  state.explosions->addElectric(p0, v0, clr, -1);
-  state.explosions->addElectric(p0, v0, clr, -3);
-  state.explosions->addElectric(p0, v0, clr, -4);
+  state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, 0);
+  state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, 0);
+  state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -1);
+  state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -3);
+  state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -4);
 
   secondaryMove_[0] = secondaryMove_[1] = 0.0F;
 }
@@ -176,20 +176,20 @@ Splot_PlayerAircraft::addShip (bool score_in)
   float p[3] = { 10.2F, 0.0F, 25.0F };
   p[1] = 7.4F-game_state.ships*state.player->size_[1];
   state.audio->playSound (Audio::AddLife, p);
-  state.explosions->addExplo (Explosions::AddLife, p);
-  state.explosions->addExplo (Explosions::AddLife, p, -10);
-  state.explosions->addExplo (Explosions::AddLife, p, -13);
+  state.explosions->add (EXPLOSION_LIFE_ADD, p);
+  state.explosions->add (EXPLOSION_LIFE_ADD, p, -10);
+  state.explosions->add (EXPLOSION_LIFE_ADD, p, -13);
 
   if (score_in)
   {
     p[0] = -7.9F;
     p[1] = -8.0F;
     state.audio->playSound (Audio::AddLife, p);
-    state.explosions->addExplo (Explosions::PowerBurst, p);
-    state.explosions->addExplo (Explosions::ScoreLife, p, 0);
-    state.explosions->addExplo (Explosions::ScoreLife, p, -3);
-    state.explosions->addExplo (Explosions::ScoreLife, p, -9);
-    state.explosions->addExplo (Explosions::ScoreLife, p, -15);
+    state.explosions->add (EXPLOSION_POWER_BURST, p);
+    state.explosions->add (EXPLOSION_LIFE_SCORE, p, 0);
+    state.explosions->add (EXPLOSION_LIFE_SCORE, p, -3);
+    state.explosions->add (EXPLOSION_LIFE_SCORE, p, -9);
+    state.explosions->add (EXPLOSION_LIFE_SCORE, p, -15);
   } // end IF
 
   if (game_state.ships < MAX_PLAYER_SHIPS)
@@ -212,10 +212,10 @@ Splot_PlayerAircraft::loseShip ()
   if (game_state.ships > -2)
   {
     state.audio->playSound (Audio::LoseLife, p);
-    state.explosions->addExplo (Explosions::LoseLife, p, 0, 1.5);
-    state.explosions->addExplo (Explosions::LoseLife, p, -10, 1.5);
-    state.explosions->addExplo (Explosions::LoseLife, p, -13, 1.5);
-    state.explosions->addExplo (Explosions::PowerBurst, p);
+    state.explosions->add (EXPLOSION_LIFE_LOSE, p, 0, 1.5);
+    state.explosions->add (EXPLOSION_LIFE_LOSE, p, -10, 1.5);
+    state.explosions->add (EXPLOSION_LIFE_LOSE, p, -13, 1.5);
+    state.explosions->add (EXPLOSION_POWER_BURST, p);
   } // end IF
   if (game_state.ships < 0 && state.game_mode != GAMEMODE_GAME_OVER)
   {
@@ -372,7 +372,7 @@ Splot_PlayerAircraft::doDamage (float damage_in)
   if (game_state.shields > PLAYER_DEFAULT_SHIELDS)
   {
     game_state.shields -= damage_in*0.25;
-    state.explosions->addExplo (Explosions::HeroShields, inherited::position_);
+    state.explosions->add (EXPLOSION_PLAYER_SHIELD, inherited::position_);
     state.status_display->setShieldAlpha (1.0);
   } // end IF
   else if (game_state.shields > 0.0) // *TODO*: not accurate
@@ -381,7 +381,7 @@ Splot_PlayerAircraft::doDamage (float damage_in)
     game_state.damage += damage_in*0.2;
     if (game_state.shields < 0.0)
       game_state.shields = 0.0;
-    state.explosions->addExplo (Explosions::HeroShields, inherited::position_);
+    state.explosions->add (EXPLOSION_PLAYER_SHIELD, inherited::position_);
     state.status_display->setShieldAlpha (1.0);
     state.status_display->setDamageAlpha (1.0);
   } // end IF
@@ -594,14 +594,14 @@ Splot_PlayerAircraft::checkForCollisions (Splot_EnemyFleet* fleet_in)
       p[0] = enemy->position_[0]+r1;
       p[1] = enemy->position_[1]+r2;
       p[2] = enemy->position_[2];
-      state.explosions->addExplo (Explosions::EnemyDamage, p);
+      state.explosions->add (EXPLOSION_ENEMY_DAMAGED, p);
       p[0] = inherited::position_[0]+r1;
       p[1] = inherited::position_[1]+0.2F+r2;
       p[2] = inherited::position_[2];
       if (game_state.shields > 0.0F)
-        state.explosions->addExplo (Explosions::HeroShields, p);
+        state.explosions->add (EXPLOSION_PLAYER_SHIELD, p);
       else
-        state.explosions->addExplo (Explosions::HeroDamage, p);
+        state.explosions->add (EXPLOSION_PLAYER_DAMAGED, p);
 
       secondaryMove_[0] = diffX*power*0.03F;
       secondaryMove_[1] = diffY*power*0.03F;
@@ -645,7 +645,7 @@ Splot_PlayerAircraft::checkForPowerUps (Splot_PowerUps* powerUps_in)
   if (state.game_mode != GAMEMODE_GAME)
     return;
 
-  float dist, stock;
+  float dist, stock, score = 0.0F;
   ACE_ASSERT (powerUps_in);
   Splot_PowerUp* pwrUp = powerUps_in->getFirst ();
   Splot_PowerUp* delUp = NULL;
@@ -667,21 +667,21 @@ Splot_PlayerAircraft::checkForPowerUps (Splot_PowerUps* powerUps_in)
     switch (pwrUp->type ())
     {
       case POWERUP_AMMO_0:
-        addScore (SCORE_POWERUP_AMMUNITION);
+        score += SCORE_POWERUP_AMMUNITION;
         stock = game_state.ammo_stock[0] + pwrUp->potency_*AMMO_REFILL;
         if (stock > AMMO_REFILL)
           stock = AMMO_REFILL;
         setAmmoStock (0, stock);
         break;
       case POWERUP_AMMO_1:
-        addScore (SCORE_POWERUP_AMMUNITION);
+        score += SCORE_POWERUP_AMMUNITION;
         stock = game_state.ammo_stock[1] + pwrUp->potency_*AMMO_REFILL;
         if (stock > AMMO_REFILL)
           stock = AMMO_REFILL;
         setAmmoStock (1, stock);
         break;
       case POWERUP_AMMO_2:
-        addScore (SCORE_POWERUP_AMMUNITION);
+        score += SCORE_POWERUP_AMMUNITION;
         stock = game_state.ammo_stock[2] + pwrUp->potency_*AMMO_REFILL;
         if (stock > AMMO_REFILL)
           stock = AMMO_REFILL;
@@ -689,22 +689,22 @@ Splot_PlayerAircraft::checkForPowerUps (Splot_PowerUps* powerUps_in)
         break;
       case POWERUP_REPAIR:
         game_state.damage = PLAYER_DEFAULT_DAMAGE;
-        state.status_display->setDamageAlpha(5.0);
+        state.status_display->setDamageAlpha (5.0);
         p0[0] = 10.4;
-        state.explosions->addElectric (p0, v0, clr, 0);
-        state.explosions->addElectric (p0, v0, clr, -1);
-        state.explosions->addElectric (p0, v0, clr, -3);
-        state.explosions->addElectric (p0, v0, clr, -4);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, 0);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -1);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -3);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -4);
         break;
       case POWERUP_SHIELD:
         if (game_state.shields < PLAYER_DEFAULT_SHIELDS)
           game_state.shields = PLAYER_DEFAULT_SHIELDS;
         state.status_display->setShieldAlpha (5.0);
         p0[0] = -10.4;
-        state.explosions->addElectric (p0, v0, clr,  0);
-        state.explosions->addElectric (p0, v0, clr, -1);
-        state.explosions->addElectric (p0, v0, clr, -3);
-        state.explosions->addElectric (p0, v0, clr, -4);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, 0);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -1);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -3);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -4);
         break;
       case POWERUP_SHIELD_SUPER:
         state.tip_super_shield++;
@@ -715,23 +715,23 @@ Splot_PlayerAircraft::checkForPowerUps (Splot_PowerUps* powerUps_in)
         state.status_display->setDamageAlpha (5.0);
         state.status_display->setShieldAlpha (5.0);
         p0[0] = -10.4;
-        state.explosions->addElectric (p0, v0, clr, 0);
-        state.explosions->addElectric (p0, v0, clr, -1);
-        state.explosions->addElectric (p0, v0, clr, -3);
-        state.explosions->addElectric (p0, v0, clr, -4);
-        state.explosions->addElectric (p0, v0, clr, -10);
-        state.explosions->addElectric (p0, v0, clr, -11);
-        state.explosions->addElectric (p0, v0, clr, -13);
-        state.explosions->addElectric (p0, v0, clr, -14);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, 0);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -1);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -3);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -4);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -10);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -11);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -13);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -14);
         p0[0] = 10.4;
-        state.explosions->addElectric (p0, v0, clr, 0);
-        state.explosions->addElectric (p0, v0, clr, -1);
-        state.explosions->addElectric (p0, v0, clr, -3);
-        state.explosions->addElectric (p0, v0, clr, -4);
-        state.explosions->addElectric (p0, v0, clr, -10);
-        state.explosions->addElectric (p0, v0, clr, -11);
-        state.explosions->addElectric (p0, v0, clr, -13);
-        state.explosions->addElectric (p0, v0, clr, -14);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, 0);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -1);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -3);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -4);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -10);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -11);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -13);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -14);
         break;
       default:
         ACE_DEBUG ((LM_ERROR,
@@ -740,11 +740,12 @@ Splot_PlayerAircraft::checkForPowerUps (Splot_PowerUps* powerUps_in)
         break;
     } // end SWITCH
 
-    state.explosions->addExplo (Explosions::PowerBurst, pwrUp->position_);
+    state.explosions->add (EXPLOSION_POWER_BURST, pwrUp->position_);
     delUp = pwrUp;
     pwrUp = pwrUp->get_next ();
     powerUps_in->remove (delUp);
   } // end WHILE
+  game_state.score += score;
 }
 
 void
@@ -965,7 +966,7 @@ Splot_PlayerAircraft::deathExplosions ()
     p[0] = inherited::position_[0]+deathCircle_[i][0];
     p[1] = inherited::position_[1]+deathCircle_[i][1];
     p[2] = inherited::position_[2];
-    state.explosions->addExplo (Explosions::EnemyDestroyed, p);
+    state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p);
   } // end FOR
 
   //-- Set up explosions
@@ -984,14 +985,14 @@ Splot_PlayerAircraft::deathExplosions ()
         r = 1.25+4.0*((float)i/(float)DEATH_TIME);
         p[0] = inherited::position_[0]+deathCircle_[w][0]*r;
         p[1] = inherited::position_[1]+deathCircle_[w][1]*r;
-        state.explosions->addExplo (Explosions::EnemyDestroyed, p, -i);
+        state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, -i);
       } // end IF
     } // end IF
     else
     {
       p[0] = inherited::position_[0]+deathCircle_[w][0];
       p[1] = inherited::position_[1]+deathCircle_[w][1];
-      state.explosions->addExplo (Explosions::EnemyDestroyed, p, -i);
+      state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, -i);
     } // end ELSE
 
     if (!(i%21))

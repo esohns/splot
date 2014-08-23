@@ -17,9 +17,9 @@ class Splot_State
  public:
   static void initialize ();
 
-  bool initialize (GameToolkit_t, // toolkit
-                   int,           // argc
-                   char**);       // argv
+  bool initialize (GameToolkitType_t, // toolkit
+                   int,               // argc
+                   char**);           // argv
   void run ();
 
   State_t& get () { return state_; };
