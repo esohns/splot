@@ -17,15 +17,15 @@ class Splot_HighScore
                         int); // index
   std::string getName  (int,  // skill level
                         int); // index
-  time_t		  getDate  (int,  // skill level
+  time_t      getDate  (int,  // skill level
                         int); // index
 
   static std::string getFileName ();
   static std::string getOldFileName();
   bool save ();
-  int			set (int skill, float score);
-  int			check (int skill, float score);
-  void		print (int skill);
+  int     set (int skill, float score);
+  int     check (int skill, float score);
+  void    print (int skill);
 
  private:
   bool load (const std::string&); // FQ filename
@@ -35,7 +35,7 @@ class Splot_HighScore
   char   highScoreName_[MAX_LEVEL][HI_SCORE_HIST][MAX_PLAYER_NAME_LENGTH + 1];
   time_t highScoreDate_[MAX_LEVEL][HI_SCORE_HIST];
 
-  bool        initialized_;
+  bool initialized_;
 };
 
 #endif // HIGHSCORE_H

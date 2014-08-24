@@ -175,21 +175,21 @@ Splot_PlayerAircraft::addShip (bool score_in)
 
   float p[3] = { 10.2F, 0.0F, 25.0F };
   p[1] = 7.4F-game_state.ships*state.player->size_[1];
-  state.audio->playSound (Audio::AddLife, p);
-  state.explosions->add (EXPLOSION_LIFE_ADD, p);
-  state.explosions->add (EXPLOSION_LIFE_ADD, p, -10);
-  state.explosions->add (EXPLOSION_LIFE_ADD, p, -13);
+  state.audio->play (SOUND_SHIP_ADD, p);
+  state.explosions->add (EXPLOSION_SHIP_ADD, p);
+  state.explosions->add (EXPLOSION_SHIP_ADD, p, -10);
+  state.explosions->add (EXPLOSION_SHIP_ADD, p, -13);
 
   if (score_in)
   {
     p[0] = -7.9F;
     p[1] = -8.0F;
-    state.audio->playSound (Audio::AddLife, p);
+    state.audio->play (SOUND_SHIP_ADD, p);
     state.explosions->add (EXPLOSION_POWER_BURST, p);
-    state.explosions->add (EXPLOSION_LIFE_SCORE, p, 0);
-    state.explosions->add (EXPLOSION_LIFE_SCORE, p, -3);
-    state.explosions->add (EXPLOSION_LIFE_SCORE, p, -9);
-    state.explosions->add (EXPLOSION_LIFE_SCORE, p, -15);
+    state.explosions->add (EXPLOSION_SHIP_SCORE, p, 0);
+    state.explosions->add (EXPLOSION_SHIP_SCORE, p, -3);
+    state.explosions->add (EXPLOSION_SHIP_SCORE, p, -9);
+    state.explosions->add (EXPLOSION_SHIP_SCORE, p, -15);
   } // end IF
 
   if (game_state.ships < MAX_PLAYER_SHIPS)
@@ -211,10 +211,10 @@ Splot_PlayerAircraft::loseShip ()
 
   if (game_state.ships > -2)
   {
-    state.audio->playSound (Audio::LoseLife, p);
-    state.explosions->add (EXPLOSION_LIFE_LOSE, p, 0, 1.5);
-    state.explosions->add (EXPLOSION_LIFE_LOSE, p, -10, 1.5);
-    state.explosions->add (EXPLOSION_LIFE_LOSE, p, -13, 1.5);
+    state.audio->play (SOUND_SHIP_LOSE, p);
+    state.explosions->add (EXPLOSION_SHIP_LOSE, p, 0, 1.5);
+    state.explosions->add (EXPLOSION_SHIP_LOSE, p, -10, 1.5);
+    state.explosions->add (EXPLOSION_SHIP_LOSE, p, -13, 1.5);
     state.explosions->add (EXPLOSION_POWER_BURST, p);
   } // end IF
   if (game_state.ships < 0 && state.game_mode != GAMEMODE_GAME_OVER)
@@ -663,7 +663,7 @@ Splot_PlayerAircraft::checkForPowerUps (Splot_PowerUps* powerUps_in)
       continue;
     } // end IF
 
-    state.audio->playSound (Audio::PowerUp, inherited::position_);
+    state.audio->play (SOUND_POWERUP, inherited::position_);
     switch (pwrUp->type ())
     {
       case POWERUP_AMMO_0:
@@ -945,14 +945,14 @@ Splot_PlayerAircraft::deathExplosions ()
 
   game_state.death_stereo = 5.0;
   p[0] = -game_state.death_stereo;
-  state.audio->playSound (Audio::Explosion, p);
-  state.audio->playSound (Audio::Explosion, p, -45);
+  state.audio->play (SOUND_EXPLOSION_DEFAULT, p);
+  state.audio->play (SOUND_EXPLOSION_DEFAULT, p, -45);
   p[0] = game_state.death_stereo;
-  state.audio->playSound (Audio::Explosion, p);
-  state.audio->playSound (Audio::Explosion, p, -20);
+  state.audio->play (SOUND_EXPLOSION_DEFAULT, p);
+  state.audio->play (SOUND_EXPLOSION_DEFAULT, p, -20);
   p[0] =  0.0;
-  state.audio->playSound (Audio::ExploBig, p);
-  state.audio->playSound (Audio::ExploPop, p);
+  state.audio->play (SOUND_EXPLOSION_HEAVY, p);
+  state.audio->play (SOUND_EXPLOSION_LIGHT, p);
 
   //-- Caclulate radius
   int i;
@@ -1000,7 +1000,7 @@ Splot_PlayerAircraft::deathExplosions ()
       game_state.death_stereo = -game_state.death_stereo*1.5;
       p[0] = game_state.death_stereo;
       p[1] = -5.0;
-      state.audio->playSound (Audio::Explosion, p, -i);
+      state.audio->play (SOUND_EXPLOSION_DEFAULT, p, -i);
     } // end IF
   } // end FOR
 }

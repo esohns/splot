@@ -428,7 +428,7 @@ Splot_EnemyFleet::update ()
             state.explosions->add (EXPLOSION_ENEMY_DAMAGED, thisEnemy->position_);
             state.explosions->add (EXPLOSION_ENEMY_DAMAGED, thisEnemy->position_, -3, 0.7F);
             state.explosions->add (EXPLOSION_ENEMY_AMMUNITION_4, thisEnemy->position_);
-            state.audio->playSound (Audio::ExploPop, thisEnemy->position_);
+            state.audio->play (SOUND_EXPLOSION_LIGHT, thisEnemy->position_);
             break;
           case ENEMYAIRCRAFT_RAYGUN:
             score += SCORE_KILL_RAYGUN;
@@ -441,8 +441,8 @@ Splot_EnemyFleet::update ()
             p[0] = thisEnemy->position_[0];
             state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, -20, 2.0F);
             state.explosions->add (EXPLOSION_ENEMY_DAMAGED, p, -30, 2.0F);
-            state.audio->playSound (Audio::Explosion, thisEnemy->position_);
-            state.audio->playSound (Audio::ExploBig, thisEnemy->position_);
+            state.audio->play (SOUND_EXPLOSION_DEFAULT, thisEnemy->position_);
+            state.audio->play (SOUND_EXPLOSION_HEAVY, thisEnemy->position_);
             break;
           case ENEMYAIRCRAFT_TANK:
             score += SCORE_KILL_TANK;
@@ -462,19 +462,19 @@ Splot_EnemyFleet::update ()
             p[0] = thisEnemy->position_[0]-0.7F;
             p[1] = thisEnemy->position_[1]+0.9F;
             state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, -8, 1.5F);
-            state.audio->playSound (Audio::Explosion, thisEnemy->position_);
-            state.audio->playSound (Audio::ExploBig, thisEnemy->position_);
+            state.audio->play (SOUND_EXPLOSION_DEFAULT, thisEnemy->position_);
+            state.audio->play (SOUND_EXPLOSION_HEAVY, thisEnemy->position_);
             break;
           case ENEMYAIRCRAFT_GNAT:
             score += SCORE_KILL_GNAT;
             state.explosions->add (EXPLOSION_ENEMY_AMMUNITION_4, thisEnemy->position_);
-            state.audio->playSound (Audio::ExploPop, thisEnemy->position_);
+            state.audio->play (SOUND_EXPLOSION_LIGHT, thisEnemy->position_);
             break;
           default: //-- extra damage explosion delayed for bloom effect *TODO*
             score += SCORE_KILL_DEFAULT;
             state.explosions->add (EXPLOSION_ENEMY_DESTROYED, thisEnemy->position_);
             state.explosions->add (EXPLOSION_ENEMY_DAMAGED, thisEnemy->position_, -15);
-            state.audio->playSound (Audio::Explosion, thisEnemy->position_);
+            state.audio->play (SOUND_EXPLOSION_DEFAULT, thisEnemy->position_);
             break;
         } // end SWITCH
 
@@ -572,20 +572,20 @@ Splot_EnemyFleet::bossExplosion (Splot_EnemyAircraft* enemy_in)
   } // end FOR
   //-- Boss Audio Explosion
   p[0] = -10.0F; p[1] = -5.0F;
-  state.audio->playSound (Audio::Explosion, p);
-  state.audio->playSound (Audio::Explosion, p, -27);
-  state.audio->playSound (Audio::ExploPop, p, -45);
+  state.audio->play (SOUND_EXPLOSION_DEFAULT, p);
+  state.audio->play (SOUND_EXPLOSION_DEFAULT, p, -27);
+  state.audio->play (SOUND_EXPLOSION_LIGHT, p, -45);
   p[0] = 10.0F;
-  state.audio->playSound (Audio::Explosion, p, -3);
-  state.audio->playSound (Audio::Explosion, p, -25);
-  state.audio->playSound (Audio::ExploPop, p, -40);
+  state.audio->play (SOUND_EXPLOSION_DEFAULT, p, -3);
+  state.audio->play (SOUND_EXPLOSION_DEFAULT, p, -25);
+  state.audio->play (SOUND_EXPLOSION_LIGHT, p, -40);
   p[0] = 0.0F;
-  state.audio->playSound (Audio::ExploBig, p, 0);
-  state.audio->playSound (Audio::ExploBig, p, -60);
-  state.audio->playSound (Audio::ExploPop, p, -55);
-  state.audio->playSound (Audio::ExploPop, p, -80);
-  state.audio->playSound (Audio::ExploPop, p, -120);
-  state.audio->playSound (Audio::ExploPop, p, -160);
+  state.audio->play (SOUND_EXPLOSION_HEAVY, p, 0);
+  state.audio->play (SOUND_EXPLOSION_HEAVY, p, -60);
+  state.audio->play (SOUND_EXPLOSION_LIGHT, p, -55);
+  state.audio->play (SOUND_EXPLOSION_LIGHT, p, -80);
+  state.audio->play (SOUND_EXPLOSION_LIGHT, p, -120);
+  state.audio->play (SOUND_EXPLOSION_LIGHT, p, -160);
 }
 
 void

@@ -57,6 +57,9 @@ Splot_State::Splot_State ()
   state_.game_level        = 1;
   state_.max_level         = 1;
   state_.speed_adj         = STATE_DEFAULT_SPEED_ADJUSTMENT;
+
+  state_.cdrom_count       = 1;
+
   state_.game_mode         = GAMEMODE_MENU;
 
   state_.hero_death        = 0;
@@ -346,14 +349,14 @@ Splot_State::createGame ()
            AudioSDLMixer ());
 #else
   ACE_NEW (state_.audio,
-           Audio ());
+           Splot_Audio ()); // (with SDL) this can only do CD audio
 #endif
 
   state_.ground_game = state_.ground_menu = state_.ground;
 
   newGame ();
 
-  state_.audio->setMusicMode (Audio::MusicMenu);
+  state_.audio->setMusicMode (SOUND_MUSIC_MENU);
 
   if (configuration.debug)
     ACE_DEBUG ((LM_DEBUG,

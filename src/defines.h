@@ -61,6 +61,7 @@
 #define SKILL_BASE_MAX                       0.9F
 #define SKILL_LEVEL_INCREMENT                0.05
 #define SKILL_MAX                            1.9
+#define SKILL_LEVEL_MAX_INT                  MAX_LEVEL
 
 #define STATE_DEFAULT_FPS                    50.0
 
@@ -74,6 +75,7 @@
 #define MAX_PLAYER_SHIPS                     9
 
 #define SPLOT_IMAGE_DATA_DIR                 "png"
+#define SPLOT_AUDIO_DATA_DIR                 "wav"
 
 #if defined (USE_DYNAMIC_RANDOMNESS)
 #define SRAND (2.0*(0.5-(ACE_OS::rand ()/(double)RAND_MAX)))
@@ -128,5 +130,11 @@
 #endif // macintosh
 
 #define HI_SCORE_HIST                        5
+
+#define NUM_EXPLO                            2
+#define NUM_EXPLO_POP                        6
+#define MAX_MUSIC                            32
+
+#define NUM_HELP_MESSAGE_LINES               7
 
 #endif // DEFINES_H

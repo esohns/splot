@@ -109,17 +109,17 @@ Splot_Explosions::Splot_Explosions ()
   exploSize_[EXPLOSION_POWER_BURST][1] = 1.8F;
   exploStay_[EXPLOSION_POWER_BURST] = 35.0;
 
-  exploSize_[EXPLOSION_LIFE_ADD][0] = 2.5;
-  exploSize_[EXPLOSION_LIFE_ADD][1] = 2.5;
-  exploStay_[EXPLOSION_LIFE_ADD] = 25.0;
+  exploSize_[EXPLOSION_SHIP_ADD][0] = 2.5;
+  exploSize_[EXPLOSION_SHIP_ADD][1] = 2.5;
+  exploStay_[EXPLOSION_SHIP_ADD] = 25.0;
 
-  exploSize_[EXPLOSION_LIFE_LOSE][0] = 3.5;
-  exploSize_[EXPLOSION_LIFE_LOSE][1] = 3.5;
-  exploStay_[EXPLOSION_LIFE_LOSE] = 35.0;
+  exploSize_[EXPLOSION_SHIP_LOSE][0] = 3.5;
+  exploSize_[EXPLOSION_SHIP_LOSE][1] = 3.5;
+  exploStay_[EXPLOSION_SHIP_LOSE] = 35.0;
 
-  exploSize_[EXPLOSION_LIFE_SCORE][0] = 3.5;
-  exploSize_[EXPLOSION_LIFE_SCORE][1] = 3.5;
-  exploStay_[EXPLOSION_LIFE_SCORE] = 35.0;
+  exploSize_[EXPLOSION_SHIP_SCORE][0] = 3.5;
+  exploSize_[EXPLOSION_SHIP_SCORE][1] = 3.5;
+  exploStay_[EXPLOSION_SHIP_SCORE] = 35.0;
 
   exploSize_[EXPLOSION_EFFECT_ELECTRIC][0] = 1.7F;
   exploSize_[EXPLOSION_EFFECT_ELECTRIC][1] = 0.5;
@@ -183,9 +183,9 @@ Splot_Explosions::loadTextures ()
   filename = path_base + ACE_TEXT_ALWAYS_CHAR ("powerUpTex.png");
   tex_[EXPLOSION_POWER_BURST]         = Splot_Image::load (dataLoc (filename), IMG_NOMIPMAPS, IMG_BLEND3, GL_CLAMP, GL_LINEAR, GL_LINEAR);
   filename = path_base + ACE_TEXT_ALWAYS_CHAR ("life.png");
-  tex_[EXPLOSION_LIFE_ADD]            = Splot_Image::load (dataLoc (filename));
-  tex_[EXPLOSION_LIFE_LOSE]           = tex_[EXPLOSION_LIFE_ADD];
-  tex_[EXPLOSION_LIFE_SCORE]          = tex_[EXPLOSION_LIFE_ADD];
+  tex_[EXPLOSION_SHIP_ADD]            = Splot_Image::load (dataLoc (filename));
+  tex_[EXPLOSION_SHIP_LOSE]           = tex_[EXPLOSION_SHIP_ADD];
+  tex_[EXPLOSION_SHIP_SCORE]          = tex_[EXPLOSION_SHIP_ADD];
   filename = path_base + ACE_TEXT_ALWAYS_CHAR ("electric.png");
   tex_[EXPLOSION_EFFECT_ELECTRIC]     = Splot_Image::load (dataLoc (filename), IMG_NOMIPMAPS, IMG_BLEND3, GL_REPEAT, GL_LINEAR, GL_LINEAR);
   filename = path_base + ACE_TEXT_ALWAYS_CHAR ("glitter.png");
@@ -341,9 +341,9 @@ Splot_Explosions::drawGL ()
   drawShields  (EXPLOSION_PLAYER_SHIELD);
   drawBurst    (EXPLOSION_POWER_BURST);
 
-  drawLife     (EXPLOSION_LIFE_ADD);
-  drawLife     (EXPLOSION_LIFE_LOSE);
-  drawLife     (EXPLOSION_LIFE_SCORE);
+  drawLife     (EXPLOSION_SHIP_ADD);
+  drawLife     (EXPLOSION_SHIP_LOSE);
+  drawLife     (EXPLOSION_SHIP_SCORE);
 
   drawElectric (EXPLOSION_EFFECT_ELECTRIC);
   drawGlitter  (EXPLOSION_EFFECT_GLITTER);
@@ -571,18 +571,18 @@ Splot_Explosions::drawLife (ExplosionType_t type_in)
     tmp = age/exploStay_[type_in];
     switch (type_in)
     {
-      case EXPLOSION_LIFE_ADD:
+      case EXPLOSION_SHIP_ADD:
         clr[0] = clr[1] = tmp;
         clr[2] = 1.0;
         clr[3] = tmp+0.2F;
         tmp = 1.0F-tmp;
         break;
-      case EXPLOSION_LIFE_LOSE:
+      case EXPLOSION_SHIP_LOSE:
         clr[0] = 1.0;
         clr[1] = clr[2] = 0.1F;
         clr[3] = 1.0F-tmp;
         break;
-      case EXPLOSION_LIFE_SCORE:
+      case EXPLOSION_SHIP_SCORE:
         clr[0] = clr[1] = clr[2] = 1.0;
         clr[3] = 1.0F-tmp;
         break;

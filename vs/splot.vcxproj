@@ -82,6 +82,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\audio.h" />
+    <ClInclude Include="..\src\background.h" />
     <ClInclude Include="..\src\common.h" />
     <ClInclude Include="..\src\configuration.h" />
     <ClInclude Include="..\src\defines.h" />
@@ -92,6 +94,7 @@
     <ClInclude Include="..\src\game_element.h" />
     <ClInclude Include="..\src\highscore.h" />
     <ClInclude Include="..\src\image.h" />
+    <ClInclude Include="..\src\menu.h" />
     <ClInclude Include="..\src\player_aircraft.h" />
     <ClInclude Include="..\src\player_bullets.h" />
     <ClInclude Include="..\src\powerup.h" />
@@ -99,9 +102,12 @@
     <ClInclude Include="..\src\state.h" />
     <ClInclude Include="..\src\stdafx.h" />
     <ClInclude Include="..\src\targetver.h" />
+    <ClInclude Include="..\src\textGeometry.h" />
     <ClInclude Include="..\src\types.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\audio.cpp" />
+    <ClCompile Include="..\src\background.cpp" />
     <ClCompile Include="..\src\common.cpp" />
     <ClCompile Include="..\src\configuration.cpp" />
     <ClCompile Include="..\src\enemies.cpp" />
@@ -111,6 +117,7 @@
     <ClCompile Include="..\src\game_element.cpp" />
     <ClCompile Include="..\src\highscore.cpp" />
     <ClCompile Include="..\src\image.cpp" />
+    <ClCompile Include="..\src\menu.cpp" />
     <ClCompile Include="..\src\player_aircraft.cpp" />
     <ClCompile Include="..\src\player_bullets.cpp" />
     <ClCompile Include="..\src\powerup.cpp" />
@@ -120,6 +127,8 @@
     <ClCompile Include="..\src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\src\textGeometryBSU.cpp" />
+    <ClCompile Include="..\src\textGeometryChromium.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />

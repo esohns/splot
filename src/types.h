@@ -47,7 +47,6 @@ struct Configuration_t
   bool   use_playList;
   bool   use_cdrom;
   int    cdrom_device;
-  int    cdrom_count;
   float  vol_sound;
   float  vol_music;
   AudioType_t audio_type;
@@ -86,8 +85,8 @@ class Splot_Enemies;
 class EnemyAmmo;
 class Splot_Explosions;
 class Splot_PowerUps;
-class Audio;
-class Ground;
+class Splot_Audio;
+class Splot_Background;
 class MenuGL;
 class MainGL;
 class StatusDisplay;
@@ -125,6 +124,8 @@ struct State_t
   unsigned int     max_level;
   float            speed_adj;
 
+  int              cdrom_count;
+
   float            scroll_speed;
 
   bool             game_pause;
@@ -143,10 +144,10 @@ struct State_t
 
   Splot_Explosions*     explosions;
   Splot_PowerUps*       power_ups;
-  Audio*                audio;
-  Ground*               ground;
-  Ground*               ground_game;
-  Ground*               ground_menu;
+  Splot_Audio*          audio;
+  Splot_Background*     ground;
+  Splot_Background*     ground_game;
+  Splot_Background*     ground_menu;
   MenuGL*               menu;
   MainGL*               main_GL;
   StatusDisplay*        status_display;

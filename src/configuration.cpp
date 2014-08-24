@@ -40,7 +40,6 @@ Splot_Configuration::Splot_Configuration ()
   configuration_.use_playList = CONFIGURATION_DEFAULT_USE_PLAYLIST;
   configuration_.use_cdrom = CONFIGURATION_DEFAULT_USE_CDROM;
   configuration_.cdrom_device = 0;
-  configuration_.cdrom_count = 1;
   configuration_.vol_sound = CONFIGURATION_DEFAULT_VOL_SOUND;
   configuration_.vol_music = CONFIGURATION_DEFAULT_VOL_MUSIC;
   configuration_.audio_type = CONFIGURATION_DEFAULT_AUDIO_TYPE;

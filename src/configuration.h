@@ -27,9 +27,9 @@ class Splot_Configuration
 
   const Configuration_t& get () const;
 
-  void	setScreenSize(int m);
-  void	setScreenSize(int w, int h);
-  int	approxScreenSize();
+  void setScreenSize(int m);
+  void setScreenSize(int w, int h);
+  int approxScreenSize();
 
   void setFullScreen (bool set_in) { configuration_.full_screen = set_in; }
   void setBlend (bool set_in) { configuration_.blend_enabled = set_in; }
@@ -55,12 +55,6 @@ class Splot_Configuration
       configuration_.movement_speed = MOVEMENT_SPEED_MAX;
   }
 
-  void setAudio (bool set_in) { configuration_.audio_enabled = set_in; }
-  void setSwapStereo (bool set_in) { configuration_.swap_stereo = set_in; }
-  void setUsePlayList (bool set_in) { configuration_.use_playList = set_in; }
-  void setUseCDROM (bool set_in) { configuration_.use_cdrom = set_in; }
-  void setCDROMDevice (int device_in) { configuration_.cdrom_device = device_in; }
-  void setCDROMCount (int count_in) { configuration_.cdrom_count = count_in; }
   void setVolSound (float volume_in) {
     configuration_.vol_sound = volume_in;
     if (configuration_.vol_sound < 0.0)
@@ -75,8 +69,6 @@ class Splot_Configuration
     if (configuration_.vol_music > 1.0)
       configuration_.vol_music = 1.0;
   }
-
-  void setDebug (bool set_in) { configuration_.debug = set_in; }
 
   void setSkillBase (float skill_in) {
     configuration_.skill_base = skill_in;
