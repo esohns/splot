@@ -29,7 +29,7 @@ enum MenuSelection_t
   MENU_SCREENSIZE,
   MENU_SOUND,
   MENU_MUSIC,
-  MENU_SPEED,
+  MENU_MOVEMENTSPEED,
   MENU_QUIT,
   ///////////////////////////////////////
   MAX_MENU_TYPES

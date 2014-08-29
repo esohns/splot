@@ -31,6 +31,7 @@
 #include "highscore.h"
 #include "background.h"
 #include "audio.h"
+#include "text.h"
 #include "configuration.h"
 #include "image.h"
 #include "textGeometry.h"
@@ -75,7 +76,7 @@ Splot_Menu::Splot_Menu ()
   ACE_OS::strcpy (menuText_[MENU_SCREENSIZE], ACE_TEXT_ALWAYS_CHAR ("s c r e e n    s i z e"));
   ACE_OS::strcpy (menuText_[MENU_SOUND], ACE_TEXT_ALWAYS_CHAR ("s o u n d    f x    v o l u m e"));
   ACE_OS::strcpy (menuText_[MENU_MUSIC], ACE_TEXT_ALWAYS_CHAR ("m u s i c    v o l u m e"));
-  ACE_OS::strcpy (menuText_[MENU_SPEED], ACE_TEXT_ALWAYS_CHAR ("m o v e m e n t   s p e e d"));
+  ACE_OS::strcpy (menuText_[MENU_MOVEMENTSPEED], ACE_TEXT_ALWAYS_CHAR ("m o v e m e n t   s p e e d"));
   ACE_OS::strcpy (menuText_[MENU_QUIT], ACE_TEXT_ALWAYS_CHAR ("q u i t"));
 
   //ACE_OS::strcpy (skillText_[0], ACE_TEXT_ALWAYS_CHAR ("-"));
@@ -203,7 +204,7 @@ Splot_Menu::drawGL ()
   glColor4f (1.0, 1.0, 1.0, 1.0);
 
   //-- Draw background
-  state.ground->drawGL ();
+  state.background->drawGL ();
 
   //-- Update audio
   state.audio->update ();
@@ -308,7 +309,7 @@ Splot_Menu::drawGL ()
         glColor4f (1.0F, 1.0F, 1.0F, 0.2F+0.2F*r);
       //				glColor4f(0.5+r*0.5, 0.5, 0.25-r*0.25, 0.2+0.2*r);
       ACE_OS::sprintf (buffer, "%d", (int)state.highscore->getScore (l, i));
-      trans = 80.0+state.text->Advance (ACE_TEXT_ALWAYS_CHAR ("high scores"))-state.text->Advance (buffer);
+      trans = 80.0F+state.text->Advance (ACE_TEXT_ALWAYS_CHAR ("high scores"))-state.text->Advance (buffer);
       glTranslatef (trans, 0.0, 0.0);
       state.text->Render (buffer);
       glTranslatef (-trans, -30.0, 0.0);
@@ -432,563 +433,569 @@ Splot_Menu::drawGL ()
   } // end IF
 }
 
-//----------------------------------------------------------
-void Splot_Menu::drawIndicator()
+void
+Splot_Menu::drawIndicator ()
 {
-	Config	*config = Config::instance();
-	Global	*game = Global::getInstance();
-	char	buf[64];
-	float	szx = 10.0;
-	float	szy = txtHeight;
-	float	level = 0.0;
-	float	sc = 0.025F;
-	int		tmp;
-	switch(curSel)
-	{
-		case GameLevel: 
-			level = game->gameLevel/9.0;
-			sprintf(buf, "%d", game->gameLevel);	 
-			break;
-		case SkillLevel: 
-			level = config->gameSkillBase();
-			tmp = (int)((level+0.05)*10.0);
-			sprintf(buf, "%s", skillString(tmp));
-			break;
-		case Graphics: 
-			level = config->gfxLevel()/2.0;
-			switch(config->gfxLevel())
-			{
-				case 0: sprintf(buf, _("low")); break;
-				case 1: sprintf(buf, _("med")); break;
-				case 2: sprintf(buf, _("high")); break;
-			}
-			break;
-		case ScreenSize: 
-			level = (float)config->approxScreenSize()/(float)MAX_SCREEN_SIZE;
-			sprintf(buf, _("%dx%d"), config->screenW(), config->screenH());
-			break;
-		case FullScreen: 
-			level = (float)config->fullScreen(); 
-			if(config->fullScreen()) sprintf(buf, _("true"));
-			else sprintf(buf, _("false"));
-			break;
-		case Sound: 
-			level = config->volSound(); 
-			sprintf(buf, "%d", (int)((level+0.05)*10.0));	 
-			break;
-		case Music: 
-			level = config->volMusic(); 
-			sprintf(buf, "%d", (int)((level+0.05)*10.0));	 
-			break;
-		case MovementSpeed:
-			level = config->movementSpeed()*10.0;
-			sprintf(buf, "%d", (int)((level+0.005)*100.0));	 
-			break;
-		default: 
-			level = -5.0;
-			break;
-	}
-	glPushMatrix();
-		glTranslatef(0.0, -txtHeight, 0.0);
-		glBegin(GL_QUADS);
-			glColor4f(1.0F, 1.0F, 1.0F, 0.3F);
-			glVertex3f(szx+szy, szy, 0.0);
-			glVertex3f(   -szx, szy, 0.0);
-			glColor4f(1.0F, 1.0F, 1.0F, 0.15F);
-			glVertex3f(   -szx, 0.0, 0.0);
-			glVertex3f(    szx, 0.0, 0.0);
-		glEnd();
-		
-		//-- draw level indicator and/or text
-		glPushMatrix();
-		if(level > -1.0)
-		{
-			glBegin(GL_QUADS);
-				glColor4f(1.0, 0.0, 0.0, 1.0);
-				glVertex3f(szy+szx*level, szy, 0.0);
-				glVertex3f(          0.0, szy, 0.0);
-				glColor4f(0.0, 0.0, 0.0, 0.0);
-				glVertex3f(          0.0, 0.0, 0.0);
-				glVertex3f(    szx*level, 0.0, 0.0);
-			glEnd();
-			
-			//-- draw +/- buttons ---
-			float	bx = butWidth;
-			float	by = butHeight;
-			float	bo = butOffset;
-			glBindTexture(GL_TEXTURE_2D, updwnTex);
-			glBegin(GL_QUADS);
-				glColor4f(1.0F, 1.0F, 1.0F, 0.6F);
-				glTexCoord2f (1.0, 0.0); glVertex3f (  bx-bo,  by, 0.0);
-				glTexCoord2f (0.0, 0.0); glVertex3f (0.0F-bo,  by, 0.0);
-				glTexCoord2f (0.0, 1.0); glVertex3f (0.0F-bo, 0.0, 0.0);
-				glTexCoord2f (1.0, 1.0); glVertex3f (  bx-bo, 0.0, 0.0);
-			glEnd();
-			
-			glColor4f(1.0, 1.0, 1.0, 0.5);
-			glTranslatef(11.0, 0.0, 0.0);
-			glScalef(sc, sc, 1.0);
-			game->text->Render(buf);
-		}
-		glPopMatrix();
-		
-	glPopMatrix();
-	
-}
-	
-//----------------------------------------------------------
-void Splot_Menu::drawElectric()
-{
-	float es = elecStretch;
-	elecOffY = FRAND*0.7;
-	if( (elecOffX+=0.175) > es)
-		elecOffX = -5.0;
-	float szx = 30.0;
-	float szy = txtHeight;
-	glBindTexture(GL_TEXTURE_2D, elecTex);
-	glPushMatrix();
-	glTranslatef(0.0, txtHeight*0.5, 0.0);
-	glBegin(GL_QUADS);
-		glColor4f(1.0, 1.0, 1.0, 1.0);
-		glTexCoord2f(   elecOffX, elecOffY+0.3); glVertex3f( -8.0,  szy, 0.0);
-		glTexCoord2f(   elecOffX,     elecOffY); glVertex3f( -8.0, -szy, 0.0);
-		glColor4f(0.0, 0.0, 0.1F, 1.0F);
-		glTexCoord2f(elecOffX-es,     elecOffY); glVertex3f(  szx, -szy, 0.0);
-		glTexCoord2f(elecOffX-es, elecOffY+0.3); glVertex3f(  szx,  szy, 0.0);
-	glEnd();
-	glPopMatrix();
-}
-	
-//----------------------------------------------------------
-void Splot_Menu::drawTitleBack()
-{
-	float	clr_c[4] = { 1.0, 1.0, 1.0, 0.0 };
-	float	clr_w[4] = { 1.0, 1.0, 1.0, 1.0 };
-	float	w = 9.0;
-	float	a = 2.0;
-	float	h = 1.4F;
-	float	z = 0.5;
-		
-	float	as = a/(w+a);
-	float	at = a/(h+a);
-	
-	glBindTexture(GL_TEXTURE_2D, backTex);
-	glMatrixMode(GL_TEXTURE);
-	glPushMatrix();
-	static float amt = 0.0;
-	glTranslatef(amt*0.1F, amt*0.5F, 0.0);
-	glRotatef(-amt*100.0F, 0.0, 1.0F, 1.0F);
-	amt -= 0.01F;
-	//-- Top right
-	glBegin(GL_TRIANGLE_STRIP);
-		glTexCoord2f(1.0   , 1.0-at); glColor4fv(clr_c);	glVertex3f(  w+a,  h  , 0.0);
-		glTexCoord2f(1.0   , 1.0   ); glColor4fv(clr_c);	glVertex3f(  w+a,  h+a, 0.0);
-		glTexCoord2f(1.0-as, 1.0-at); glColor4fv(clr_w);	glVertex3f(  w  ,  h  , 0.0);
-		glTexCoord2f(1.0-as, 1.0   ); glColor4fv(clr_c);	glVertex3f(  w  ,  h+a, 0.0);
-		glTexCoord2f(0.0   , 1.0-at); glColor4fv(clr_w);	glVertex3f(  0.0,  h  , 0.0);
-		glTexCoord2f(0.0   , 1.0   ); glColor4fv(clr_c);	glVertex3f(  0.0,  h+a, 0.0);
-	glEnd();
-	glBegin(GL_TRIANGLE_STRIP);
-		glTexCoord2f(1.0   , 0.0   ); glColor4fv(clr_c);	glVertex3f(  w+a, 0.0, z);
-		glTexCoord2f(1.0   , 1.0-at); glColor4fv(clr_c);	glVertex3f(  w+a,	h, 0.0);
-		glTexCoord2f(1.0-as, 0.0   ); glColor4fv(clr_w);	glVertex3f(  w  , 0.0, z);
-		glTexCoord2f(1.0-as, 1.0-at); glColor4fv(clr_w);	glVertex3f(  w  ,	h, 0.0);
-		glTexCoord2f(0.0   , 0.0   ); glColor4fv(clr_w);	glVertex3f(  0.0, 0.0, z);
-		glTexCoord2f(0.0   , 1.0-at); glColor4fv(clr_w);	glVertex3f(  0.0,	h, 0.0);
-	glEnd();
-	//-- Top left
-	glBegin(GL_TRIANGLE_STRIP);
-		glTexCoord2f(0.0   , 1.0-at); glColor4fv(clr_w);	glVertex3f(  0.0,  h  , 0.0);
-		glTexCoord2f(0.0   , 1.0   ); glColor4fv(clr_c);	glVertex3f(  0.0,  h+a, 0.0);
-		glTexCoord2f(1.0-as, 1.0-at); glColor4fv(clr_w);	glVertex3f( -w  ,  h  , 0.0);
-		glTexCoord2f(1.0-as, 1.0   ); glColor4fv(clr_c);	glVertex3f( -w  ,  h+a, 0.0);
-		glTexCoord2f(1.0   , 1.0-at); glColor4fv(clr_c);	glVertex3f( -w-a,  h  , 0.0);
-		glTexCoord2f(1.0   , 1.0   ); glColor4fv(clr_c);	glVertex3f( -w-a,  h+a, 0.0);
-	glEnd();		
-	glBegin(GL_TRIANGLE_STRIP);
-		glTexCoord2f(0.0   , 0.0   ); glColor4fv(clr_w);	glVertex3f(  0.0, 0.0, z);
-		glTexCoord2f(0.0   , 1.0-at); glColor4fv(clr_w);	glVertex3f(  0.0,	h, 0.0);
-		glTexCoord2f(1.0-as, 0.0   ); glColor4fv(clr_w);	glVertex3f( -w  , 0.0, z);
-		glTexCoord2f(1.0-as, 1.0-at); glColor4fv(clr_w);	glVertex3f( -w  ,	h, 0.0);
-		glTexCoord2f(1.0   , 0.0   ); glColor4fv(clr_c);	glVertex3f( -w-a, 0.0, z);
-		glTexCoord2f(1.0   , 1.0-at); glColor4fv(clr_c);	glVertex3f( -w-a,	h, 0.0);
-	glEnd();
-	//-- bottom right
-	glBegin(GL_TRIANGLE_STRIP);
-		glTexCoord2f(1.0   , 1.0-at); glColor4fv(clr_c);	glVertex3f(  w+a,  -h, 0.0);
-		glTexCoord2f(1.0   , 0.0   ); glColor4fv(clr_c);	glVertex3f(  w+a, 0.0, z);
-		glTexCoord2f(1.0-as, 1.0-at); glColor4fv(clr_w);	glVertex3f(  w  ,  -h, 0.0);
-		glTexCoord2f(1.0-as, 0.0   ); glColor4fv(clr_w);	glVertex3f(  w  , 0.0, z);
-		glTexCoord2f(0.0   , 1.0-at); glColor4fv(clr_w);	glVertex3f(  0.0,  -h, 0.0);
-		glTexCoord2f(0.0   , 0.0   ); glColor4fv(clr_w);	glVertex3f(  0.0, 0.0, z);
-	glEnd();
-	glBegin(GL_TRIANGLE_STRIP);
-		glTexCoord2f(1.0   , 1.0   ); glColor4fv(clr_c);	glVertex3f(  w+a, -h-a, 0.0);
-		glTexCoord2f(1.0   , 1.0-at); glColor4fv(clr_c);	glVertex3f(  w+a, -h  , 0.0);
-		glTexCoord2f(1.0-as, 1.0   ); glColor4fv(clr_c);	glVertex3f(  w  , -h-a, 0.0);
-		glTexCoord2f(1.0-as, 1.0-at); glColor4fv(clr_w);	glVertex3f(  w  , -h  , 0.0);
-		glTexCoord2f(0.0   , 1.0   ); glColor4fv(clr_c);	glVertex3f(  0.0, -h-a, 0.0);
-		glTexCoord2f(0.0   , 1.0-at); glColor4fv(clr_w);	glVertex3f(  0.0, -h  , 0.0);
-	glEnd();
-	//bottom left
-	glBegin(GL_TRIANGLE_STRIP);
-		glTexCoord2f(0.0   , 1.0-at); glColor4fv(clr_w);	glVertex3f(  0.0,  -h, 0.0);
-		glTexCoord2f(0.0   , 0.0   ); glColor4fv(clr_w);	glVertex3f(  0.0, 0.0, z);
-		glTexCoord2f(1.0-as, 1.0-at); glColor4fv(clr_w);	glVertex3f( -w  ,  -h, 0.0);
-		glTexCoord2f(1.0-as, 0.0   ); glColor4fv(clr_w);	glVertex3f( -w  , 0.0, z);
-		glTexCoord2f(1.0   , 1.0-at); glColor4fv(clr_c);	glVertex3f( -w-a,  -h, 0.0);
-		glTexCoord2f(1.0   , 0.0   ); glColor4fv(clr_c);	glVertex3f( -w-a, 0.0, z);
-	glEnd();
-	glBegin(GL_TRIANGLE_STRIP);
-		glTexCoord2f(0.0   , 1.0   ); glColor4fv(clr_c);	glVertex3f(  0.0, -h-a, 0.0);
-		glTexCoord2f(0.0   , 1.0-at); glColor4fv(clr_w);	glVertex3f(  0.0, -h  , 0.0);
-		glTexCoord2f(1.0-as, 1.0   ); glColor4fv(clr_c);	glVertex3f( -w  , -h-a, 0.0);
-		glTexCoord2f(1.0-as, 1.0-at); glColor4fv(clr_w);	glVertex3f( -w  , -h  , 0.0);
-		glTexCoord2f(1.0   , 1.0   ); glColor4fv(clr_c);	glVertex3f( -w-a, -h-a, 0.0);
-		glTexCoord2f(1.0   , 1.0-at); glColor4fv(clr_c);	glVertex3f( -w-a, -h  , 0.0);
-	glEnd();
-	
-	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);	
-	
+  State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
+  const Configuration_t configuration =
+    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
+  char  buffer[BUFSIZ];
+  float level = 0.0;
+  int   tmp;
+  switch (currentSelection_)
+  {
+    case MENU_GAME_LEVEL:
+      level = state.game_level/9.0F;
+      ACE_OS::sprintf (buffer, "%d", state.game_level);
+      break;
+    case MENU_SKILL_LEVEL:
+      level = configuration.skill_base;
+      tmp = (int)((level+0.05)*10.0);
+      ACE_OS::sprintf (buffer, "%s", skillText_[tmp]);
+      break;
+    case MENU_GRAPHICS:
+      level = configuration.gfx_level/2.0F;
+      switch (configuration.gfx_level)
+      {
+        case 0: ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("low")); break;
+        case 1: ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("med")); break;
+        case 2: ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("high")); break;
+      } // end SWITCH
+    break;
+    case MENU_SCREENSIZE:
+      level = (float)SPLOT_CONFIGURATION_SINGLETON::instance ()->approxScreenSize ()/(float)MAX_SCREEN_SIZE;
+      ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("%dx%d"),
+                       configuration.screen_width, configuration.screen_height);
+      break;
+    case MENU_FULLSCREEN:
+      level = (float)configuration.full_screen; 
+      if (configuration.full_screen) ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("true"));
+      else ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("false"));
+      break;
+    case MENU_SOUND:
+      level = configuration.vol_sound;
+      ACE_OS::sprintf (buffer, "%d", (int)((level+0.05)*10.0));
+      break;
+    case MENU_MUSIC:
+      level = configuration.vol_music;
+      ACE_OS::sprintf (buffer, "%d", (int)((level+0.05)*10.0));
+      break;
+    case MENU_MOVEMENTSPEED:
+      level = configuration.movement_speed*10.0F;
+      ACE_OS::sprintf (buffer, "%d", (int)((level+0.005)*100.0));	 
+      break;
+    default: 
+      level = -5.0;
+      break;
+  } // end SWITCH
+
+  float szx = 10.0;
+  float szy = txtHeight_;
+  glPushMatrix ();
+  glTranslatef (0.0, -txtHeight_, 0.0);
+  glBegin (GL_QUADS);
+  glColor4f (1.0F, 1.0F, 1.0F, 0.3F);
+  glVertex3f (szx+szy, szy, 0.0);
+  glVertex3f (   -szx, szy, 0.0);
+  glColor4f (1.0F, 1.0F, 1.0F, 0.15F);
+  glVertex3f (   -szx, 0.0, 0.0);
+  glVertex3f (    szx, 0.0, 0.0);
+  glEnd ();
+
+  //-- draw level indicator and/or text
+  glPushMatrix ();
+  if (level > -1.0)
+  {
+    glBegin (GL_QUADS);
+    glColor4f (1.0, 0.0, 0.0, 1.0);
+    glVertex3f (szy+szx*level, szy, 0.0);
+    glVertex3f (          0.0, szy, 0.0);
+    glColor4f (0.0, 0.0, 0.0, 0.0);
+    glVertex3f (          0.0, 0.0, 0.0);
+    glVertex3f (    szx*level, 0.0, 0.0);
+    glEnd ();
+
+    //-- draw +/- buttons ---
+    glBindTexture (GL_TEXTURE_2D, texUpdwn_);
+    glBegin (GL_QUADS);
+    glColor4f (1.0F, 1.0F, 1.0F, 0.6F);
+    glTexCoord2f (1.0, 0.0); glVertex3f (butSize_[0]-butOffset_, butSize_[1], 0.0);
+    glTexCoord2f (0.0, 0.0); glVertex3f (0.0F       -butOffset_, butSize_[1], 0.0);
+    glTexCoord2f (0.0, 1.0); glVertex3f (0.0F       -butOffset_, 0.0, 0.0);
+    glTexCoord2f (1.0, 1.0); glVertex3f (butSize_[0]-butOffset_, 0.0, 0.0);
+    glEnd ();
+
+    glColor4f (1.0, 1.0, 1.0, 0.5);
+    glTranslatef (11.0, 0.0, 0.0);
+    glScalef (0.025F, 0.025F, 1.0);
+    state.text->Render (buffer);
+  } // end IF
+  glPopMatrix ();
+  glPopMatrix ();
 }
 
-//----------------------------------------------------------
-void Splot_Menu::drawTitle()
+void
+Splot_Menu::drawElectric ()
 {
-	static int tiltCount = 600;
-	static float ta0  = -60.0;
-	static float ta1  = -90.0;
-	float &tilt = titleTilt;
-	if(ta0 < 90.0)	ta0 += 0.7;
-	else if(!thickText) ta0 += 180.0;
-	else ta0 += 5.0;
-	if(ta0 > 270.0)	ta0 = ta0-360.0;
-		
-	if(ta1 < 90.0)	ta1 += 0.55;
-	else if(!thickText) ta1 += 180.0;
-	else ta1 += 8.0;
-	if(ta1 > 270.0)	ta1 = ta1-360.0;
-	
-	if(thickText)
-	{
-		tiltCount--;
-		if(tiltCount == 0)
-			tilt = 360.0+tilt;
-		else if(tiltCount < 0)
-		{
-			tilt -= 1.0;
-			if(tilt < -10.0)
-			{
-				tiltCount = 1500;
-				tilt = -10.0;
-			}
-		}
-		else
-			tilt -= 0.01;
-	}
-
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glColor4f(1.0, 1.0, 1.0, 1.0);
-	glPushMatrix();
-		glEnable(GL_TEXTURE_GEN_S);
-		glEnable(GL_TEXTURE_GEN_T);
-		glBindTexture(GL_TEXTURE_2D, envTex);
-		glPushMatrix();
-			glTranslatef(0.0,  1.0, 0.0);
-			glRotatef( tilt, 1.0, 0.0, 0.0);
-			glRotatef(   ta0, 0.0, 1.0, 0.0);
-			glCallList(listChrom);
-		glPopMatrix();
-		glPushMatrix();
-			glTranslatef(0.0, -1.0, 0.0);
-			glRotatef( tilt, 1.0, 0.0, 0.0);
-			glRotatef(   ta1, 0.0, 1.0, 0.0);
-			glCallList(listBSU);
-		glPopMatrix();
-		glDisable(GL_TEXTURE_GEN_S);
-		glDisable(GL_TEXTURE_GEN_T);
-	glPopMatrix();
-	glDisable(GL_DEPTH_TEST);
+  elecOff_[1] = FRAND*0.7F;
+  if ((elecOff_[0] += 0.175F) > elecStretch_)
+    elecOff_[0] = -5.0;
+  float szx = 30.0;
+  float szy = txtHeight_;
+  glBindTexture (GL_TEXTURE_2D, texElec_);
+  glPushMatrix ();
+  glTranslatef (0.0, txtHeight_*0.5F, 0.0);
+  glBegin (GL_QUADS);
+  glColor4f (1.0, 1.0, 1.0, 1.0);
+  glTexCoord2f (elecOff_[0], elecOff_[1]+0.3F); glVertex3f (-8.0,  szy, 0.0);
+  glTexCoord2f (elecOff_[0], elecOff_[1]);     glVertex3f (-8.0, -szy, 0.0);
+  glColor4f (0.0, 0.0, 0.1F, 1.0F);
+  glTexCoord2f (elecOff_[0]-elecStretch_, elecOff_[1]);     glVertex3f (szx, -szy, 0.0);
+  glTexCoord2f (elecOff_[0]-elecStretch_, elecOff_[1]+0.3F); glVertex3f (szx,  szy, 0.0);
+  glEnd ();
+  glPopMatrix ();
 }
 
-//----------------------------------------------------------
-void Splot_Menu::keyHit(MainToolkit::Key key)
+void
+Splot_Menu::drawTitleBack ()
 {
-	switch(key)
-	{
-		case MainToolkit::KeyUp:
-			if(curSel == (MenuSelection)0)
-				curSel = (MenuSelection)(NumSelections-1);
-			else
-				curSel = (MenuSelection)(curSel - 1);
-//			curSel = (MenuSelection)(curSel - 1);
-//			if(curSel < (MenuSelection)0)
-//				curSel = (MenuSelection)(NumSelections-1);
-			elecOffX = 0.0;
-			break;
-		case MainToolkit::KeyDown:
-			curSel = (MenuSelection)((curSel+1)%NumSelections);
-			elecOffX = 0.0;
-			break;
-		case MainToolkit::KeyLeft:
-			decItem();
-			break;
-		case MainToolkit::KeyRight:
-			incItem();
-			break;
-		case MainToolkit::KeyEnter:
-			activateItem();
-			break;
-		default:
-			break;
-	}
+  float clr_c[4] = { 1.0, 1.0, 1.0, 0.0 };
+  float clr_w[4] = { 1.0, 1.0, 1.0, 1.0 };
+  float w = 9.0;
+  float a = 2.0;
+  float h = 1.4F;
+  float z = 0.5;
+
+  float as = a/(w+a);
+  float at = a/(h+a);
+
+  glBindTexture (GL_TEXTURE_2D, texBack_);
+  glMatrixMode (GL_TEXTURE);
+  glPushMatrix ();
+  static float amt = 0.0;
+  glTranslatef (amt*0.1F, amt*0.5F, 0.0);
+  glRotatef (-amt*100.0F, 0.0, 1.0F, 1.0F);
+  amt -= 0.01F;
+  //-- top right
+  glBegin (GL_TRIANGLE_STRIP);
+  glTexCoord2f (1.0   , 1.0F-at);  glColor4fv (clr_c); glVertex3f (w+a, h  , 0.0);
+  glTexCoord2f (1.0   , 1.0   );   glColor4fv (clr_c); glVertex3f (w+a, h+a, 0.0);
+  glTexCoord2f (1.0F-as, 1.0F-at); glColor4fv (clr_w); glVertex3f (w  , h  , 0.0);
+  glTexCoord2f (1.0F-as, 1.0   );  glColor4fv (clr_c); glVertex3f (w  , h+a, 0.0);
+  glTexCoord2f (0.0   , 1.0F-at);  glColor4fv (clr_w); glVertex3f (0.0, h  , 0.0);
+  glTexCoord2f (0.0   , 1.0   );   glColor4fv (clr_c); glVertex3f (0.0, h+a, 0.0);
+  glEnd ();
+  glBegin (GL_TRIANGLE_STRIP);
+  glTexCoord2f (1.0   , 0.0   );   glColor4fv (clr_c); glVertex3f (w+a, 0.0, z);
+  glTexCoord2f (1.0   , 1.0F-at);  glColor4fv (clr_c); glVertex3f (w+a, h  , 0.0);
+  glTexCoord2f (1.0F-as, 0.0   );  glColor4fv (clr_w); glVertex3f (w  , 0.0, z);
+  glTexCoord2f (1.0F-as, 1.0F-at); glColor4fv (clr_w); glVertex3f (w  , h  , 0.0);
+  glTexCoord2f (0.0   , 0.0   );   glColor4fv (clr_w); glVertex3f (0.0, 0.0, z);
+  glTexCoord2f (0.0   , 1.0F-at);  glColor4fv (clr_w); glVertex3f (0.0, h  , 0.0);
+  glEnd ();
+
+  //-- top left
+  glBegin (GL_TRIANGLE_STRIP);
+  glTexCoord2f (0.0   , 1.0F-at);  glColor4fv(clr_w); glVertex3f ( 0.0, h  , 0.0);
+  glTexCoord2f (0.0   , 1.0   );   glColor4fv(clr_c); glVertex3f ( 0.0, h+a, 0.0);
+  glTexCoord2f (1.0F-as, 1.0F-at); glColor4fv(clr_w); glVertex3f (-w  , h  , 0.0);
+  glTexCoord2f (1.0F-as, 1.0   );  glColor4fv(clr_c); glVertex3f (-w  , h+a, 0.0);
+  glTexCoord2f (1.0   , 1.0F-at);  glColor4fv(clr_c); glVertex3f (-w-a, h  , 0.0);
+  glTexCoord2f (1.0   , 1.0   );   glColor4fv(clr_c); glVertex3f (-w-a, h+a, 0.0);
+  glEnd ();
+  glBegin (GL_TRIANGLE_STRIP);
+  glTexCoord2f (0.0   , 0.0   );   glColor4fv (clr_w); glVertex3f ( 0.0, 0.0, z);
+  glTexCoord2f (0.0   , 1.0F-at);  glColor4fv (clr_w); glVertex3f ( 0.0, h  , 0.0);
+  glTexCoord2f (1.0F-as, 0.0   );  glColor4fv (clr_w); glVertex3f (-w  , 0.0, z);
+  glTexCoord2f (1.0F-as, 1.0F-at); glColor4fv (clr_w); glVertex3f (-w  , h  , 0.0);
+  glTexCoord2f (1.0   , 0.0   );   glColor4fv (clr_c); glVertex3f (-w-a, 0.0, z);
+  glTexCoord2f (1.0   , 1.0F-at);  glColor4fv (clr_c); glVertex3f (-w-a, h  , 0.0);
+  glEnd ();
+
+  //-- bottom right
+  glBegin (GL_TRIANGLE_STRIP);
+  glTexCoord2f (1.0   , 1.0F-at);  glColor4fv (clr_c); glVertex3f (w+a,  -h, 0.0);
+  glTexCoord2f (1.0   , 0.0   );   glColor4fv (clr_c); glVertex3f (w+a, 0.0, z);
+  glTexCoord2f (1.0F-as, 1.0F-at); glColor4fv (clr_w); glVertex3f (w  ,  -h, 0.0);
+  glTexCoord2f (1.0F-as, 0.0   );  glColor4fv (clr_w); glVertex3f (w  , 0.0, z);
+  glTexCoord2f (0.0   , 1.0F-at);  glColor4fv (clr_w); glVertex3f (0.0,  -h, 0.0);
+  glTexCoord2f (0.0   , 0.0   );   glColor4fv (clr_w); glVertex3f (0.0, 0.0, z);
+  glEnd ();
+  glBegin (GL_TRIANGLE_STRIP);
+  glTexCoord2f (1.0   , 1.0   );   glColor4fv (clr_c); glVertex3f (w+a, -h-a, 0.0);
+  glTexCoord2f (1.0   , 1.0F-at);  glColor4fv (clr_c); glVertex3f (w+a, -h  , 0.0);
+  glTexCoord2f (1.0F-as, 1.0   );  glColor4fv (clr_c); glVertex3f (w  , -h-a, 0.0);
+  glTexCoord2f (1.0F-as, 1.0F-at); glColor4fv (clr_w); glVertex3f (w  , -h  , 0.0);
+  glTexCoord2f (0.0   , 1.0   );   glColor4fv (clr_c); glVertex3f (0.0, -h-a, 0.0);
+  glTexCoord2f (0.0   , 1.0F-at);  glColor4fv (clr_w); glVertex3f (0.0, -h  , 0.0);
+  glEnd ();
+
+  //-- bottom left
+  glBegin (GL_TRIANGLE_STRIP);
+  glTexCoord2f (0.0   , 1.0F-at);  glColor4fv (clr_w); glVertex3f ( 0.0,  -h, 0.0);
+  glTexCoord2f (0.0   , 0.0   );   glColor4fv (clr_w); glVertex3f ( 0.0, 0.0, z);
+  glTexCoord2f (1.0F-as, 1.0F-at); glColor4fv (clr_w); glVertex3f (-w  ,  -h, 0.0);
+  glTexCoord2f (1.0F-as, 0.0   );  glColor4fv (clr_w); glVertex3f (-w  , 0.0, z);
+  glTexCoord2f (1.0   , 1.0F-at);  glColor4fv (clr_c); glVertex3f (-w-a,  -h, 0.0);
+  glTexCoord2f (1.0   , 0.0   );   glColor4fv (clr_c); glVertex3f (-w-a, 0.0, z);
+  glEnd ();
+  glBegin (GL_TRIANGLE_STRIP);
+  glTexCoord2f (0.0   , 1.0   );   glColor4fv (clr_c); glVertex3f (0.0 , -h-a, 0.0);
+  glTexCoord2f (0.0   , 1.0F-at);  glColor4fv (clr_w); glVertex3f (0.0 , -h  , 0.0);
+  glTexCoord2f (1.0F-as, 1.0   );  glColor4fv (clr_c); glVertex3f (-w  , -h-a, 0.0);
+  glTexCoord2f (1.0F-as, 1.0F-at); glColor4fv (clr_w); glVertex3f (-w  , -h  , 0.0);
+  glTexCoord2f (1.0   , 1.0   );   glColor4fv (clr_c); glVertex3f (-w-a, -h-a, 0.0);
+  glTexCoord2f (1.0   , 1.0F-at);  glColor4fv (clr_c); glVertex3f (-w-a, -h  , 0.0);
+  glEnd ();
+
+  glPopMatrix ();
+  glMatrixMode (GL_MODELVIEW);	
 }
 
-//----------------------------------------------------------
-void Splot_Menu::activateItem()
+void
+Splot_Menu::drawTitle ()
 {
-	Config	*config = Config::instance();
-	Global *game = Global::getInstance();
-	switch(curSel)
-	{
-		case NewGame:
-			game->gameMode = Global::Game;
-			game->newGame();
-			game->toolkit->grabMouse(true);
-			game->audio->setMusicMode(Audio::MusicGame);
-			break;
-		case SkillLevel:
-			break;
-		case GameLevel:
-			break;
-		case Graphics:
-			break;
-		case ScreenSize:
-			break;
-		case FullScreen:
-			config->setFullScreen(!config->fullScreen());
-			game->deleteTextures();
-			if( !game->toolkit->setVideoMode() )
-			{
-				mssgHelpOverride = true;
-				mssgAlpha = 1.1;
-				if( config->fullScreen() )
-					sprintf(mssgText, _("---- error setting full screen mode ----"));
-				else
-					sprintf(mssgText, _("---- error setting window mode ----"));
-				config->setFullScreen(!config->fullScreen());
-			}
-			game->loadTextures();
-			break;
-		case Sound:
-			break;
-		case Music:
-			break;
-		case MovementSpeed:
-			break;
-		case Quit:
-			game->game_quit = true;
-			break;
-		case NumSelections:
-			break;
-	}
+  static int tiltCount = 600;
+  static float ta0  = -60.0;
+  static float ta1  = -90.0;
+
+  if (ta0 < 90.0) ta0 += 0.7F;
+  else if (!thickText_) ta0 += 180.0;
+  else ta0 += 5.0;
+  if (ta0 > 270.0) ta0 = ta0-360.0F;
+
+  if (ta1 < 90.0) ta1 += 0.55F;
+  else if (!thickText_) ta1 += 180.0;
+  else ta1 += 8.0;
+  if (ta1 > 270.0) ta1 = ta1-360.0F;
+
+  if (thickText_)
+  {
+    tiltCount--;
+    if (tiltCount == 0)
+      titleTilt_ = 360.0F+titleTilt_;
+    else if (tiltCount < 0)
+    {
+      titleTilt_ -= 1.0;
+      if (titleTilt_ < -10.0)
+      {
+        tiltCount = 1500;
+        titleTilt_ = -10.0;
+      } // end IF
+    } // end ELSE
+    else
+      titleTilt_ -= 0.01F;
+  } // end IF
+
+  glEnable (GL_DEPTH_TEST);
+  glDepthFunc (GL_LEQUAL);
+  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glColor4f (1.0, 1.0, 1.0, 1.0);
+  glPushMatrix ();
+  glEnable (GL_TEXTURE_GEN_S);
+  glEnable (GL_TEXTURE_GEN_T);
+  glBindTexture (GL_TEXTURE_2D, texEnv_);
+
+  glPushMatrix ();
+  glTranslatef (0.0,  1.0, 0.0);
+  glRotatef (titleTilt_, 1.0, 0.0, 0.0);
+  glRotatef (       ta0, 0.0, 1.0, 0.0);
+  glCallList (listChrom_);
+  glPopMatrix ();
+
+  glPushMatrix ();
+  glTranslatef (0.0, -1.0, 0.0);
+  glRotatef (titleTilt_, 1.0, 0.0, 0.0);
+  glRotatef (       ta1, 0.0, 1.0, 0.0);
+  glCallList (listBSU_);
+  glPopMatrix ();
+
+  glDisable (GL_TEXTURE_GEN_S);
+  glDisable (GL_TEXTURE_GEN_T);
+  glPopMatrix ();
+  glDisable (GL_DEPTH_TEST);
 }
 
-//----------------------------------------------------------
-void Splot_Menu::incItem()
+void
+Splot_Menu::keyHit (MainToolkit::Key key)
 {
-	Config	*config = Config::instance();
-	HiScore *hiScore = HiScore::getInstance();
-	float	pos[3] = { 0.0, 0.0, 25.0 };
-	switch(curSel)
-	{
-		case NewGame:
-			activateItem();
-			break;
-		case SkillLevel:
-			config->setGameSkillBase(config->gameSkillBase()+0.1);
-			if( config->debug() ) hiScore->print(config->intSkill());
-			game->newGame();
-			break;
-		case GameLevel:
-			game->gameLevel++;
-			if(game->gameLevel > config->maxLevel()) 
-			{
-				mssgHelpOverride = true;
-				mssgAlpha = 1.1;
-				sprintf(mssgText, _("---- you must complete level %d before you can select level %d ----"), config->maxLevel(), game->gameLevel);
-				game->gameLevel = config->maxLevel();
-			}
-			else
-				game->newGame();
-			break;
-		case Graphics:
-			config->setGfxLevel(config->gfxLevel()+1);
-			break;
-		case ScreenSize:
-			config->setScreenSize(config->approxScreenSize()+1);
-			game->deleteTextures();
-			if( !game->toolkit->setVideoMode() )
-			{
-				mssgHelpOverride = true;
-				mssgAlpha = 1.1;
-				sprintf(mssgText, _("---- error setting screen size ----"));
-				config->setScreenSize(config->approxScreenSize()-1);
-			}
-			game->loadTextures();
-			break;
-		case FullScreen:
-			if(!config->fullScreen())
-			{
-				config->setFullScreen(true);
-				game->deleteTextures();
-				if( !game->toolkit->setVideoMode() )
-				{
-					mssgHelpOverride = true;
-					mssgAlpha = 1.1;
-					sprintf(mssgText, _("---- error setting full screen mode ----"));
-					config->setFullScreen(false);
-				}
-				game->loadTextures();
-			}
-			break;
-		case Sound:
-			config->setVolSound(config->volSound()+0.05);
-			game->audio->setSoundVolume(config->volSound());
-			game->audio->playSound(Audio::Explosion, pos);
-			break;
-		case Music:
-			config->setVolMusic(config->volMusic()+0.05);
-			game->audio->setMusicVolume(config->volMusic());
-			break;
-		case MovementSpeed:
-			config->setMovementSpeed(config->movementSpeed()+0.005);
-			break;
-		case Quit:
-			activateItem();
-			break;
-		case NumSelections:
-			break;
-	}
+  switch (key)
+  {
+    case MainToolkit::KeyUp:
+      if (currentSelection_ == (MenuSelection_t)0)
+        currentSelection_ = (MenuSelection_t)(MAX_MENU_TYPES - 1);
+      else
+        currentSelection_ = (MenuSelection_t)(currentSelection_ - 1);
+    //			curSel = (MenuSelection)(curSel - 1);
+    //			if(curSel < (MenuSelection)0)
+    //				curSel = (MenuSelection)(NumSelections-1);
+      elecOff_[0] = 0.0;
+      break;
+    case MainToolkit::KeyDown:
+      currentSelection_ = (MenuSelection_t)((currentSelection_ + 1)%MAX_MENU_TYPES);
+      elecOff_[0] = 0.0;
+      break;
+    case MainToolkit::KeyLeft:
+      decItem ();
+      break;
+    case MainToolkit::KeyRight:
+      incItem ();
+      break;
+    case MainToolkit::KeyEnter:
+      activateItem ();
+      break;
+    default:
+      break;
+  } // end SWITCH
 }
 
-//----------------------------------------------------------
-void Splot_Menu::decItem()
+void
+Splot_Menu::activateItem ()
 {
-	Config	*config = Config::instance();
-	HiScore *hiScore = HiScore::getInstance();
-	float	pos[3] = { 0.0, 0.0, 25.0 };
-	switch(curSel)
-	{
-		case NewGame:
-			break;
-		case SkillLevel:
-			config->setGameSkillBase(config->gameSkillBase()-0.1);
-			if( config->debug() ) hiScore->print(config->intSkill());
-			game->newGame();
-			break;
-		case GameLevel:
-			game->gameLevel -= 1;
-			if(game->gameLevel < 1) 
-				game->gameLevel = 1;
-			game->newGame();
-			break;
-		case Graphics:
-			config->setGfxLevel(config->gfxLevel()-1);
-			break;
-		case ScreenSize:
-			config->setScreenSize(config->approxScreenSize()-1);
-			game->deleteTextures();
-			if( !game->toolkit->setVideoMode() )
-			{
-				mssgHelpOverride = true;
-				mssgAlpha = 1.1;
-				sprintf(mssgText, _("---- error setting screen size ----"));
-				config->setScreenSize(config->approxScreenSize()+1);
-			}
-			game->loadTextures();
-			break;
-		case FullScreen:
-			if(config->fullScreen())
-			{
-				config->setFullScreen(false);
-				game->deleteTextures();
-				if( !game->toolkit->setVideoMode() )
-				{
-					mssgHelpOverride = true;
-					mssgAlpha = 1.1;
-					sprintf(mssgText, _("---- error setting full screen mode ----"));
-					config->setFullScreen(true);
-				}
-				game->loadTextures();
-			}
-			break;
-		case Sound:
-			config->setVolSound(config->volSound()-0.05);
-			game->audio->setSoundVolume(config->volSound());
-			game->audio->playSound(Audio::Explosion, pos);
-			break;
-		case Music:
-			config->setVolMusic(config->volMusic()-0.05);
-			game->audio->setMusicVolume(config->volMusic());
-			break;
-		case MovementSpeed:
-			config->setMovementSpeed(config->movementSpeed()-0.005);
-			break;
-		case Quit:
-			break;
-		case NumSelections:
-			break;
-	}
+  State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
+  const Configuration_t& configuration =
+    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
+  switch (currentSelection_)
+  {
+    case MENU_NEWGAME:
+      state.game_mode = GAMEMODE_GAME;
+      SPLOT_STATE_SINGLETON::instance ()->newGame ();
+      state.toolkit->grabMouse (true);
+      state.audio->setMusicMode (SOUND_MUSIC_GAME);
+      break;
+    case MENU_SKILL_LEVEL:
+      break;
+    case MENU_GAME_LEVEL:
+      break;
+    case MENU_GRAPHICS:
+      break;
+    case MENU_SCREENSIZE:
+      break;
+    case MENU_FULLSCREEN:
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setFullScreen (!configuration.full_screen);
+      SPLOT_STATE_SINGLETON::instance ()->deleteTextures ();
+      if (!state.toolkit->setVideoMode ())
+      {
+        msgHelpOverride_ = true;
+        msgAlpha_ = 1.1F;
+        if (configuration.full_screen)
+          ACE_OS::sprintf (msgText_, ACE_TEXT_ALWAYS_CHAR ("---- error setting full screen mode ----"));
+        else
+          ACE_OS::sprintf (msgText_, ACE_TEXT_ALWAYS_CHAR ("---- error setting window mode ----"));
+        SPLOT_CONFIGURATION_SINGLETON::instance ()->setFullScreen (!configuration.full_screen);
+      } // end IF
+      SPLOT_STATE_SINGLETON::instance ()->loadTextures ();
+      break;
+    case MENU_SOUND:
+      break;
+    case MENU_MUSIC:
+      break;
+    case MENU_MOVEMENTSPEED:
+      break;
+    case MENU_QUIT:
+      state.game_quit = true;
+      break;
+    default:
+      break;
+  } // end SWITCH
 }
 
-/**
- * horrible, hacky, but quick to implement....
- */
-//----------------------------------------------------------
-void Splot_Menu::mousePress(MainToolkit::Button but, int xi, int yi)
+void
+Splot_Menu::incItem ()
 {
-	if(but == MainToolkit::Left)
-	{
-		float x,y;
-		Config *config = Config::instance();
-		x = -2.0*(0.5-(((float)xi)/config->screenW()))* 16.60;
-		y =  2.0*(0.5-(((float)yi)/config->screenH()))* 12.45;
-
-		float	p = -y+(1.0+txtHeight*1.5);
-		float	s = txtHeight*2.5;
-		int		mSel = -1;
-		if(p > 0.0)
-		{
-			// reset electric 
-			elecOffX = 0.0;
-
-			p = p/s;
-			mSel = (int)floor(p);
-			if( mSel >= 0 && mSel < (int)NumSelections)
-			{
-				if(mSel != (int)curSel)
-				{
-					curSel = (MenuSelection)mSel;
-					elecOffX = 0.0;
-					mSel = -1;
-				}
-			}
-		}
-		float l  = -8.0 - butOffset;
-		float hw = butWidth*0.5;
-		if(mSel >= 0)
-		{
-			if(x > l && x < l+hw )
-				decItem();
-			else if (x > l+hw && x < l+butWidth)
-				incItem();
-			else
-				activateItem();
-		}
-	}
+  const Configuration_t& configuration =
+    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
+  State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
+  float position[3] = {0.0, 0.0, 25.0};
+  switch (currentSelection_)
+  {
+    case MENU_NEWGAME:
+      activateItem ();
+      break;
+    case MENU_SKILL_LEVEL:
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setSkillBase (configuration.skill_base + 0.1F);
+      if (configuration.debug)
+        state.highscore->print (SPLOT_CONFIGURATION_SINGLETON::instance ()->intSkill ());
+      SPLOT_STATE_SINGLETON::instance ()->newGame ();
+      break;
+    case MENU_GAME_LEVEL:
+      state.game_level++;
+      if (state.game_level > state.max_level)
+      {
+        msgHelpOverride_ = true;
+        msgAlpha_ = 1.1F;
+        ACE_OS::sprintf (msgText_, ACE_TEXT_ALWAYS_CHAR ("---- you must complete level %d before you can select level %d ----"),
+                         state.max_level, state.game_level);
+        state.game_level = state.max_level;
+      } // end IF
+      else
+        SPLOT_STATE_SINGLETON::instance ()->newGame ();
+      break;
+    case MENU_GRAPHICS:
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setGfxLevel (configuration.gfx_level + 1);
+      break;
+    case MENU_SCREENSIZE:
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setScreenSize (SPLOT_CONFIGURATION_SINGLETON::instance ()->approxScreenSize () + 1);
+      SPLOT_STATE_SINGLETON::instance() ->deleteTextures ();
+      if (!state.toolkit->setVideoMode ())
+      {
+        msgHelpOverride_ = true;
+        msgAlpha_ = 1.1F;
+        ACE_OS::sprintf (msgText_, ACE_TEXT_ALWAYS_CHAR ("---- error setting screen size ----"));
+        SPLOT_CONFIGURATION_SINGLETON::instance ()->setScreenSize (SPLOT_CONFIGURATION_SINGLETON::instance ()->approxScreenSize () - 1);
+      } // end IF
+      SPLOT_STATE_SINGLETON::instance ()->loadTextures ();
+      break;
+    case MENU_FULLSCREEN:
+      if (!configuration.full_screen)
+      {
+        SPLOT_CONFIGURATION_SINGLETON::instance ()->setFullScreen (true);
+        SPLOT_STATE_SINGLETON::instance ()->deleteTextures ();
+        if (!state.toolkit->setVideoMode ())
+        {
+          msgHelpOverride_ = true;
+          msgAlpha_ = 1.1F;
+          ACE_OS::sprintf (msgText_, ACE_TEXT_ALWAYS_CHAR ("---- error setting full screen mode ----"));
+          SPLOT_CONFIGURATION_SINGLETON::instance ()->setFullScreen (false);
+        } // end IF
+        SPLOT_STATE_SINGLETON::instance ()->loadTextures ();
+      } // end IF
+      break;
+    case MENU_SOUND:
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setVolSound (configuration.vol_sound + 0.05F);
+      state.audio->setSoundVolume (configuration.vol_sound);
+      state.audio->play (SOUND_EXPLOSION_DEFAULT, position);
+      break;
+    case MENU_MUSIC:
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setVolMusic (configuration.vol_music + 0.05F);
+      state.audio->setMusicVolume (configuration.vol_music);
+      break;
+    case MENU_MOVEMENTSPEED:
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setMovementSpeed (configuration.movement_speed + 0.005F);
+      break;
+    case MENU_QUIT:
+      activateItem ();
+      break;
+    default:
+      break;
+  } // end SWITCH
 }
 
+void
+Splot_Menu::decItem ()
+{
+  const Configuration_t& configuration =
+    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
+  State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
+  float position[3] = {0.0, 0.0, 25.0};
+  switch (currentSelection_)
+  {
+    case MENU_NEWGAME:
+      break;
+    case MENU_SKILL_LEVEL:
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setSkillBase (configuration.skill_base - 0.1F);
+      if (configuration.debug)
+        state.highscore->print (SPLOT_CONFIGURATION_SINGLETON::instance ()->intSkill ());
+      SPLOT_STATE_SINGLETON::instance ()->newGame ();
+      break;
+    case MENU_GAME_LEVEL:
+      state.game_level -= 1;
+      if (state.game_level < 1)
+        state.game_level = 1;
+      SPLOT_STATE_SINGLETON::instance ()->newGame ();
+      break;
+    case MENU_GRAPHICS:
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setGfxLevel (configuration.gfx_level - 1);
+      break;
+    case MENU_SCREENSIZE:
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setScreenSize (SPLOT_CONFIGURATION_SINGLETON::instance ()->approxScreenSize () - 1);
+      SPLOT_STATE_SINGLETON::instance ()->deleteTextures ();
+      if (!state.toolkit->setVideoMode ())
+      {
+        msgHelpOverride_ = true;
+        msgAlpha_ = 1.1F;
+        ACE_OS::sprintf (msgText_, ACE_TEXT_ALWAYS_CHAR ("---- error setting screen size ----"));
+        SPLOT_CONFIGURATION_SINGLETON::instance ()->setScreenSize (SPLOT_CONFIGURATION_SINGLETON::instance ()->approxScreenSize () + 1);
+      } // end IF
+      SPLOT_STATE_SINGLETON::instance ()->loadTextures ();
+      break;
+    case MENU_FULLSCREEN:
+      if (configuration.full_screen)
+      {
+        SPLOT_CONFIGURATION_SINGLETON::instance ()->setFullScreen (false);
+        SPLOT_STATE_SINGLETON::instance ()->deleteTextures ();
+        if (!state.toolkit->setVideoMode ())
+        {
+          msgHelpOverride_ = true;
+          msgAlpha_ = 1.1F;
+          ACE_OS::sprintf (msgText_, ACE_TEXT_ALWAYS_CHAR ("---- error setting full screen mode ----"));
+          SPLOT_CONFIGURATION_SINGLETON::instance ()->setFullScreen (true);
+        } // end IF
+        SPLOT_STATE_SINGLETON::instance ()->loadTextures ();
+      } // end IF
+      break;
+    case MENU_SOUND:
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setVolSound (configuration.vol_sound - 0.05F);
+      state.audio->setSoundVolume (configuration.vol_sound);
+      state.audio->play (SOUND_EXPLOSION_DEFAULT, position);
+      break;
+    case MENU_MUSIC:
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setVolMusic (configuration.vol_music - 0.05F);
+      state.audio->setMusicVolume (configuration.vol_music);
+      break;
+    case MENU_MOVEMENTSPEED:
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setMovementSpeed (configuration.movement_speed - 0.005F);
+      break;
+    case MENU_QUIT:
+      break;
+    default:
+      break;
+  } // end SWITCH
+}
+
+void
+Splot_Menu::mousePress (MainToolkit::Button button_in, int x_in, int y_in)
+{
+  if (button_in != MainToolkit::Left)
+    return;
+
+  const Configuration_t& configuration =
+    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
+  float x, y;
+  x = -2.0F*(0.5F-(((float)x_in)/configuration.screen_width))*16.6F;
+  y =  2.0F*(0.5F-(((float)y_in)/configuration.screen_height))*12.45F;
+
+  float p = -y+(1.0F+txtHeight_*1.5F);
+  float s = txtHeight_*2.5F;
+  int   mSel = -1;
+  if (p > 0.0)
+  {
+    // reset electric 
+    elecOff_[0] = 0.0;
+
+    p = p/s;
+    mSel = (int)floor(p);
+    if (mSel >= 0                     &&
+        mSel < (int)MAX_MENU_TYPES    &&
+        mSel != (int)currentSelection_)
+    {
+      currentSelection_ = (MenuSelection_t)mSel;
+      //elecOffX = 0.0;
+      mSel = -1;
+    }
+  } // end IF
+
+  float l  = -8.0F-butOffset_;
+  float hw = butSize_[0]*0.5F;
+  if (mSel >= 0)
+  {
+    if (x > l &&
+        x < l+hw)
+      decItem ();
+    else if (x > l+hw &&
+             x < l+butSize_[0])
+      incItem ();
+    else
+      activateItem ();
+  } // end IF
+}

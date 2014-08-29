@@ -29,7 +29,7 @@ class Splot_Configuration
 
   void setScreenSize(int m);
   void setScreenSize(int w, int h);
-  int approxScreenSize();
+  int approxScreenSize ();
 
   void setFullScreen (bool set_in) { configuration_.full_screen = set_in; }
   void setBlend (bool set_in) { configuration_.blend_enabled = set_in; }

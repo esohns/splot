@@ -13,12 +13,12 @@
 
 Splot_Configuration::Splot_Configuration ()
 {
-  configuration_.screen_w = CONFIGURATION_DEFAULT_SCREEN_W;
-  configuration_.screen_h = CONFIGURATION_DEFAULT_SCREEN_H;
-  configuration_.screen_a = CONFIGURATION_DEFAULT_SCREEN_A;
+  configuration_.screen_width = CONFIGURATION_DEFAULT_SCREEN_WIDTH;
+  configuration_.screen_height = CONFIGURATION_DEFAULT_SCREEN_HEIGHT;
+  configuration_.screen_aspect = CONFIGURATION_DEFAULT_SCREEN_ASPECT;
   configuration_.screen_FOV = CONFIGURATION_DEFAULT_SCREEN_FOV;
-  configuration_.screen_near = CONFIGURATION_DEFAULT_SCREEN_NEAR;
-  configuration_.screen_far = CONFIGURATION_DEFAULT_SCREEN_FAR;
+  configuration_.screen_z_near = CONFIGURATION_DEFAULT_SCREEN_ZNEAR;
+  configuration_.screen_z_far = CONFIGURATION_DEFAULT_SCREEN_ZFAR;
   configuration_.screen_bound[0] = CONFIGURATION_DEFAULT_SCREEN_BOUND_0;
   configuration_.screen_bound[1] = CONFIGURATION_DEFAULT_SCREEN_BOUND_1;
   configuration_.z_trans = CONFIGURATION_DEFAULT_Z_TRANS;
@@ -417,13 +417,13 @@ Splot_Configuration::load (const std::string& filename_in)
     //                 value_type));
 
     // *TODO*: move these strings...
-    if (value_name == ACE_TEXT ("screen_w"))
+    if (value_name == ACE_TEXT ("screen_width"))
     {
-      configuration_.screen_w = ::atoi (value.c_str ());
+      configuration_.screen_width = ::atoi (value.c_str ());
     } // end IF
-    else if (value_name == ACE_TEXT ("screen_h"))
+    else if (value_name == ACE_TEXT ("screen_height"))
     {
-      configuration_.screen_h = ::atoi (value.c_str ());
+      configuration_.screen_height = ::atoi (value.c_str ());
     } // end IF
     else if (value_name == ACE_TEXT ("full_screen"))
     {
@@ -655,7 +655,7 @@ Splot_Configuration::save ()
   std::string value_name = ACE_TEXT_ALWAYS_CHAR ("screen_w");
   if (configuration_heap.set_integer_value (section_key,
                                             ACE_TEXT (value_name.c_str ()),
-                                            (u_int)configuration_.screen_w))
+                                            (u_int)configuration_.screen_width))
   {
     ACE_ERROR ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Configuration_Heap::set_integer_value (\"%s\"): \"%m\", aborting\n"),
@@ -666,7 +666,7 @@ Splot_Configuration::save ()
   value_name = ACE_TEXT_ALWAYS_CHAR ("screen_h");
   if (configuration_heap.set_integer_value (section_key,
                                             ACE_TEXT (value_name.c_str ()),
-                                            (u_int)configuration_.screen_h))
+                                            (u_int)configuration_.screen_height))
   {
     ACE_ERROR ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Configuration_Heap::set_integer_value (\"%s\"): \"%m\", aborting\n"),
@@ -925,77 +925,78 @@ Splot_Configuration::setScreenSize (int mode_in)
   switch (mode)
   {
     case 0:
-      configuration_.screen_w = 320;
-      configuration_.screen_h = 200;
+      configuration_.screen_width = 320;
+      configuration_.screen_height = 200;
       break;
     case 1:
-      configuration_.screen_w = 512;
-      configuration_.screen_h = 384;
+      configuration_.screen_width = 512;
+      configuration_.screen_height = 384;
       break;
     case 2:
-      configuration_.screen_w = 640;
-      configuration_.screen_h = 400;
+      configuration_.screen_width = 640;
+      configuration_.screen_height = 400;
       break;
     case 3:
-      configuration_.screen_w = 640;
-      configuration_.screen_h = 480;
+      configuration_.screen_width = 640;
+      configuration_.screen_height = 480;
       break;
     case 4:
-      configuration_.screen_w = 800;
-      configuration_.screen_h = 600;
+      configuration_.screen_width = 800;
+      configuration_.screen_height = 600;
       break;
     case 5:
-      configuration_.screen_w = 1024;
-      configuration_.screen_h = 768;
+      configuration_.screen_width = 1024;
+      configuration_.screen_height = 768;
       break;
     case 6:
-      configuration_.screen_w = 1280;
-      configuration_.screen_h = 800;
+      configuration_.screen_width = 1280;
+      configuration_.screen_height = 800;
       break;
     case 7:
-      configuration_.screen_w = 1280;
-      configuration_.screen_h = 960;
+      configuration_.screen_width = 1280;
+      configuration_.screen_height = 960;
       break;
     case 8:
-      configuration_.screen_w = 1280;
-      configuration_.screen_h = 1024;
+      configuration_.screen_width = 1280;
+      configuration_.screen_height = 1024;
       break;
     default:
-      configuration_.screen_w = 1024;
-      configuration_.screen_h = 768;
+      configuration_.screen_width = 1024;
+      configuration_.screen_height = 768;
       break;
   } // end SWITCH
 
-  configuration_.screen_a = (float)configuration_.screen_w / (float)configuration_.screen_h;
+  configuration_.screen_aspect =
+    (float)configuration_.screen_width/(float)configuration_.screen_height;
 }
 
 int
 Splot_Configuration::approxScreenSize ()
 {
-  if (configuration_.screen_w >= 1280)
+  if (configuration_.screen_width >= 1280)
   {
-    if (configuration_.screen_h >= 1024)
+    if (configuration_.screen_height >= 1024)
       return 8;
-    if (configuration_.screen_h >= 960)
+    if (configuration_.screen_height >= 960)
       return 7;
-    if (configuration_.screen_h >= 800)
+    if (configuration_.screen_height >= 800)
       return 6;
   } // end IF
-  if (configuration_.screen_w >= 1024)
-    if (configuration_.screen_h >= 768)
+  if (configuration_.screen_width >= 1024)
+    if (configuration_.screen_height >= 768)
       return 5;
-  if (configuration_.screen_w >= 800)
-    if (configuration_.screen_h >= 600)
+  if (configuration_.screen_width >= 800)
+    if (configuration_.screen_height >= 600)
       return 4;
-  if (configuration_.screen_w >= 640)
+  if (configuration_.screen_width >= 640)
   {
-    if (configuration_.screen_h >= 480)
+    if (configuration_.screen_height >= 480)
       return 3;
-    if (configuration_.screen_h >= 400)
+    if (configuration_.screen_height >= 400)
       return 2;
   } // end IF
-  if (configuration_.screen_w >= 512)
-    if (configuration_.screen_h >= 384)
+  if (configuration_.screen_width >= 512)
+    if (configuration_.screen_height >= 384)
       return 1;
 
   return 0;

@@ -419,8 +419,8 @@ Splot_EnemyFleet::update ()
             {
               //-- trigger end of level
               score += SCORE_END_OF_LEVEL;
-              state.game_mode = GAMEMODE_LEVEL_END;
-              state.hero_success = 0;
+              state.game_mode = GAMEMODE_LEVEL_COMPLETE;
+              state.player_success = 0;
             } // end IF
             break;
           case ENEMYAIRCRAFT_OMNI:

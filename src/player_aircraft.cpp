@@ -923,7 +923,7 @@ Splot_PlayerAircraft::startDeath ()
   {
     fireGun (false);
     State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-    state.hero_death = DEATH_TIME;
+    state.player_death = DEATH_TIME;
     state.game_mode = GAMEMODE_GAME_OVER;
     dontShow_ = -1;
   } // end IF

@@ -36,11 +36,13 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="VS_ProjectPropertySheet_ACE.props" />
     <Import Project="VS_ProjectPropertySheet_SDL.props" />
+    <Import Project="VS_ProjectPropertySheet_FTGL.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="VS_ProjectPropertySheet_ACE.props" />
     <Import Project="VS_ProjectPropertySheet_SDL.props" />
+    <Import Project="VS_ProjectPropertySheet_FTGL.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -95,6 +97,7 @@
     <ClInclude Include="..\src\highscore.h" />
     <ClInclude Include="..\src\image.h" />
     <ClInclude Include="..\src\menu.h" />
+    <ClInclude Include="..\src\OpenGL_common.h" />
     <ClInclude Include="..\src\player_aircraft.h" />
     <ClInclude Include="..\src\player_bullets.h" />
     <ClInclude Include="..\src\powerup.h" />
@@ -102,7 +105,9 @@
     <ClInclude Include="..\src\state.h" />
     <ClInclude Include="..\src\stdafx.h" />
     <ClInclude Include="..\src\targetver.h" />
+    <ClInclude Include="..\src\text.h" />
     <ClInclude Include="..\src\textGeometry.h" />
+    <ClInclude Include="..\src\text_FTGL.h" />
     <ClInclude Include="..\src\types.h" />
   </ItemGroup>
   <ItemGroup>
@@ -118,6 +123,7 @@
     <ClCompile Include="..\src\highscore.cpp" />
     <ClCompile Include="..\src\image.cpp" />
     <ClCompile Include="..\src\menu.cpp" />
+    <ClCompile Include="..\src\OpenGL_common.cpp" />
     <ClCompile Include="..\src\player_aircraft.cpp" />
     <ClCompile Include="..\src\player_bullets.cpp" />
     <ClCompile Include="..\src\powerup.cpp" />
@@ -127,8 +133,10 @@
     <ClCompile Include="..\src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\src\text.cpp" />
     <ClCompile Include="..\src\textGeometryBSU.cpp" />
     <ClCompile Include="..\src\textGeometryChromium.cpp" />
+    <ClCompile Include="..\src\text_FTGL.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />

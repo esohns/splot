@@ -21,12 +21,12 @@ enum TextType_t
 
 struct Configuration_t
 {
-  int    screen_w;
-  int    screen_h;
-  float  screen_a;
+  int    screen_width;
+  int    screen_height;
+  float  screen_aspect;
   float  screen_FOV;
-  float  screen_near;
-  float  screen_far;
+  float  screen_z_near;
+  float  screen_z_far;
   float  screen_bound[2];
   float  z_trans;
 
@@ -70,7 +70,7 @@ enum GameMode_t
   GAMEMODE_GAME_INVALID = -1,
   GAMEMODE_GAME = 0,
   GAMEMODE_GAME_OVER,
-  GAMEMODE_LEVEL_END,
+  GAMEMODE_LEVEL_COMPLETE,
   GAMEMODE_MENU,
   ///////////////////////////////////////
   MAX_GAMEMODE_TYPES
@@ -87,11 +87,11 @@ class Splot_Explosions;
 class Splot_PowerUps;
 class Splot_Audio;
 class Splot_Background;
-class MenuGL;
-class MainGL;
+class Splot_Menu;
+//class MainGL;
 class StatusDisplay;
 class ScreenItemAdd;
-class Text;
+class Splot_Text;
 class MainToolkit;
 class Splot_HighScore;
 class Splot_GameElement;
@@ -113,7 +113,7 @@ struct State_t
 
   bool             mouse_active;
 
-  Text*            text;
+  Splot_Text*      text;
 
   float            fps;
   int              frame;
@@ -131,8 +131,8 @@ struct State_t
   bool             game_pause;
   bool             game_quit;
 
-  int              hero_death;
-  int              hero_success;
+  int              player_death;
+  int              player_success;
 
   GameMode_t       game_mode;
 
@@ -145,11 +145,11 @@ struct State_t
   Splot_Explosions*     explosions;
   Splot_PowerUps*       power_ups;
   Splot_Audio*          audio;
-  Splot_Background*     ground;
-  Splot_Background*     ground_game;
-  Splot_Background*     ground_menu;
-  MenuGL*               menu;
-  MainGL*               main_GL;
+  Splot_Background*     background;
+  Splot_Background*     background_game;
+  Splot_Background*     background_menu;
+  Splot_Menu*           menu;
+  //MainGL*               main_GL;
   StatusDisplay*        status_display;
 
   float            cursor_pos[3];

@@ -21,9 +21,6 @@
 class Splot_EnemyFleet;
 class Splot_PowerUps;
 
-#define DEATH_SPIKES 7
-#define DEATH_TIME 50
-
 class Splot_PlayerAircraft
  : public Splot_GameElement
 {

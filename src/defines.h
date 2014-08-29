@@ -6,13 +6,14 @@
 #endif
 
 #define SPLOT_DATA_DIR_ENV_SYMBOL           "SPLOT_DATA"
+#define SPLOT_FONT_DIR_ENV_SYMBOL           "SPLOT_FONT"
 
-#define CONFIGURATION_DEFAULT_SCREEN_W       1024
-#define CONFIGURATION_DEFAULT_SCREEN_H       786
-#define CONFIGURATION_DEFAULT_SCREEN_A       1.3333333F
+#define CONFIGURATION_DEFAULT_SCREEN_WIDTH   1024
+#define CONFIGURATION_DEFAULT_SCREEN_HEIGHT  786
+#define CONFIGURATION_DEFAULT_SCREEN_ASPECT  1.3333333F
 #define CONFIGURATION_DEFAULT_SCREEN_FOV     30.0F
-#define CONFIGURATION_DEFAULT_SCREEN_NEAR    10.0
-#define CONFIGURATION_DEFAULT_SCREEN_FAR     70.0
+#define CONFIGURATION_DEFAULT_SCREEN_ZNEAR   10.0
+#define CONFIGURATION_DEFAULT_SCREEN_ZFAR    70.0
 #define CONFIGURATION_DEFAULT_SCREEN_BOUND_0 11.0
 #define CONFIGURATION_DEFAULT_SCREEN_BOUND_1 9.0
 #define CONFIGURATION_DEFAULT_Z_TRANS        -56.5
@@ -100,6 +101,9 @@
 #define PLAYER_DEFAULT_DAMAGE                -500.0F
 #define PLAYER_DEFAULT_SHIELDS               500.0F
 
+#define DEATH_SPIKES                         7
+#define DEATH_TIME                           50
+
 #define SUPER_BOMB_DAMAGE                    5000.0F
 #define MAX_COLLISION_DAMAGE                 35.0F
 
@@ -117,7 +121,7 @@
 #define SCORE_POWERUP_REPAIR                 1000.0F
 #define SCORE_POWERUP_AMMUNITION             100.0F
 
-#ifdef macintosh
+#ifdef _APPLE_
 #define CONFIG_EXT                           ".cfg"
 #define CONFIG_FILE                          PACKAGE".cfg"
 #define CONFIG_SCORE_FILE                    PACKAGE"-score.cfg"
@@ -127,7 +131,7 @@
 #define CONFIG_FILE                          "."PACKAGE
 #define CONFIG_SCORE_FILE                    "."PACKAGE"-score"
 #define CONFIG_MUSIC_FILE                    "."PACKAGE"-music"
-#endif // macintosh
+#endif // _APPLE_
 
 #define HI_SCORE_HIST                        5
 

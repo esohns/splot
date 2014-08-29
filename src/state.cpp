@@ -12,10 +12,10 @@
 #include "highscore.h"
 #include "configuration.h"
 
-#include "Audio.h"
-#include "Ground.h"
-#include "MenuGL.h"
-#include "MainGL.h"
+#include "audio.h"
+#include "background.h"
+#include "menu.h"
+#include "OpenGL_common.h"
 #include "powerup.h"
 #include "player_bullets.h"
 #include "EnemyAmmo.h"
@@ -62,8 +62,8 @@ Splot_State::Splot_State ()
 
   state_.game_mode         = GAMEMODE_MENU;
 
-  state_.hero_death        = 0;
-  state_.hero_success      = 0;
+  state_.player_death      = 0;
+  state_.player_success    = 0;
 
   state_.scroll_speed      = STATE_DEFAULT_SCROLL_SPEED;
 
@@ -75,11 +75,11 @@ Splot_State::Splot_State ()
   state_.explosions        = NULL;
   state_.power_ups         = NULL;
   state_.audio             = NULL;
-  state_.ground            = NULL;
-  state_.ground_game       = NULL;
-  state_.ground_menu       = NULL;
+  state_.background        = NULL;
+  state_.background_game   = NULL;
+  state_.background_menu   = NULL;
   state_.menu              = NULL;
-  state_.main_GL           = NULL;
+  //state_.main_GL           = NULL;
   state_.status_display    = NULL;
 
   state_.cursor_pos[0]     = 0.0;
@@ -218,14 +218,14 @@ Splot_State::newGame ()
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Splot_Screen::load (), continuing\n")));
 
-  if (state_.ground_game != state_.ground_menu)
+  if (state_.background_game != state_.background_menu)
   {
     // delete game ground and set to menu/game common ground
-    delete state_.ground_game;
-    state_.ground_game = state_.ground_menu;
+    delete state_.background_game;
+    state_.background_game = state_.background_menu;
   } // end IF
-  state_.ground = state_.ground_game;
-  state_.ground->setVariation (state_.game_level - 1);
+  state_.background = state_.background_game;
+  state_.background->setVariation (state_.game_level - 1);
 
   state_.audio->setMusicIndex (state_.game_level - 1);
 
@@ -297,7 +297,7 @@ Splot_State::gotoNextLevel ()
                 ACE_TEXT ("failed to Splot_Screen::load (), continuing\n")));
 
   // when more than one ground is used, check here if it need to be created
-  state_.ground->nextVariation ();
+  state_.background->nextVariation ();
 
   state_.audio->nextMusicIndex ();
 }
@@ -312,8 +312,9 @@ Splot_State::createGame ()
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("starting up...\n")));
 
-  ACE_NEW (state_.main_GL,
-           MainGL ());
+  //ACE_NEW (state_.main_GL,
+  //         MainGL ());
+  Splot_OpenGLCommon::init ();
   ACE_NEW (state_.explosions,
            Splot_Explosions ());
   ACE_NEW (state_.enemies,
@@ -328,10 +329,10 @@ Splot_State::createGame ()
            StatusDisplay ());
   ACE_NEW (state_.power_ups,
            Splot_PowerUps ());
-  ACE_NEW (state_.ground,
+  ACE_NEW (state_.background,
            GroundMetal ());
   ACE_NEW (state_.menu,
-           MenuGL ());
+           Splot_Menu ());
   //Splot_Screen::clear ();
 
  #if defined (AUDIO_OPENAL) && defined (AUDIO_SDLMIXER) 
@@ -352,7 +353,7 @@ Splot_State::createGame ()
            Splot_Audio ()); // (with SDL) this can only do CD audio
 #endif
 
-  state_.ground_game = state_.ground_menu = state_.ground;
+  state_.background_game = state_.background_menu = state_.background;
 
   newGame ();
 
@@ -373,7 +374,8 @@ Splot_State::deleteGame ()
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT("shutting down...\n")));
   
-  delete state_.main_GL;
+  Splot_OpenGLCommon::fini ();
+  //delete state_.main_GL;
   delete state_.enemies;
   delete state_.player;
   delete state_.player_bullets;
@@ -381,7 +383,7 @@ Splot_State::deleteGame ()
   delete state_.status_display;
   delete state_.explosions;
   delete state_.power_ups;
-  delete state_.ground;
+  delete state_.background;
   delete state_.menu;
   //state_.screen_elements.clear ();
   delete state_.audio;
@@ -397,18 +399,18 @@ Splot_State::deleteTextures ()
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
   if (configuration.debug)
-    ACE_DEBUG ((LM_DEBUG,
+    ACE_DEBUG ((LM_INFO,
                 ACE_TEXT ("deleteTextures\n")));
 
   glFinish ();
 
-  state_.main_GL->deleteTextures ();
+  Splot_OpenGLCommon::deleteTextures ();
   state_.enemy_ammo->deleteTextures ();
   state_.enemies->deleteTextures ();
   state_.explosions->deleteTextures ();
   state_.player->deleteTextures ();
   state_.player_bullets->deleteTextures ();
-  state_.ground->deleteTextures ();
+  state_.background->deleteTextures ();
   state_.menu->deleteTextures ();
   state_.power_ups->deleteTextures ();
   state_.status_display->deleteTextures ();
@@ -427,13 +429,13 @@ Splot_State::loadTextures ()
 
   glFinish ();
 
-  state_.main_GL->loadTextures ();
+  Splot_OpenGLCommon::loadTextures ();
   state_.enemy_ammo->loadTextures ();
   state_.enemies->loadTextures ();
   state_.explosions->loadTextures ();
   state_.player->loadTextures ();
   state_.player_bullets->loadTextures ();
-  state_.ground->loadTextures ();
+  state_.background->loadTextures ();
   state_.menu->loadTextures ();
   state_.power_ups->loadTextures ();
   state_.status_display->loadTextures ();

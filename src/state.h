@@ -33,6 +33,9 @@ class Splot_State
   static float randomS[256];
   static int   random_index;
 
+  void loadTextures ();
+  void deleteTextures ();
+
  private:
   State_t state_;
   GameState_t game_state_;
@@ -46,9 +49,6 @@ class Splot_State
 
   void createGame ();
   void deleteGame ();
-
-  void loadTextures ();
-  void deleteTextures ();
 
 #if defined (USE_STATIC_RANDOMNESS)
   static int randomData[256];
