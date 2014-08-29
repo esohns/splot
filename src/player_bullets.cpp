@@ -55,33 +55,18 @@ Splot_PlayerBullets::Splot_PlayerBullets ()
 {
   for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
   {
-    //ammoRoot[i]  = new ActiveAmmo();
    // bulletSize_[i][0] = 0.1F;
    // bulletSize_[i][0] = 0.5F;
     //bulletDamage_[i]	= 2.5F;
-    bulletTex_[i] = 0;
+    texBullet_[i] = 0;
   } // end FOR
-  ////ammoPool  = new ActiveAmmo();
 
   loadTextures ();
 }
 
 Splot_PlayerBullets::~Splot_PlayerBullets ()
-{	
+{
   clear ();
-  //for (int i = 0; i < NUM_HERO_AMMO_TYPES; i++)
-	 // delete ammoRoot[i];
-
-  //ActiveAmmo *cur = ammoPool->next;
-  //ActiveAmmo *del;
-  //while (cur)
-  //{
-  // del = cur;
-  // cur = cur->next;
-  // delete del;
-  //}	
-  //delete ammoPool;
-  //bulletPool_.clear ();
 
   deleteTextures ();
 }
@@ -90,7 +75,6 @@ void
 Splot_PlayerBullets::loadTextures ()
 {
   char filename[PATH_MAX];
-
   std::string path_base = ACE_TEXT_ALWAYS_CHAR (SPLOT_IMAGE_DATA_DIR);
   path_base += ACE_DIRECTORY_SEPARATOR_STR;
   std::string format_string = ACE_TEXT_ALWAYS_CHAR ("%sAmmo%02d.png");
@@ -100,7 +84,7 @@ Splot_PlayerBullets::loadTextures ()
     if (ACE_OS::snprintf (filename,
                           PATH_MAX,
                           format_string.c_str (),
-                          path_base.c_str(), i) < 0)
+                          path_base.c_str (), i) < 0)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to snprintf (\"%s\"): \"%m\", continuing\n"),
@@ -108,8 +92,8 @@ Splot_PlayerBullets::loadTextures ()
 
       continue;
     } // end IF
-    bulletTex_[i] = Splot_Image::load (dataLoc (filename));
-    if (!bulletTex_[i])
+    texBullet_[i] = Splot_Image::load (dataLoc (filename));
+    if (!texBullet_[i])
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Splot_Image::load (\"%s\"), continuing\n"),
                   ACE_TEXT (dataLoc (filename).c_str ())));
@@ -119,7 +103,7 @@ Splot_PlayerBullets::loadTextures ()
 void
 Splot_PlayerBullets::deleteTextures ()
 {
-  glDeleteTextures (NUM_PLAYER_AMMO_TYPES, &(bulletTex_[0]));
+  glDeleteTextures (NUM_PLAYER_AMMO_TYPES, &(texBullet_[0]));
 }
 
 //void
@@ -149,11 +133,11 @@ Splot_PlayerBullets::clear ()
 }
 
 void
-Splot_PlayerBullets::addBullet (int type_in,
-                                float position_in[3])
+Splot_PlayerBullets::add (int type_in,
+                          float position_in[3])
 {
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-  float v[3] = { 0.0, 0.0, 0.0 };
+  float v[3] = {0.0, 0.0, 0.0};
   switch (type_in)
   {
     case 0: v[1] = 0.5F*state.speed_adj; break;
@@ -206,16 +190,16 @@ Splot_PlayerBullets::update ()
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
 
-  std::vector<BulletsIterator_t> bullets;
+  std::vector<BulletsIterator_t> finished_bullets;
   for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
   {
-    bullets.clear ();
+    finished_bullets.clear ();
     for (BulletsIterator_t iterator = bullets_[i].begin ();
          iterator != bullets_[i].end ();
          iterator++)
     {
       if ((*iterator).position[1] > configuration.screen_bound[1])
-        bullets.push_back (iterator);
+        finished_bullets.push_back (iterator);
       else
       {
         Bullet_t& current = *iterator;
@@ -225,11 +209,11 @@ Splot_PlayerBullets::update ()
       } // end ELSE
     } // end FOR
 
-    for (std::vector<BulletsIterator_t>::reverse_iterator iterator = bullets.rbegin ();
-         iterator != bullets.rend ();
+    for (std::vector<BulletsIterator_t>::reverse_iterator iterator = finished_bullets.rbegin ();
+         iterator != finished_bullets.rend ();
          iterator++)
       bullets_[i].erase (*iterator);
-    Bullet_t::count -= bullets.size ();
+    Bullet_t::count -= finished_bullets.size ();
   } // end FOR
 }
 
@@ -291,10 +275,11 @@ Splot_PlayerBullets::checkForHits (Splot_EnemyFleet* fleet_in)
 void
 Splot_PlayerBullets::drawGL ()
 {
+  glColor4f (1.0F, 1.0F, 1.0F, 1.0F);
+
   for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
   {
-    glColor4f (1.0F, 1.0F, 1.0F, 1.0F);
-    glBindTexture (GL_TEXTURE_2D, bulletTex_[i]);
+    glBindTexture (GL_TEXTURE_2D, texBullet_[i]);
     glBegin (GL_QUADS);
     for (BulletsIterator_t iterator = bullets_[i].begin ();
          iterator != bullets_[i].end ();

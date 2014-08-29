@@ -19,11 +19,12 @@ class Splot_PlayerBullets
 {
  public:
   Splot_PlayerBullets ();
-  virtual ~Splot_PlayerBullets ();
+  ~Splot_PlayerBullets ();
 
   static void initialize ();
 
-  void addBullet (int, float p[3]); // type / position
+  void add (int,         // type
+            float p[3]); // position
   //void killBullet (const bullet_t&);
   void checkForHits (Splot_EnemyFleet*);
 
@@ -44,7 +45,7 @@ class Splot_PlayerBullets
   static float bullet_damage[NUM_PLAYER_AMMO_TYPES];
   //Bullets_t bulletPool_;
 
-  GLuint bulletTex_[NUM_PLAYER_AMMO_TYPES];
+  GLuint texBullet_[NUM_PLAYER_AMMO_TYPES];
 };
 
 #endif // PLAYERBULLETS_H

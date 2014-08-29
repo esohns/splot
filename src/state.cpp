@@ -18,27 +18,27 @@
 #include "OpenGL_common.h"
 #include "powerup.h"
 #include "player_bullets.h"
-#include "EnemyAmmo.h"
+#include "enemy_bullets.h"
 #include "enemies.h"
 #include "explosion.h"
 #include "player_aircraft.h"
 #include "screen.h"
-#include "StatusDisplay.h"
-#include "GroundMetal.h"
+#include "status_display.h"
+#include "background_metal.h"
 #if defined (USE_GLUT)
 #include "MainGLUT.h"
 #elif defined (USE_SDL)
-#include "MainSDL.h"
+#include "main_SDL.h"
 #else
 #error "USE_SDL or USE_GLUT must be defined"
 #endif
 
-//#if defined (AUDIO_OPENAL)
-//#include "AudioOpenAL.h"
-//#endif
-//#if defined (AUDIO_SDLMIXER)
-//#include "AudioSDLMixer.h"
-//#endif
+#if defined (USE_OPENAL_AUDIO)
+#include "AudioOpenAL.h"
+#endif
+#if defined (USE_SDLMIXER_AUDIO)
+#include "audio_SDLMixer.h"
+#endif
 
 Splot_State::Splot_State ()
 {
@@ -70,7 +70,7 @@ Splot_State::Splot_State ()
   state_.player            = NULL;
   state_.enemies           = NULL;
   state_.player_bullets    = NULL;
-  state_.enemy_ammo        = NULL;
+  state_.enemy_bullets     = NULL;
   //state_.screen_elements.clear ();
   state_.explosions        = NULL;
   state_.power_ups         = NULL;
@@ -127,6 +127,7 @@ void
 Splot_State::initialize ()
 {
   Splot_PlayerBullets::initialize ();
+  Splot_EnemyBullets::initialize ();
 }
 
 bool
@@ -155,7 +156,7 @@ Splot_State::initialize (GameToolkitType_t toolkit_in,
 #elif defined (USE_SDL)
     case TOOLKIT_SDL:
       ACE_NEW_RETURN (state_.toolkit,
-                      MainSDL (argc_in, argv_in),
+                      Splot_MainSDL (argc_in, argv_in),
                       false);
       break;
 #else
@@ -191,16 +192,16 @@ Splot_State::newGame ()
 
   state_.highscore->set (configuration->intSkill (), game_state_.score);
 
-  state_.game_skill = configuration->get ().skill_base + 0.5;
-  state_.game_skill += (state_.game_level - 1) * 0.05;
+  state_.game_skill = configuration->get ().skill_base+0.5F;
+  state_.game_skill += (state_.game_level-1)*0.05F;
   state_.game_frame = 0;
 
   ACE_ASSERT (state_.enemies);
   state_.enemies->getFleet ()->clear ();
   ACE_ASSERT (state_.power_ups);
   state_.power_ups->clear ();
-  ACE_ASSERT (state_.enemy_ammo);
-  state_.enemy_ammo->clear ();
+  ACE_ASSERT (state_.enemy_bullets);
+  state_.enemy_bullets->clear ();
   ACE_ASSERT (state_.player_bullets);
   state_.player_bullets->clear ();
   Splot_Screen::clear ();
@@ -267,7 +268,7 @@ void
 Splot_State::gotoNextLevel ()
 {
   Splot_Configuration* configuration =
-    SPLOT_CONFIGURATION_SINGLETON::instance();
+    SPLOT_CONFIGURATION_SINGLETON::instance ();
   ACE_ASSERT (configuration);
 
   if (state_.game_level > MAX_LEVEL)
@@ -285,7 +286,7 @@ Splot_State::gotoNextLevel ()
 
   state_.enemies->getFleet ()->clear ();
   state_.power_ups->clear ();
-  state_.enemy_ammo->clear ();
+  state_.enemy_bullets->clear ();
   state_.player_bullets->clear ();
   Splot_Screen::clear ();
   ACE_ASSERT (state_.screen_elements.empty ());
@@ -323,32 +324,32 @@ Splot_State::createGame ()
            Splot_PlayerAircraft ());
   ACE_NEW (state_.player_bullets,
            Splot_PlayerBullets ());
-  ACE_NEW (state_.enemy_ammo,
-           EnemyAmmo ());
+  ACE_NEW (state_.enemy_bullets,
+           Splot_EnemyBullets ());
   ACE_NEW (state_.status_display,
-           StatusDisplay ());
+           Splot_StatusDisplay ());
   ACE_NEW (state_.power_ups,
            Splot_PowerUps ());
   ACE_NEW (state_.background,
-           GroundMetal ());
+           Splot_BackgroundMetal ());
   ACE_NEW (state_.menu,
            Splot_Menu ());
   //Splot_Screen::clear ();
 
- #if defined (AUDIO_OPENAL) && defined (AUDIO_SDLMIXER) 
+#if defined (USE_OPENAL_AUDIO) && defined (USE_SDLMIXER_AUDIO) 
   if (configuration.audio_type == AUDIO_OPENAL)
     ACE_NEW (state_.audio,
-             AudioOpenAL ());
+             Splot_AudioOpenAL ());
   else
     ACE_NEW (state_.audio,
-             AudioSDLMixer ());
-#elif defined (AUDIO_OPENAL)
+             Splot_AudioSDLMixer ());
+#elif defined (USE_OPENAL_AUDIO)
   ACE_NEW (state_.audio,
-           AudioOpenAL ());
-#elif defined(AUDIO_SDLMIXER)
+           Splot_AudioOpenAL ());
+#elif defined (USE_SDLMIXER_AUDIO)
   ACE_NEW (state_.audio,
-           AudioSDLMixer ());
-#else
+           Splot_AudioSDLMixer ());
+#elif defined (USE_SDL)
   ACE_NEW (state_.audio,
            Splot_Audio ()); // (with SDL) this can only do CD audio
 #endif
@@ -379,7 +380,7 @@ Splot_State::deleteGame ()
   delete state_.enemies;
   delete state_.player;
   delete state_.player_bullets;
-  delete state_.enemy_ammo;
+  delete state_.enemy_bullets;
   delete state_.status_display;
   delete state_.explosions;
   delete state_.power_ups;
@@ -405,7 +406,7 @@ Splot_State::deleteTextures ()
   glFinish ();
 
   Splot_OpenGLCommon::deleteTextures ();
-  state_.enemy_ammo->deleteTextures ();
+  state_.enemy_bullets->deleteTextures ();
   state_.enemies->deleteTextures ();
   state_.explosions->deleteTextures ();
   state_.player->deleteTextures ();
@@ -430,7 +431,7 @@ Splot_State::loadTextures ()
   glFinish ();
 
   Splot_OpenGLCommon::loadTextures ();
-  state_.enemy_ammo->loadTextures ();
+  state_.enemy_bullets->loadTextures ();
   state_.enemies->loadTextures ();
   state_.explosions->loadTextures ();
   state_.player->loadTextures ();
@@ -511,11 +512,11 @@ Splot_State::initializeRandomness ()
   for (int i = 0; i < 256; i++)
   {
     Splot_State::randomI[i] = ACE_OS::rand ();
-    Splot_State::randomS[i] = (2.0*(0.5-(ACE_OS::rand ()/(double)RAND_MAX)));
-    Splot_State::randomF[i] = (ACE_OS::rand ()/(double)RAND_MAX);
+    Splot_State::randomS[i] = (2.0F*(0.5F-(ACE_OS::rand ()/(float)RAND_MAX)));
+    Splot_State::randomF[i] = (ACE_OS::rand ()/(float)RAND_MAX);
     //state_.randomI[i] = ACE_OS::rand ();
-    //state_.randomS[i] = (2.0*(0.5-(ACE_OS::rand ()/(double)RAND_MAX)));
-    //state_.randomF[i] = (ACE_OS::rand ()/(double)RAND_MAX);
+    //state_.randomS[i] = (2.0F*(0.5F-(ACE_OS::rand ()/(float)RAND_MAX)));
+    //state_.randomF[i] = (ACE_OS::rand ()/(float)RAND_MAX);
   } // end FOR
 #endif
 }

@@ -236,9 +236,9 @@ Splot_Explosions::clear ()
 
 Explosion_t*
 Splot_Explosions::add (ExplosionType_t type_in,
-                      float position_in[3],
-                      int a_in,
-                      float s_in)
+                       const float (&position_in)[3],
+                       int age_in,
+                       float size_in)
 {
   Explosion_t* result = NULL;
 
@@ -249,7 +249,7 @@ Splot_Explosions::add (ExplosionType_t type_in,
     ACE_NEW_RETURN (result,
                     Explosion_t (),
                     NULL);
-    result->init (position_in, a_in, s_in);
+    result->init (position_in, age_in, size_in);
     explosions_[type_in].push_back (result);
   } // end IF
 
@@ -258,11 +258,11 @@ Splot_Explosions::add (ExplosionType_t type_in,
 
 Explosion_t*
 Splot_Explosions::addEffect (ExplosionType_t type_in,
-                            float position_in[3],
-                            float velocity_in[3],
-                            float clr_in[4],
-                            int age_in,
-                            float size_in)
+                             const float (&position_in)[3],
+                             const float (&velocity_in)[3],
+                             const float (&color_in)[4],
+                             int age_in,
+                             float size_in)
 {
   Explosion_t* result = NULL;
 
@@ -272,7 +272,7 @@ Splot_Explosions::addEffect (ExplosionType_t type_in,
   ACE_NEW_RETURN (result,
                   Explosion_t (),
                   NULL);
-  result->init (position_in, velocity_in, clr_in, age_in, size_in);
+  result->init (position_in, velocity_in, color_in, age_in, size_in);
   explosions_[type_in].push_back (result);
 
   return result;
@@ -697,23 +697,29 @@ Splot_Explosions::drawGlitter (ExplosionType_t type_in)
 
 /////////////////////////////////////////
 void
-Explosion_t::init (float position_in[3], int a_in, float size_in)
+Explosion_t::init (const float (&position_in)[3],
+                   int age_in,
+                   float size_in)
 {
   position[0] = position_in[0]; position[1] = position_in[1]; position[2] = position_in[2];
   velocity[0] = 0.0; velocity[1] = 0.0; velocity[2] = 0.0;
   clr[0] = 1.0; clr[1] = 1.0; clr[2] = 1.0; clr[3] = 1.0;
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-  age = (int)(a_in / state.speed_adj);
+  age = (int)(age_in/state.speed_adj);
   size = size_in;
 }
 
 void
-Explosion_t::init (float position_in[3], float velocity_in[3], float color_in[4], int a_in, float size_in)
+Explosion_t::init (const float (&position_in)[3],
+                   const float (&velocity_in)[3],
+                   const float (&color_in)[4],
+                   int age_in,
+                   float size_in)
 {
   position[0] = position_in[0]; position[1] = position_in[1]; position[2] = position_in[2];
   velocity[0] = velocity_in[0]; velocity[1] = velocity_in[1]; velocity[2] = velocity_in[2];
   clr[0] = color_in[0]; clr[1] = color_in[1]; clr[2] = color_in[2]; clr[3] = color_in[3];
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-  age = (int)(a_in / state.speed_adj);
+  age = (int)(age_in/state.speed_adj);
   size = size_in;
 }

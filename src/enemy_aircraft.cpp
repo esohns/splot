@@ -20,7 +20,7 @@
 #include "configuration.h"
 //
 //#include "define.h"
-#include "Ammo.h"
+//#include "Ammo.h"
 #include "state.h"
 //#include "EnemyAmmo.h"
 #include "player_aircraft.h"

@@ -33,14 +33,14 @@
 #include "enemy_fleet.h"
 //#include "enemy_aircraft.h"
 #include "powerup.h"
-#include "Audio.h"
-#include "StatusDisplay.h"
+#include "audio.h"
+#include "status_display.h"
 #include "image.h"
 
 Splot_PlayerAircraft::Splot_PlayerAircraft ()
  : inherited (),
-   heroTex_ (0),
-   bombTex_ (0)
+   texAircraft_ (0),
+   texBomb_ (0)
 {
   inherited::type_ = GAMEELEMENT_PLAYER;
 
@@ -79,14 +79,14 @@ Splot_PlayerAircraft::loadTextures ()
   std::string path_base = ACE_TEXT_ALWAYS_CHAR (SPLOT_IMAGE_DATA_DIR);
   path_base += ACE_DIRECTORY_SEPARATOR_STR;
   std::string filename = path_base + ACE_TEXT_ALWAYS_CHAR ("hero.png");
-  heroTex_ = Splot_Image::load (dataLoc (filename));
-  if (!heroTex_)
+  texAircraft_ = Splot_Image::load (dataLoc (filename));
+  if (!texAircraft_)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Splot_Image::load (\"%s\"), continuing\n"),
                 ACE_TEXT (filename.c_str ())));
   filename = path_base + ACE_TEXT_ALWAYS_CHAR ("superBomb.png");
-  bombTex_ = Splot_Image::load (dataLoc (filename));
-  if (!bombTex_)
+  texBomb_ = Splot_Image::load (dataLoc (filename));
+  if (!texBomb_)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Splot_Image::load (\"%s\"), continuing\n"),
                 ACE_TEXT (filename.c_str ())));
@@ -94,10 +94,10 @@ Splot_PlayerAircraft::loadTextures ()
 
 void Splot_PlayerAircraft::deleteTextures ()
 {
-  if (heroTex_)
-    glDeleteTextures (1, &heroTex_);
-  if (bombTex_)
-    glDeleteTextures (1, &bombTex_);
+  if (texAircraft_)
+    glDeleteTextures (1, &texAircraft_);
+  if (texBomb_)
+    glDeleteTextures (1, &texBomb_);
 }
 
 //float *Splot_PlayerAircraft::getPos()
@@ -284,8 +284,8 @@ Splot_PlayerAircraft::useItem ()
           //eject all ammo - return remaining ammo to game->powerUps
           if (game_state.ammo_stock[i] > 1.0)
           {
-            v[0] = SRAND * 0.15;
-            v[1] = 0.1 + (FRAND * 0.1);
+            v[0] = SRAND*0.15F;
+            v[1] = 0.1F+(FRAND*0.1F);
             ACE_NEW (pwrUp,
                      Splot_PowerUp ((PowerUpType_t)(i + (int)POWERUP_AMMO_0),
                                     inherited::position_,
@@ -344,19 +344,19 @@ Splot_PlayerAircraft::moveEvent (int x_in, int y_in)
 }
 
 void
-Splot_PlayerAircraft::ammoDamage (float damage_in, float vec_in[3])
+Splot_PlayerAircraft::ammoDamage (float damage_in, const float (&direction_in)[3])
 {
-  GameState_t& game_state = SPLOT_STATE_SINGLETON::instance()->gameState();
+  GameState_t& game_state = SPLOT_STATE_SINGLETON::instance ()->gameState ();
   if (game_state.super_bomb_exploding)
     return;
 
-  float f = damage_in/50.0;
-  secondaryMove_[0] = vec_in[0]*f;
-  secondaryMove_[1] = vec_in[1]*f;
+  float f = damage_in/50.0F;
+  secondaryMove_[0] = direction_in[0]*f;
+  secondaryMove_[1] = direction_in[1]*f;
   float a = 2.0;
-  inherited::position_[0] += vec_in[0]*f*a;
-  inherited::position_[1] += vec_in[1]*f*a;
-  inherited::position_[2] += vec_in[2]*f*a;
+  inherited::position_[0] += direction_in[0]*f*a;
+  inherited::position_[1] += direction_in[1]*f*a;
+  inherited::position_[2] += direction_in[2]*f*a;
 
   doDamage (damage_in);
 }
@@ -371,24 +371,24 @@ Splot_PlayerAircraft::doDamage (float damage_in)
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
   if (game_state.shields > PLAYER_DEFAULT_SHIELDS)
   {
-    game_state.shields -= damage_in*0.25;
+    game_state.shields -= damage_in*0.25F;
     state.explosions->add (EXPLOSION_PLAYER_SHIELD, inherited::position_);
-    state.status_display->setShieldAlpha (1.0);
+    state.status_display->shieldAlpha_ = 1.0;
   } // end IF
   else if (game_state.shields > 0.0) // *TODO*: not accurate
   {
-    game_state.shields -= damage_in*0.8;
-    game_state.damage += damage_in*0.2;
+    game_state.shields -= damage_in*0.8F;
+    game_state.damage += damage_in*0.2F;
     if (game_state.shields < 0.0)
       game_state.shields = 0.0;
     state.explosions->add (EXPLOSION_PLAYER_SHIELD, inherited::position_);
-    state.status_display->setShieldAlpha (1.0);
-    state.status_display->setDamageAlpha (1.0);
+    state.status_display->shieldAlpha_ = 1.0;
+    state.status_display->damageAlpha_ = 1.0;
   } // end IF
   else
   {
     game_state.damage += damage_in;
-    state.status_display->setDamageAlpha (1.0);
+    state.status_display->damageAlpha_ = 1.0;
   } // end ELSE
 
   if (game_state.damage > 0.0)
@@ -439,16 +439,16 @@ Splot_PlayerAircraft::shootGun ()
 
     p[0] = inherited::position_[0]+0.3F;
     p[1] = inherited::position_[1]+0.8F;
-    state.player_bullets->addBullet (0, p);
+    state.player_bullets->add (0, p);
     p[0] = inherited::position_[0]-0.3F;
-    state.player_bullets->addBullet (0, p);
+    state.player_bullets->add (0, p);
     if (gunActive_[0])
     {
       p[0] = inherited::position_[0]+0.45F;
       p[1] = inherited::position_[1]+0.2F;
-      state.player_bullets->addBullet (0, p);
+      state.player_bullets->add (0, p);
       p[0] = inherited::position_[0]-0.45F;
-      state.player_bullets->addBullet (0, p);
+      state.player_bullets->add (0, p);
       game_state.ammo_stock[0] -= 0.5F;
     } // end IF
 
@@ -457,16 +457,16 @@ Splot_PlayerAircraft::shootGun ()
     {
       p[0] = inherited::position_[0]+0.37F;
       p[1] = inherited::position_[1]+0.6F;
-      state.player_bullets->addBullet (0, p);
+      state.player_bullets->add (0, p);
       p[0] = inherited::position_[0]-0.37F;
-      state.player_bullets->addBullet (0, p);
+      state.player_bullets->add (0, p);
       if (gunActive_[0])
       {
         p[0] = inherited::position_[0]+0.52F;
         p[1] = inherited::position_[1];
-        state.player_bullets->addBullet (0, p);
+        state.player_bullets->add (0, p);
         p[0] = inherited::position_[0]-0.52F;
-        state.player_bullets->addBullet (0, p);
+        state.player_bullets->add (0, p);
         game_state.ammo_stock[0] -= 0.75F;
       } // end IF
     } // end IF
@@ -478,16 +478,16 @@ Splot_PlayerAircraft::shootGun ()
     game_state.gun_pause[1] = 25.0F;
     p[0] = inherited::position_[0];
     p[1] = inherited::position_[1]+1.1F;
-    state.player_bullets->addBullet (1, p);
+    state.player_bullets->add (1, p);
     game_state.ammo_stock[1] -= 1.5F;
     if ((game_state.current_item_index == 1) &&
         game_state.use_item_armed) // double fire
     {
       p[1] -= 0.2F;
       p[0] = inherited::position_[0]+0.09F;
-      state.player_bullets->addBullet (1, p);
+      state.player_bullets->add (1, p);
       p[0] = inherited::position_[0]-0.09F;
-      state.player_bullets->addBullet (1, p);
+      state.player_bullets->add (1, p);
       game_state.ammo_stock[1] -= 4.5F;
     } // end IF
   } // end IF
@@ -501,12 +501,12 @@ Splot_PlayerAircraft::shootGun ()
     if (game_state.gun_swap)
     {
       p[0] = inherited::position_[0]+0.7F;
-      state.player_bullets->addBullet (2, p);
+      state.player_bullets->add (2, p);
     } // end IF
     else
     {
       p[0] = inherited::position_[0]-0.7F;
-      state.player_bullets->addBullet (2, p);
+      state.player_bullets->add (2, p);
     } // end ELSE
     game_state.ammo_stock[2] -= 1.5F;
     if ((game_state.current_item_index == 1) &&
@@ -516,13 +516,13 @@ Splot_PlayerAircraft::shootGun ()
       {
         p[0] = inherited::position_[0]+0.85F;
         p[1] -= 0.75F;
-        state.player_bullets->addBullet (2, p);
+        state.player_bullets->add (2, p);
       } // end IF
       else
       {
         p[0] = inherited::position_[0]-0.85F;
         p[1] -= 0.75F;
-        state.player_bullets->addBullet (2, p);
+        state.player_bullets->add (2, p);
       } // end ELSE
       game_state.ammo_stock[2] -= 3.5F;
     } // end IF
@@ -547,8 +547,8 @@ Splot_PlayerAircraft::setAmmoStock (int index_in, float value_in)
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
   GameState_t& game_state = SPLOT_STATE_SINGLETON::instance ()->gameState ();
 
-  state.status_display->setAmmoAlpha (1.0F);
-  game_state.gun_pause[index_in] = 1.0F;
+  state.status_display->ammoAlpha_ = 1.0;
+  game_state.gun_pause[index_in] = 1.0;
   gunActive_[index_in] = true;
   game_state.ammo_stock[index_in] = value_in;
 }
@@ -612,7 +612,7 @@ Splot_PlayerAircraft::checkForCollisions (Splot_EnemyFleet* fleet_in)
     if (game_state.super_bomb_exploding)
     {
       diffX = -enemy->position_[0];
-      diffY = -15.0-enemy->position_[1];
+      diffY = -15.0F-enemy->position_[1];
       dist = sqrt (diffX*diffX + diffY*diffY);
       if ((dist < game_state.super_bomb_exploding*0.1F &&
            enemy->type () < ENEMYAIRCRAFT_BOSS_0) ||
@@ -689,8 +689,8 @@ Splot_PlayerAircraft::checkForPowerUps (Splot_PowerUps* powerUps_in)
         break;
       case POWERUP_REPAIR:
         game_state.damage = PLAYER_DEFAULT_DAMAGE;
-        state.status_display->setDamageAlpha (5.0);
-        p0[0] = 10.4;
+        state.status_display->damageAlpha_ = 5.0;
+        p0[0] = 10.4F;
         state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, 0);
         state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -1);
         state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -3);
@@ -699,8 +699,8 @@ Splot_PlayerAircraft::checkForPowerUps (Splot_PowerUps* powerUps_in)
       case POWERUP_SHIELD:
         if (game_state.shields < PLAYER_DEFAULT_SHIELDS)
           game_state.shields = PLAYER_DEFAULT_SHIELDS;
-        state.status_display->setShieldAlpha (5.0);
-        p0[0] = -10.4;
+        state.status_display->shieldAlpha_ = 5.0;
+        p0[0] = -10.4F;
         state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, 0);
         state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -1);
         state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -3);
@@ -712,9 +712,9 @@ Splot_PlayerAircraft::checkForPowerUps (Splot_PowerUps* powerUps_in)
         if (game_state.damage < PLAYER_DEFAULT_DAMAGE)
           game_state.damage = PLAYER_DEFAULT_DAMAGE;
         game_state.shields = PLAYER_DEFAULT_SHIELDS*2.0;
-        state.status_display->setDamageAlpha (5.0);
-        state.status_display->setShieldAlpha (5.0);
-        p0[0] = -10.4;
+        state.status_display->damageAlpha_ = 5.0;
+        state.status_display->shieldAlpha_ = 5.0;
+        p0[0] = -10.4F;
         state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, 0);
         state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -1);
         state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -3);
@@ -723,7 +723,7 @@ Splot_PlayerAircraft::checkForPowerUps (Splot_PowerUps* powerUps_in)
         state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -11);
         state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -13);
         state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -14);
-        p0[0] = 10.4;
+        p0[0] = 10.4F;
         state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, 0);
         state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -1);
         state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -3);
@@ -754,8 +754,8 @@ Splot_PlayerAircraft::update ()
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
   if (dontShow_ > 1)
   {
-    inherited::position_[0] = cos (state.frame*0.02)*9.0;
-    inherited::position_[1] = 4.0 + sin (state.frame*0.07)*2.0;
+    inherited::position_[0] = cos (state.frame*0.02F)*9.0F;
+    inherited::position_[1] = 4.0F+sin (state.frame*0.07F)*2.0F;
   } // end IF
   else if (dontShow_ == 1)
   {
@@ -777,7 +777,7 @@ Splot_PlayerAircraft::update ()
       switch (i)
       {
         case 0:
-          flash = 5.0/state.speed_adj;
+          flash = 5.0F/state.speed_adj;
           pause = game_state.gun_pause[0]/state.speed_adj;
           gunFlash0_[0] = (flash-pause)/flash;
           if (gunActive_[0])
@@ -786,7 +786,7 @@ Splot_PlayerAircraft::update ()
             gunFlash1_[0] = 0.0;
           break;
         case 1:
-          flash = 10.0/state.speed_adj;
+          flash = 10.0F/state.speed_adj;
           pause = game_state.gun_pause[1]/state.speed_adj;
           if (gunActive_[1] &&
               (game_state.gun_pause[i] < flash))
@@ -795,7 +795,7 @@ Splot_PlayerAircraft::update ()
             gunFlash0_[1] = 0.0;
           break;
         case 2:
-          flash = 5.0/state.speed_adj;
+          flash = 5.0F/state.speed_adj;
           pause = game_state.gun_pause[2]/state.speed_adj;
           if (gunActive_[2])
           {
@@ -829,11 +829,11 @@ Splot_PlayerAircraft::update ()
     else
     {
       if (gunFlash0_[i] > 0.0)
-        gunFlash0_[i] -= 0.075*state.speed_adj;
+        gunFlash0_[i] -= 0.075F*state.speed_adj;
       else
         gunFlash0_[i] = 0.0;
       if (gunFlash1_[i] > 0.0)
-        gunFlash1_[i] -= 0.075*state.speed_adj;
+        gunFlash1_[i] -= 0.075F*state.speed_adj;
       else
         gunFlash1_[i] = 0.0;
     } // end ELSE
@@ -843,7 +843,7 @@ Splot_PlayerAircraft::update ()
   switch (game_state.current_item_index)
   {
     case 0: // self destruct
-      game_state.use_item_armed -= 0.02;
+      game_state.use_item_armed -= 0.02F;
       break;
     case 1: // double fire
       if (game_state.use_item_armed)
@@ -861,9 +861,9 @@ Splot_PlayerAircraft::update ()
 
   //-- decrement supershields
   if (game_state.shields >= PLAYER_DEFAULT_SHIELDS)
-    game_state.shields -= 0.15*state.speed_adj;
+    game_state.shields -= 0.15F*state.speed_adj;
 
-  float s = (1.0-state.speed_adj)+(state.speed_adj*0.8);
+  float s = (1.0F-state.speed_adj)+(state.speed_adj*0.8F);
   secondaryMove_[0] *= s;
   secondaryMove_[1] *= s;
   inherited::position_[0] += secondaryMove_[0]*state.speed_adj;
@@ -882,7 +882,7 @@ Splot_PlayerAircraft::drawGL ()
   if (!dontShow_)
   {
     glColor4f (1.0, 1.0, 1.0, 1.0);
-    glBindTexture (GL_TEXTURE_2D, heroTex_);
+    glBindTexture (GL_TEXTURE_2D, texAircraft_);
     drawQuad (size_[0], size_[1]);
   } // end IF
   else
@@ -894,12 +894,12 @@ Splot_PlayerAircraft::drawGL ()
   GameState_t& game_state = SPLOT_STATE_SINGLETON::instance ()->gameState ();
   if (game_state.super_bomb_exploding)
   {
-    float s = game_state.super_bomb_exploding*0.1;
     glBlendFunc (GL_SRC_ALPHA, GL_ONE);
-    glBindTexture (GL_TEXTURE_2D, bombTex_);
+    glBindTexture (GL_TEXTURE_2D, texBomb_);
     glPushMatrix ();
     glTranslatef (0.0, -15.0, HERO_Z);
-    glRotatef (IRAND, 0.0, 0.0, 1.0);
+    glRotatef ((float)IRAND, 0.0, 0.0, 1.0);
+    float s = game_state.super_bomb_exploding*0.1F;
     drawQuad (s, s);
     glPopMatrix ();
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -955,14 +955,13 @@ Splot_PlayerAircraft::deathExplosions ()
   state.audio->play (SOUND_EXPLOSION_LIGHT, p);
 
   //-- Caclulate radius
-  int i;
-  for (i = 0; i < DEATH_SPIKES; i++)
+  float a, s;
+  for (int i = 0; i < DEATH_SPIKES; i++)
   {
-    double rnd = FRAND;
-    double a = rnd+2.0*M_PI*((double)i/(double)DEATH_SPIKES);
-    double s = 0.5+0.5*FRAND;
-    deathCircle_[i][0] = sin(a)*s;
-    deathCircle_[i][1] = cos(a)*s;
+    a = FRAND+2.0F*(float)M_PI*((float)i/(float)DEATH_SPIKES);
+    s = 0.5F+0.5F*FRAND;
+    deathCircle_[i][0] = sin (a)*s;
+    deathCircle_[i][1] = cos (a)*s;
     p[0] = inherited::position_[0]+deathCircle_[i][0];
     p[1] = inherited::position_[1]+deathCircle_[i][1];
     p[2] = inherited::position_[2];
@@ -972,7 +971,7 @@ Splot_PlayerAircraft::deathExplosions ()
   //-- Set up explosions
   float r;
   int w, skip;
-  for (i = 0; i < DEATH_TIME; i++)
+  for (int i = 0; i < DEATH_TIME; i++)
   {
     w = i%DEATH_SPIKES; 
     skip = 1+(int)(3.0f*FRAND);
@@ -982,7 +981,7 @@ Splot_PlayerAircraft::deathExplosions ()
     {
       if (!(i%skip))
       {
-        r = 1.25+4.0*((float)i/(float)DEATH_TIME);
+        r = 1.25F+4.0F*((float)i/(float)DEATH_TIME);
         p[0] = inherited::position_[0]+deathCircle_[w][0]*r;
         p[1] = inherited::position_[1]+deathCircle_[w][1]*r;
         state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, -i);
@@ -997,7 +996,7 @@ Splot_PlayerAircraft::deathExplosions ()
 
     if (!(i%21))
     {
-      game_state.death_stereo = -game_state.death_stereo*1.5;
+      game_state.death_stereo = -game_state.death_stereo*1.5F;
       p[0] = game_state.death_stereo;
       p[1] = -5.0;
       state.audio->play (SOUND_EXPLOSION_DEFAULT, p, -i);

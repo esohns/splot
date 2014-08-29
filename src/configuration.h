@@ -55,6 +55,7 @@ class Splot_Configuration
       configuration_.movement_speed = MOVEMENT_SPEED_MAX;
   }
 
+  void setAudio (bool enabled_in) { configuration_.audio_enabled = enabled_in; }
   void setVolSound (float volume_in) {
     configuration_.vol_sound = volume_in;
     if (configuration_.vol_sound < 0.0)

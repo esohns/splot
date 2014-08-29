@@ -34,7 +34,7 @@
 //#include "EnemyAmmo.h"
 #include "player_aircraft.h"
 #include "screen.h"
-#include "StatusDisplay.h"
+#include "status_display.h"
 #include "image.h"
 
 Splot_EnemyFleet::Splot_EnemyFleet ()
@@ -177,7 +177,7 @@ Splot_EnemyFleet::drawGL ()
           glTranslatef (thisEnemy->position_[0],
                         thisEnemy->position_[1]-0.9F,
                         thisEnemy->position_[2]);
-          glRotatef (IRAND, 0.0, 0.0, 1.0);
+          glRotatef ((float)IRAND, 0.0, 0.0, 1.0);
           drawQuad (szx, szx+0.1F);
           glPopMatrix ();
           glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -208,12 +208,12 @@ Splot_EnemyFleet::drawGL ()
           glTranslatef (thisEnemy->position_[0],
                         thisEnemy->position_[1]-0.63F,
                         thisEnemy->position_[2]);//NOTE: offset is ~szy*0.3
-          glRotatef (IRAND, 0.0F, 0.0F, 1.0F);
+          glRotatef ((float)IRAND, 0.0, 0.0, 1.0);
           szx = 0.4F+0.6F*thisEnemy->preFire_;
           drawQuad (szx, szx);
           glPopMatrix ();
           glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-          glColor4f (1.0F, 1.0F, 1.0F, 1.0F);
+          glColor4f (1.0, 1.0, 1.0, 1.0);
         } // end IF
         break;
       case ENEMYAIRCRAFT_BOSS_0:
@@ -227,18 +227,18 @@ Splot_EnemyFleet::drawGL ()
           glTranslatef (thisEnemy->position_[0]+1.1F,
                         thisEnemy->position_[1]-0.4F,
                         thisEnemy->position_[2]);
-          glRotatef (IRAND, 0.0F, 0.0F, 1.0F);
+          glRotatef ((float)IRAND, 0.0, 0.0, 1.0);
           drawQuad (szx, szx);
           glPopMatrix ();
           glPushMatrix ();
           glTranslatef (thisEnemy->position_[0]-1.1F,
                         thisEnemy->position_[1]-0.4F,
                         thisEnemy->position_[2]);
-          glRotatef (IRAND, 0.0F, 0.0F, 1.0F);
+          glRotatef ((float)IRAND, 0.0, 0.0, 1.0);
           drawQuad (szx, szx);
           glPopMatrix ();
           glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-          glColor4f (1.0F, 1.0F, 1.0F, 1.0F);
+          glColor4f (1.0, 1.0, 1.0, 1.0);
         } // end IF
         break;
       case ENEMYAIRCRAFT_BOSS_1:
@@ -254,7 +254,7 @@ Splot_EnemyFleet::drawGL ()
             glTranslatef (thisEnemy->position_[0]-1.22F,
                           thisEnemy->position_[1]-1.22F,
                           thisEnemy->position_[2]);
-            glRotatef (IRAND, 0.0F, 0.0F, 1.0F);
+            glRotatef ((float)IRAND, 0.0, 0.0, 1.0);
             drawQuad (szx, szx);
             drawQuad (szx+0.2F, szx+0.2F);
             glPopMatrix ();
@@ -265,13 +265,13 @@ Splot_EnemyFleet::drawGL ()
             glTranslatef (thisEnemy->position_[0]+0.55F,
                           thisEnemy->position_[1]-1.7F,
                           thisEnemy->position_[2]);
-            glRotatef (IRAND, 0.0F, 0.0F, 1.0F);
+            glRotatef ((float)IRAND, 0.0, 0.0, 1.0);
             drawQuad (szx, szx);
             drawQuad (szx+0.3F, szx+0.3F);
             glPopMatrix ();
           } // end ELSE
           glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-          glColor4f (1.0F, 1.0F, 1.0F, 1.0F);
+          glColor4f (1.0, 1.0, 1.0, 1.0);
         } // end IF
         if (!((thisEnemy->age_-272)%256))
           retarget(ENEMYAIRCRAFT_GNAT, state.player);

@@ -82,17 +82,15 @@ enum GameMode_t
 class Splot_PlayerAircraft;
 class Splot_PlayerBullets;
 class Splot_Enemies;
-class EnemyAmmo;
+class Splot_EnemyBullets;
 class Splot_Explosions;
 class Splot_PowerUps;
 class Splot_Audio;
 class Splot_Background;
 class Splot_Menu;
-//class MainGL;
-class StatusDisplay;
-class ScreenItemAdd;
+class Splot_StatusDisplay;
 class Splot_Text;
-class MainToolkit;
+class Splot_Main;
 class Splot_HighScore;
 class Splot_GameElement;
 
@@ -109,7 +107,7 @@ typedef ScreenElements_t::iterator ScreenElementsIterator_t;
 struct State_t
 {
   Splot_HighScore* highscore;
-  MainToolkit*     toolkit;
+  Splot_Main*      toolkit;
 
   bool             mouse_active;
 
@@ -139,7 +137,7 @@ struct State_t
   Splot_PlayerAircraft* player;
   Splot_Enemies*        enemies;
   Splot_PlayerBullets*  player_bullets;
-  EnemyAmmo*            enemy_ammo;
+  Splot_EnemyBullets*   enemy_bullets;
   ScreenElements_t      screen_elements;
 
   Splot_Explosions*     explosions;
@@ -149,8 +147,7 @@ struct State_t
   Splot_Background*     background_game;
   Splot_Background*     background_menu;
   Splot_Menu*           menu;
-  //MainGL*               main_GL;
-  StatusDisplay*        status_display;
+  Splot_StatusDisplay*  status_display;
 
   float            cursor_pos[3];
 
@@ -234,8 +231,14 @@ struct Explosion_t
     count++;
   }
   ~Explosion_t () { count--; }
-  void init (float position_in[3], int a_in = 0, float size_in = 1.0);
-  void init (float position_in[3], float velocity_in[3], float color_in[4], int a_in = 0, float size_in = 1.0);
+  void init (const float (&)[3], // position
+             int = 0,            // age
+             float = 1.0);       // size
+  void init (const float (&)[3], // position
+             const float (&)[3], // direction
+             const float (&)[4], // color
+             int = 0,            // age
+             float = 1.0);       // size
 
   float position[3];
   float velocity[3];
@@ -248,5 +251,30 @@ struct Explosion_t
 
 typedef std::vector<Explosion_t*> Explosions_t;
 typedef Explosions_t::iterator ExplosionsIterator_t;
+
+enum Key_t
+{
+  KEY_INVALID = -1,
+  KEY_DOWN = 0,
+  KEY_ENTER,
+  KEY_ESCAPE,
+  KEY_LEFT,
+  KEY_RIGHT,
+  KEY_SPACE,
+  KEY_TAB,
+  KEY_UP,
+  ///////////////////////////////////////
+  MAX_KEY_TYPES
+};
+
+enum Button_t
+{
+  BUTTON_INVALID = -1,
+  BUTTON_LEFT = 0,
+  BUTTON_MIDDLE,
+  BUTTON_RIGHT,
+  ///////////////////////////////////////
+  MAX_BUTTON_TYPES
+};
 
 #endif // TYPES_H

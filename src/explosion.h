@@ -49,8 +49,16 @@ class Splot_Explosions
  friend class Splot_State;
 
  public:
-  Explosion_t* add (ExplosionType_t t, float p[3], int age = 0, float size = 1.0);
-  Explosion_t* addEffect (ExplosionType_t t, float p[3], float v[3], float clr[4], int age = 0, float size = 1.0);
+  Explosion_t* add (ExplosionType_t,    // type
+                    const float (&)[3], // position
+                    int = 0,            // age
+                    float = 1.0);       // size
+  Explosion_t* addEffect (ExplosionType_t,    // type
+                          const float (&)[3], // position
+                          const float (&)[3], // direction
+                          const float (&)[4], // color
+                          int = 0,            // age
+                          float = 1.0);       // size
 
   void update ();
   void drawGL ();

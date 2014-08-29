@@ -51,7 +51,7 @@
 #include "background.h"
 //#include "EnemyFleet.h"
 #include "player_bullets.h"
-#include "EnemyAmmo.h"
+#include "enemy_bullets.h"
 #include "player_aircraft.h"
 #include "explosion.h"
 #include "powerup.h"
@@ -59,7 +59,7 @@
 #include "text.h"
 #include "menu.h"
 #include "screen.h"
-#include "StatusDisplay.h"
+#include "status_display.h"
 //#include "ScreenItemAdd.h"
 //
 //#include "GroundMetal.h"
@@ -222,11 +222,11 @@ Splot_OpenGLCommon::drawGame ()
     state.enemies->update ();
     state.power_ups->update ();
     state.player_bullets->update ();
-    state.enemy_ammo->updateAmmo ();
+    state.enemy_bullets->update ();
     state.player_bullets->checkForHits (state.enemies->getFleet ());
     if (state.game_mode == GAMEMODE_GAME)
     {
-      state.enemy_ammo->checkForHits (state.player);
+      state.enemy_bullets->checkForHits (state.player);
       state.player->checkForCollisions (state.enemies->getFleet ());
       state.player->checkForPowerUps (state.power_ups);
     } // end IF
@@ -255,7 +255,7 @@ Splot_OpenGLCommon::drawGame ()
 
   //-- Draw ammo
   state.player_bullets->drawGL ();
-  state.enemy_ammo->drawGL ();
+  state.enemy_bullets->drawGL ();
 
   //-- Draw explosions
   state.explosions->drawGL ();
@@ -280,7 +280,7 @@ Splot_OpenGLCommon::drawGameOver ()
   glLoadIdentity ();
   if (state.player_death > 0)
   {
-    float z = 1.0*state.player_death/DEATH_TIME;
+    float z = 1.0F*state.player_death/DEATH_TIME;
     glTranslatef (0.0, 0.0, configuration.z_trans-z*z);
   } // end IF
   else
@@ -294,7 +294,7 @@ Splot_OpenGLCommon::drawGameOver ()
   state.power_ups->update ();
   state.enemies->update ();
   state.player_bullets->update ();
-  state.enemy_ammo->updateAmmo ();
+  state.enemy_bullets->update ();
   state.player_bullets->checkForHits (state.enemies->getFleet ());
   state.audio->update ();
   state.player->update ();
@@ -316,7 +316,7 @@ Splot_OpenGLCommon::drawGameOver ()
 
   //-- Draw ammo
   state.player_bullets->drawGL ();
-  state.enemy_ammo->drawGL ();
+  state.enemy_bullets->drawGL ();
   //-- Draw explosions
   state.explosions->drawGL ();
   //-- Draw stats
@@ -330,16 +330,16 @@ Splot_OpenGLCommon::drawGameOver ()
   {
     ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("new high score!\n\n%d"),
                      (int)score);
-    Splot_OpenGLCommon::drawText (buffer, state.player_death, 0.15);
+    Splot_OpenGLCommon::drawText (buffer, (float)state.player_death, 0.15F);
   } // end IF
   else if (rank > 1)
   {
     ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("n o t   b a d !\nrank : %d\n\n%d"),
                      rank, (int)score);
-    Splot_OpenGLCommon::drawText (buffer, state.player_death, 0.15);
+    Splot_OpenGLCommon::drawText (buffer, (float)state.player_death, 0.15F);
   } // end ELSE
   else
-    Splot_OpenGLCommon::drawText (ACE_TEXT_ALWAYS_CHAR ("l o s e r"), state.player_death, 0.25);
+    Splot_OpenGLCommon::drawText (ACE_TEXT_ALWAYS_CHAR ("l o s e r"), (float)state.player_death, 0.25F);
 }
 
 void
@@ -363,7 +363,7 @@ Splot_OpenGLCommon::drawLevelComplete ()
   if (state.player_success < 0)
   {
     float vol =
-      configuration.vol_music-(configuration.vol_music*(-state.player_success/450.0));
+      configuration.vol_music-(configuration.vol_music*(-state.player_success/450.0F));
     state.audio->setMusicVolume (vol);
   } // end IF
 
@@ -409,7 +409,7 @@ Splot_OpenGLCommon::drawLevelComplete ()
   //	{
   //		sprintf(buffer, _("congratulations!\n \nl e v e l\n %d \nc o m p l e t e\n \nn e w   h i g h   s c o r e : \n %g \n"), game->gameLevel, game->hero->getScore());
   //	}
-  Splot_OpenGLCommon::drawText (buffer, state.player_success, 0.15);
+  Splot_OpenGLCommon::drawText (buffer, (float)state.player_success, 0.15F);
 }
 
 void
@@ -420,15 +420,15 @@ Splot_OpenGLCommon::drawText (const char* string_in,
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
 
   //-- alpha
-  float tmp = 0.5+0.5*(sin (pulse_in*0.02));
+  float tmp = 0.5F+0.5F*(sin (pulse_in*0.02F));
   float aa, ca;
-  aa = 0.7-0.5*tmp;
+  aa = 0.7F-0.5F*tmp;
   if (pulse_in > -50.0)
-    aa *= (-pulse_in/50.0);
-  ca = 1.0-tmp;
+    aa *= (-pulse_in/50.0F);
+  ca = 1.0F-tmp;
 
   float width, height;
-  height = 1.5*state.text->LineHeight ();
+  height = 1.5F*state.text->LineHeight ();
 
   char buffer[BUFSIZ];
   ::strncpy (buffer, string_in, sizeof (buffer));
@@ -446,7 +446,7 @@ Splot_OpenGLCommon::drawText (const char* string_in,
   } // end WHILE
 
   float x_sin, y_sin, y, min_y;
-  min_y = 0.5*height*lines;
+  min_y = 0.5F*height*lines;
   for (int l = 0; l < lines; l++)
   {
     y = min_y-height*(l+1);
@@ -455,14 +455,14 @@ Splot_OpenGLCommon::drawText (const char* string_in,
 
     for (int i = 0; i < 6; i++)
     {
-      glColor4f (1.0, ca*ca*0.3, ca*0.3, aa*aa);
-      x_sin = 1.75*sin (i+state.frame*0.06);
-      y_sin = 0.75*sin (i+state.frame*0.09);
+      glColor4f (1.0, ca*ca*0.3F, ca*0.3F, aa*aa);
+      x_sin = 1.75F*sin (i+state.frame*0.06F);
+      y_sin = 0.75F*sin (i+state.frame*0.09F);
 
       glPushMatrix ();
-      glScalef (scale_in, scale_in*0.75, 1.0);
+      glScalef (scale_in, scale_in*0.75F, 1.0);
       width = state.text->Advance (index[l]);
-      glTranslatef (-(width/2.0)-x_sin, y+y_sin, 0.0);
+      glTranslatef (-(width/2.0F)-x_sin, y+y_sin, 0.0);
       state.text->Render (index[l]);
       glPopMatrix ();
     } // end FOR

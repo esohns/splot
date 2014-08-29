@@ -20,11 +20,12 @@
 //class Splot_State;
 class Splot_EnemyFleet;
 class Splot_PowerUps;
+class Splot_StatusDisplay;
 
 class Splot_PlayerAircraft
  : public Splot_GameElement
 {
-  //friend class StatusDisplay;
+  friend class Splot_StatusDisplay;
 
  public:
   Splot_PlayerAircraft ();
@@ -38,7 +39,7 @@ class Splot_PlayerAircraft
   void nextItem ();
 
   void doDamage (float); // damage
-  void ammoDamage (float, float v[3]); // damage/direction
+  void ammoDamage (float, const float (&)[3]); // damage/direction
   void checkForCollisions (Splot_EnemyFleet*);
   void checkForPowerUps (Splot_PowerUps*);
 
@@ -59,8 +60,8 @@ class Splot_PlayerAircraft
 
   inline float getSize (int i) { return size_[i]; }
 
-  GLuint heroTex_;
-  GLuint bombTex_;
+  GLuint texAircraft_;
+  GLuint texBomb_;
 
   void loadTextures ();
   void deleteTextures ();

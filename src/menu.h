@@ -16,7 +16,7 @@
 #include "ace/Default_Constants.h"
 
 #include "defines.h"
-#include "MainToolkit.h"
+#include "types.h"
 
 enum MenuSelection_t
 {
@@ -42,8 +42,8 @@ class Splot_Menu
   ~Splot_Menu ();
 
   void startMenu ();
-  void keyHit (MainToolkit::Key key);
-  void mousePress (MainToolkit::Button but, int x, int y);
+  void keyHit (Key_t);
+  void mousePress (Button_t, int, int); // button / position
 
   void drawGL ();
 

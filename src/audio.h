@@ -58,7 +58,9 @@ class Splot_Audio
   virtual ~Splot_Audio ();
 
   virtual void update () {};
-  virtual void play (SoundType_t, float p[3], int = 0) {};
+  virtual void play (SoundType_t,        // type
+                     const float (&)[3], // position
+                     int = 0) {};        // age
   virtual void stopMusic ();
   virtual void pauseMusic (bool); // pause ? : resume
   virtual void setMusicMode (SoundType_t);

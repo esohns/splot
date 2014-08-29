@@ -34,6 +34,7 @@
 #include "text.h"
 #include "configuration.h"
 #include "image.h"
+#include "main.h"
 #include "textGeometry.h"
 
 // init statics
@@ -717,11 +718,11 @@ Splot_Menu::drawTitle ()
 }
 
 void
-Splot_Menu::keyHit (MainToolkit::Key key)
+Splot_Menu::keyHit (Key_t key_in)
 {
-  switch (key)
+  switch (key_in)
   {
-    case MainToolkit::KeyUp:
+    case KEY_UP:
       if (currentSelection_ == (MenuSelection_t)0)
         currentSelection_ = (MenuSelection_t)(MAX_MENU_TYPES - 1);
       else
@@ -731,17 +732,17 @@ Splot_Menu::keyHit (MainToolkit::Key key)
     //				curSel = (MenuSelection)(NumSelections-1);
       elecOff_[0] = 0.0;
       break;
-    case MainToolkit::KeyDown:
+    case KEY_DOWN:
       currentSelection_ = (MenuSelection_t)((currentSelection_ + 1)%MAX_MENU_TYPES);
       elecOff_[0] = 0.0;
       break;
-    case MainToolkit::KeyLeft:
+    case KEY_LEFT:
       decItem ();
       break;
-    case MainToolkit::KeyRight:
+    case KEY_RIGHT:
       incItem ();
       break;
-    case MainToolkit::KeyEnter:
+    case KEY_ENTER:
       activateItem ();
       break;
     default:
@@ -954,9 +955,9 @@ Splot_Menu::decItem ()
 }
 
 void
-Splot_Menu::mousePress (MainToolkit::Button button_in, int x_in, int y_in)
+Splot_Menu::mousePress (Button_t button_in, int x_in, int y_in)
 {
-  if (button_in != MainToolkit::Left)
+  if (button_in != BUTTON_LEFT)
     return;
 
   const Configuration_t& configuration =

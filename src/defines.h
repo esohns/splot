@@ -60,8 +60,8 @@
 
 #define SKILL_BASE_MIN                       0.2F
 #define SKILL_BASE_MAX                       0.9F
-#define SKILL_LEVEL_INCREMENT                0.05
-#define SKILL_MAX                            1.9
+#define SKILL_LEVEL_INCREMENT                0.05F
+#define SKILL_MAX                            1.9F
 #define SKILL_LEVEL_MAX_INT                  MAX_LEVEL
 
 #define STATE_DEFAULT_FPS                    50.0
@@ -138,6 +138,11 @@
 #define NUM_EXPLO                            2
 #define NUM_EXPLO_POP                        6
 #define MAX_MUSIC                            32
+
+#define AUDIO_FREQUENCY                      22050
+#define AUDIO_SDL_FORMAT                     AUDIO_S16
+#define AUDIO_CHANNELS                       2
+#define AUDIO_CHUNKSIZE                      512
 
 #define NUM_HELP_MESSAGE_LINES               7
 
