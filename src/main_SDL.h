@@ -46,12 +46,13 @@ class Splot_MainSDL
 
  private:
 #if SDL_VERSION_ATLEAST (2,0,0)
-  SDL_Window* window;
-  SDL_GLContext context;
+  SDL_Window* window_;
+  SDL_GLContext context_;
 #endif
   SDL_Joystick* joystick_;
   int           fire_;
   bool          mouseToggle_;
+  bool          joystickToggle_;
   int           last_[2];
   int           mid_[2];
   float         joy_[2];

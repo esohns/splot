@@ -7,7 +7,7 @@
 
 #include "ace/OS.h"
 
-#ifdef USE_SDL
+#ifdef WITH_SDL_CDROM
 #include "SDL.h" // for CDROM
 #endif
 
@@ -71,7 +71,7 @@ class Splot_Audio
 
  protected:
   virtual void init () {};
-#ifdef USE_SDL
+#ifdef WITH_SDL_CDROM
   virtual void initCDROM ();
 #endif // USE_SDL
 
@@ -79,7 +79,7 @@ class Splot_Audio
   char    musicPlaylistFilenames_[MAX_MUSIC][PATH_MAX];
   int     musicMaxIndex_;
   int     musicCurrentIndex_;
-#ifdef USE_SDL
+#ifdef WITH_SDL_CDROM
   SDL_CD* CDROM_;
 #endif // USE_SDL
 };

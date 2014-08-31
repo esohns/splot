@@ -44,34 +44,35 @@ dataLoc (const std::string& filename_in, bool doCheck_in)
   ACE_OS::memset (buffer, 0, sizeof (buffer));
 
   const char* data_p =
-   ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (SPLOT_DATA_DIR_ENV_SYMBOL));
+    ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (SPLOT_DATA_DIR_ENV_SYMBOL));
   if (data_p &&
-      ((ACE_OS::strlen (data_p) + filename_in.size () + 1) > PATH_MAX))
+      ((ACE_OS::strlen (data_p)+filename_in.size ()+1) < PATH_MAX))
   {
-    sprintf (buffer,
-             ACE_TEXT_ALWAYS_CHAR ("%s/%s"),
-             data_p, filename_in.c_str ());
+    ACE_OS::sprintf (buffer,
+                     ACE_TEXT_ALWAYS_CHAR ("%s%s%s"),
+                     data_p, ACE_DIRECTORY_SEPARATOR_STR, filename_in.c_str ());
 
     goto check;
   } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  const char* home_dir_p = ACE_OS::getenv ("HOME");
-  if (home_dir_p &&
-      ((ACE_OS::strlen(home_dir_p) + filename_in.size() + 1) > PATH_MAX))
+  const char* home_directory_p =
+    ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (SPLOT_HOME_ENV_SYMBOL));
+  if (home_directory_p &&
+      ((ACE_OS::strlen (home_directory_p)+filename_in.size ()+1) < PATH_MAX))
   {
-    sprintf (buffer,
-             ACE_TEXT_ALWAYS_CHAR ("%s/."PACKAGE"-data/%s"),
-             home_dir_p, filename_in);
+    ACE_OS::sprintf (buffer,
+                     ACE_TEXT_ALWAYS_CHAR ("%s%s."PACKAGE"-data%s%s"),
+                     home_directory_p, ACE_DIRECTORY_SEPARATOR_STR, ACE_DIRECTORY_SEPARATOR_STR, filename_in.c_str ());
 
     goto check;
   } // end IF
 #elif defined (PKGDATADIR)
-  if (((ACE_OS::strlen (PKGDATADIR) + filename_in.size ()) < PATH_MAX))
+  if (((ACE_OS::strlen (PKGDATADIR)+filename_in.size ()) < PATH_MAX))
   {
-    sprintf (buffer,
-             ACE_TEXT_ALWAYS_CHAR ("%s/%s"),
-             PKGDATADIR, filename_in);
+    ACE_OS::sprintf (buffer,
+                     ACE_TEXT_ALWAYS_CHAR ("%s%s%s"),
+                     PKGDATADIR, ACE_DIRECTORY_SEPARATOR_STR, filename_in);
 
     goto check;
   } // end IF
@@ -96,14 +97,14 @@ check:
   if (doCheck_in)
   {
     ACE_stat file_stat;
-    if (ACE_OS::stat(buffer, &file_stat))
+    if (ACE_OS::stat (buffer, &file_stat))
       return NULL;
   } // end IF
 
   return buffer;
 }
 
-void printExtensions (FILE* fstream, const char* extstr_in)
+void printExtensions (FILE* fstream_in, const char* extstr_in)
 {
   char* walker = NULL;
   char* space = NULL;
@@ -115,23 +116,23 @@ void printExtensions (FILE* fstream, const char* extstr_in)
   ACE_OS::strcpy (extstr, extstr_in);
   walker = extstr;
 
-  fprintf (fstream, ACE_TEXT_ALWAYS_CHAR ("Extensions :"));
+  ACE_OS::fprintf (fstream_in, ACE_TEXT_ALWAYS_CHAR ("Extensions :"));
   while ((walker - extstr) < len)
   {
     space = ACE_OS::strchr (walker, ' ');
     if (space)
     {
       if ((cnt % 2) == 0)
-        fprintf (fstream, "\n");
+        ACE_OS::fprintf (fstream_in, "\n");
       *space = '\0';
-      fprintf (fstream, ACE_TEXT_ALWAYS_CHAR ("%-31s "), walker);
+      ACE_OS::fprintf (fstream_in, ACE_TEXT_ALWAYS_CHAR ("%-31s "), walker);
       walker = space + 1;
       cnt++;
     } // end IF
     else
       break;
   } // end WHILE
-  fprintf (fstream, ACE_TEXT_ALWAYS_CHAR ("\n"));
+  ACE_OS::fprintf (fstream_in, ACE_TEXT_ALWAYS_CHAR ("\n"));
 
   delete [] extstr;
 }

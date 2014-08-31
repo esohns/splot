@@ -110,6 +110,7 @@ struct State_t
   Splot_Main*      toolkit;
 
   bool             mouse_active;
+  bool             joy_active;
 
   Splot_Text*      text;
 

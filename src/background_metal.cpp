@@ -79,9 +79,10 @@ Splot_BackgroundMetal::loadTextures ()
   filename = path_base + ACE_TEXT_ALWAYS_CHAR ("gndMetalBlip.png");
   tex_[BACKGROUND_BLIP] =
     Splot_Image::load (dataLoc (filename), IMG_NOMIPMAPS, IMG_ALPHA, GL_REPEAT, GL_LINEAR, GL_LINEAR);
-  ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("failed to Splot_Image::load(\"%s\"), continuing\n"),
-              ACE_TEXT (dataLoc (filename).c_str ())));
+  if (!tex_[BACKGROUND_BLIP])
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Splot_Image::load(\"%s\"), continuing\n"),
+                ACE_TEXT (dataLoc (filename).c_str ())));
 }
 
 void

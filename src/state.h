@@ -25,6 +25,8 @@ class Splot_State
   State_t& get () { return state_; };
   GameState_t& gameState () { return game_state_; };
 
+  void createGame ();
+  void deleteGame ();
   void newGame ();
   void gotoNextLevel ();
 
@@ -46,9 +48,6 @@ class Splot_State
   ACE_UNIMPLEMENTED_FUNC (Splot_State& operator= (const Splot_State&));
 
   void initializeRandomness ();
-
-  void createGame ();
-  void deleteGame ();
 
 #if defined (USE_STATIC_RANDOMNESS)
   static int randomData[256];

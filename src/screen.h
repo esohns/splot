@@ -15,7 +15,7 @@ class Splot_Screen
 
   static bool load ();
   static Splot_EnemyAircraft* makeAdd (EnemyAircraftType_t, // type
-                                       float p[3],          // position
+                                       const float (&)[3],  // position
                                        int);                // release time
 
  private:

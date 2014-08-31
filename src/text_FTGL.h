@@ -21,9 +21,8 @@ class Splot_TextFTGL
   typedef Splot_Text inherited;
 
   FTFont* ftFont_;
-  const char* fontFile_;
 
-  const char* findFont ();
+  char* findFont ();
 };
 #endif // USE_FTGL_TEXT
 

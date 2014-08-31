@@ -49,7 +49,7 @@ Splot_EnemyAircraft::Splot_EnemyAircraft()
 }
 
 Splot_EnemyAircraft::Splot_EnemyAircraft (EnemyAircraftType_t type_in,
-                                          float position_in[3],
+                                          const float (&position_in)[3],
                                           float randFact)
  : inherited (),
    type_ (type_in)
@@ -210,13 +210,15 @@ Splot_EnemyAircraft::checkHit (const Bullet_t& bullet_in)
 }
 
 void
-Splot_EnemyAircraft::reset (float position_in[3],
+Splot_EnemyAircraft::reset (const float (&position_in)[3],
                             float randomMovementFactor_in)
 {
   inherited::reset ();
   // *NOTE*: assignment not possible
-  //inherited::position_ = position_in;
-  ACE_OS::memcpy (&(inherited::position_), 0, sizeof (position_in));
+  //inherited::position_[0] = position_in[0];
+  //inherited::position_[1] = position_in[1];
+  //inherited::position_[2] = position_in[2];
+  ACE_OS::memcpy (&(inherited::position_), &position_in, sizeof (position_in));
 
   //size_[0] = size_[1] = 0;
 

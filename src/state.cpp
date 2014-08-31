@@ -48,6 +48,7 @@ Splot_State::Splot_State ()
   state_.highscore         = NULL;
 
   state_.mouse_active      = false;
+  state_.joy_active        = false;
 
   state_.fps               = STATE_DEFAULT_FPS;
   state_.frame             = 0;
@@ -141,7 +142,7 @@ Splot_State::initialize (GameToolkitType_t toolkit_in,
   // step1: initialize highscore table
   ACE_ASSERT (!state_.highscore);
   ACE_NEW_RETURN (state_.highscore,
-                  Splot_HighScore(Splot_HighScore::getFileName ()),
+                  Splot_HighScore (Splot_HighScore::getFileName ()),
                   false);
 
   // step2: initialize toolkit
@@ -310,7 +311,7 @@ Splot_State::createGame ()
    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
 
   if (configuration.debug)
-    ACE_DEBUG ((LM_DEBUG,
+    ACE_DEBUG ((LM_INFO,
                 ACE_TEXT ("starting up...\n")));
 
   //ACE_NEW (state_.main_GL,
@@ -361,7 +362,7 @@ Splot_State::createGame ()
   state_.audio->setMusicMode (SOUND_MUSIC_MENU);
 
   if (configuration.debug)
-    ACE_DEBUG ((LM_DEBUG,
+    ACE_DEBUG ((LM_INFO,
                 ACE_TEXT ("starting up...DONE\n")));
 }
 
@@ -372,7 +373,7 @@ Splot_State::deleteGame ()
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
 
   if (configuration.debug)
-    ACE_DEBUG ((LM_DEBUG,
+    ACE_DEBUG ((LM_INFO,
                 ACE_TEXT("shutting down...\n")));
   
   Splot_OpenGLCommon::fini ();
@@ -390,7 +391,7 @@ Splot_State::deleteGame ()
   delete state_.audio;
 
   if (configuration.debug)
-    ACE_DEBUG ((LM_DEBUG,
+    ACE_DEBUG ((LM_INFO,
                 ACE_TEXT("shutting down...DONE\n")));
 }
 

@@ -12,7 +12,7 @@ class Splot_Main
 
   virtual bool setVideoMode () = 0;
 
-  virtual void grabMouse (bool, bool=true) = 0;
+  virtual void grabMouse (bool, bool = true) = 0;
 };
 
 #endif // MAIN_H

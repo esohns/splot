@@ -57,7 +57,7 @@ Splot_AudioSDLMixer::init ()
   if (Mix_OpenAudio (AUDIO_FREQUENCY,
                      AUDIO_SDL_FORMAT,
                      AUDIO_CHANNELS,
-                     AUDIO_CHUNKSIZE) < 0)
+                     AUDIO_CHUNKSIZE))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Mix_OpenAudio(): \"%s\", returning\n"),
@@ -68,14 +68,95 @@ Splot_AudioSDLMixer::init ()
     return;
   } // end IF
 
+  int frequency = 0;
+  Uint16 format = 0;
+  int channels = 0;
+  std::string format_string;
+  if (Mix_QuerySpec (&frequency,
+                     &format,
+                     &channels) == 0)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Mix_QuerySpec(): \"%s\", continuing\n"),
+                ACE_TEXT (Mix_GetError ())));
+  switch (format)
+  {
+    case AUDIO_U8:
+      format_string = ACE_TEXT_ALWAYS_CHAR ("AUDIO_U8"); break;
+    case AUDIO_S8:
+      format_string = ACE_TEXT_ALWAYS_CHAR ("AUDIO_S8"); break;
+    case AUDIO_U16LSB:
+      format_string = ACE_TEXT_ALWAYS_CHAR ("AUDIO_U16LSB"); break;
+    case AUDIO_S16LSB:
+      format_string = ACE_TEXT_ALWAYS_CHAR ("AUDIO_S16LSB"); break;
+    case AUDIO_U16MSB:
+      format_string = ACE_TEXT_ALWAYS_CHAR ("AUDIO_U16MSB"); break;
+    case AUDIO_S16MSB:
+      format_string = ACE_TEXT_ALWAYS_CHAR ("AUDIO_S16MSB"); break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown audio format (was: %u), continuing\n"),
+                  format));
+
+      break;
+    }
+  } // end SWITCH
+  char driver[PATH_MAX];
+  if (!SDL_AudioDriverName (driver,
+                            sizeof (driver)))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to SDL_AudioDriverName(): \"%s\", continuing\n"),
+                ACE_TEXT (SDL_GetError ())));
+
+  const Configuration_t& configuration =
+    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("*** audio capabilities (driver: \"%s\") ***\nfrequency:\t%d\nformat:\t\t%s\nchannels:\t%d\nCD:\t\t%s\n"),
+              ACE_TEXT (driver),
+              frequency,
+              ACE_TEXT (format_string.c_str ()),
+              channels,
+              (configuration.use_cdrom ? ACE_TEXT (SDL_CDName (configuration.cdrom_device)) : ACE_TEXT ("N/A"))));
+
+  int total = Mix_GetNumChunkDecoders ();
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("*** audio decoders (effects) ***\n")));
+  for (int i = 0; i < total; i++)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("chunk decoder: [%s]\n"),
+                ACE_TEXT (Mix_GetChunkDecoder (i))));
+  total = Mix_GetNumMusicDecoders ();
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("*** audio decoders (music) ***\n")));
+  for (int i = 0; i < total; i++)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("music decoder: [%s]\n"),
+                ACE_TEXT (Mix_GetMusicDecoder (i))));
+
+  std::string filename;
+  SDL_RWops* rw_ops = NULL;
   for (int i = 0; i < MAX_SOUND_TYPES; i++)
   {
-    sounds_[i] = Mix_LoadWAV (dataLoc (inherited::soundFilenames_[i]).c_str ());
+    filename = dataLoc (inherited::soundFilenames_[i]);
+    rw_ops = SDL_RWFromFile (filename.c_str (), ACE_TEXT_ALWAYS_CHAR ("rb"));
+    if (!rw_ops)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to SDL_RWFromFile(\"%s\"): \"%s\", continuing\n"),
+                  ACE_TEXT (filename.c_str ()),
+                  ACE_TEXT (SDL_GetError ())));
+
+      continue;
+    } // end IF
+
+    sounds_[i] = Mix_LoadWAV_RW (rw_ops, 1);
     if (!sounds_[i])
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Mix_LoadWAV(\"%s\"): \"%s\", continuing\n"),
-                  ACE_TEXT (dataLoc (inherited::soundFilenames_[i]).c_str ()),
+                  ACE_TEXT ("failed to Mix_LoadWAV_RW(\"%s\"): \"%s\", continuing\n"),
+                  ACE_TEXT (filename.c_str ()),
                   ACE_TEXT (Mix_GetError ())));
+
+    //SDL_FreeRW (rw_ops);
   } // end FOR
 
   if (Mix_ReserveChannels (1) != 1) // channel 0 is for music
@@ -83,8 +164,6 @@ Splot_AudioSDLMixer::init ()
                 ACE_TEXT ("failed to Mix_ReserveChannels(1): \"%s\", continuing\n"),
                 ACE_TEXT (Mix_GetError ())));
 
-  const Configuration_t& configuration =
-    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
   setSoundVolume (configuration.vol_sound);
   setMusicVolume (configuration.vol_music);
 }

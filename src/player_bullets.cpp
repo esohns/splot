@@ -77,7 +77,7 @@ Splot_PlayerBullets::loadTextures ()
   char filename[PATH_MAX];
   std::string path_base = ACE_TEXT_ALWAYS_CHAR (SPLOT_IMAGE_DATA_DIR);
   path_base += ACE_DIRECTORY_SEPARATOR_STR;
-  std::string format_string = ACE_TEXT_ALWAYS_CHAR ("%sAmmo%02d.png");
+  std::string format_string = ACE_TEXT_ALWAYS_CHAR ("%sheroAmmo%02d.png");
   int result = -1;
   for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
   {

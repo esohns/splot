@@ -256,11 +256,12 @@ Splot_Image::load (const std::string& filename_in,
 #endif
 
   // check OpenGL error(s)
-  GLenum err = GL_NO_ERROR;
-  while ((err = glGetError ()) != GL_NO_ERROR)
+  GLenum OpenGL_error = glGetError ();
+  //while ((OpenGL_error = glGetError ()) != GL_NO_ERROR)
+  if (OpenGL_error != GL_NO_ERROR)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("OpenGL error: %d, continuing\n"),
-                err));
+                ACE_TEXT ("OpenGL error: \"%s\", continuing\n"),
+                gluErrorString (OpenGL_error)));
 
   return texture_id;
 }

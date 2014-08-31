@@ -8,6 +8,8 @@
 
 #ifdef USE_FTGL_TEXT
 
+#include <string>
+
 #include "ace/OS.h"
 #include "ace/OS_Memory.h"
 #include "ace/Log_Msg.h"
@@ -15,6 +17,7 @@
 //#include "gettext.h"
 //
 #include "defines.h"
+#include "common.h"
 //
 //#include <sys/stat.h>
 //#include <FTGL/ftgl.h>
@@ -28,16 +31,23 @@
 Splot_TextFTGL::Splot_TextFTGL ()
  : inherited ()
  , ftFont_ (NULL)
- , fontFile_ (NULL)
 {
-  fontFile_ = findFont ();
+  char* font_file = findFont ();
+  if (!font_file)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Splot_TextFTGL::findFont(), returning\n")));
+
+    return;
+  } // end IF
+
   ACE_NEW (ftFont_,
-           FTBufferFont (fontFile_));
-  free ((void*)fontFile_);
+           FTBufferFont (font_file));
   if (ftFont_->Error ())
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to FTBufferFont(\"%s\"), continuing\n"),
-                ACE_TEXT (fontFile_)));
+                ACE_TEXT (font_file)));
+  free ((void*)font_file);
 
   ftFont_->FaceSize (24);
 }
@@ -74,7 +84,7 @@ Splot_TextFTGL::LineHeight (const char* string_in, const int length_in)
   return ftFont_->LineHeight ();
 }
 
-const char*
+char*
 checkFont (const char* filename_in)
 {
   ACE_stat stat;
@@ -85,18 +95,24 @@ checkFont (const char* filename_in)
 
   return NULL;
 }
-const char*
+char*
 Splot_TextFTGL::findFont ()
 {
-  const char* font = NULL;
+  char* font = NULL;
 
   // Get user-specified font path
-  font = checkFont (ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (SPLOT_FONT_DIR_ENV_SYMBOL)));
+  std::string path_base = ACE_TEXT_ALWAYS_CHAR (SPLOT_FONT_DATA_DIR);
+  path_base += ACE_DIRECTORY_SEPARATOR_STR;
+  std::string filename = path_base + ACE_TEXT_ALWAYS_CHAR (SPLOT_FONT_FILE);
+  font = checkFont (dataLoc (filename).c_str ());
   if (font) return font;
 
 #ifdef FONT_PATH
   // Get distro-specified font path
-  font = checkFont (FONT_PATH);
+  path_base = ACE_TEXT_ALWAYS_CHAR (FONT_PATH);
+  path_base += ACE_DIRECTORY_SEPARATOR_STR;
+  filename = path_base + ACE_TEXT_ALWAYS_CHAR (SPLOT_FONT_FILE);
+  font = checkFont (filename.c_str ());
   if (font) return font;
 #endif
 

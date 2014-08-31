@@ -5,8 +5,29 @@
 #include "splot-config.h"
 #endif
 
+#include "ace/config-lite.h"
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+// On Windows SDL can only do 32x32 icons
+#define SPLOT_WINDOW_ICON                   "icon32.png"
+#else
+// Elsewhere SDL can do any size icons
+#define SPLOT_WINDOW_ICON                   "hero.png"
+#endif
+#define SPLOT_WINDOW_TITLE                  PACKAGE
+#define SPLOT_ICON_CAPTION                  PACKAGE
+
 #define SPLOT_DATA_DIR_ENV_SYMBOL           "SPLOT_DATA"
-#define SPLOT_FONT_DIR_ENV_SYMBOL           "SPLOT_FONT"
+#define SPLOT_FONT_FILE                     "Gothic Uralic, Bold.ttf"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#define SPLOT_HOME_ENV_SYMBOL               "USERPROFILE"
+#else
+#define SPLOT_HOME_ENV_SYMBOL               "HOME"
+#endif
+
+#define SPLOT_HIGHSCORE_HEADER_LINE         "# splot high scores file: skill rank score date time(UTC) name (do not remove this comment line)\n"
+#define SPLOT_HIGHSCORE_DEFAULT_NAME        "nobody"
+#define SPLOT_HIGHSCORE_ENV_SYMBOL          "SPLOT_SCORE"
 
 #define CONFIGURATION_DEFAULT_SCREEN_WIDTH   1024
 #define CONFIGURATION_DEFAULT_SCREEN_HEIGHT  786
@@ -45,7 +66,10 @@
 
 #define OPTIONS_LONG_OPTION_NOAUDIO          "noaudio"
 #define OPTIONS_LONG_OPTION_NOBLEND          "noblend"
+#define OPTIONS_LONG_OPTION_CDMUSIC          "cdmusic"
+#define OPTIONS_LONG_OPTION_DEBUG            "debug"
 #define OPTIONS_LONG_OPTION_FULLSCREEN       "fullscreen"
+#define OPTIONS_LONG_OPTION_INI_FILE         "ini_file"
 #define OPTIONS_LONG_OPTION_VIDEO_MODE       "vidmode"
 #define OPTIONS_LONG_OPTION_NOTEXBORDER      "notexborder"
 #define OPTIONS_LONG_OPTION_VERSION          "version"
@@ -75,6 +99,7 @@
 #define STATE_DEFAULT_PLAYER_SHIPS           4
 #define MAX_PLAYER_SHIPS                     9
 
+#define SPLOT_FONT_DATA_DIR                  "fnt"
 #define SPLOT_IMAGE_DATA_DIR                 "png"
 #define SPLOT_AUDIO_DATA_DIR                 "wav"
 

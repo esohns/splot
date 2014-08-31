@@ -42,9 +42,9 @@ class Splot_PowerUp
  public:
   Splot_PowerUp (); // *WARNING*: do NOT use !
   Splot_PowerUp (PowerUpType_t, // type
-                 float p[3],    // position
-                 float v[3],    // velocity
-                 float = 1.0);  // potency
+                 const float (&)[3], // position
+                 const float (&)[3], // direction
+                 float = 1.0);       // potency
   virtual ~Splot_PowerUp ();
 
   virtual Splot_PowerUp* get_next() { return dynamic_cast<Splot_PowerUp*> (inherited::get_next ()); };

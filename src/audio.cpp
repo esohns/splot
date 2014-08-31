@@ -2,23 +2,7 @@
 
 #include "audio.h"
 
-//#ifdef HAVE_CONFIG_H
-//#include <chromium-bsu-config.h>
-//#endif
-//
-//#include "gettext.h"
-//
-//#include "Splot_Audio.h"
-//
-//
 #include <string>
-//#include <cstdlib>
-#ifdef USE_SDL
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
-#include <cmath>
-#include <sstream>
-#endif
-#endif
 
 #include "ace/Default_Constants.h"
 #include "ace/OS.h"
@@ -27,20 +11,20 @@
 #include "configuration.h"
 #include "state.h"
 
-//#if !defined (USE_SDL_CDROM) && defined (SDL_CD_STUBS)
-//void	SDL_CDPlayTracks(void*, int, int, int, int) {}
-//void	SDL_CDPause(void*)	{}
-//void	SDL_CDResume(void*)	{}
-//void	SDL_CDStop(void*)	{}
-//int		SDL_CDStatus(void*)	{ return 0; }
-//#endif //USE_SDL_CDROM
+#if !defined (WITH_SDL_CDROM) && defined (SDL_CD_STUBS)
+void SDL_CDPlayTracks (void*, int, int, int, int) { }
+void SDL_CDPause (void*) { }
+void SDL_CDResume (void*) { }
+void SDL_CDStop (void*) { }
+int	 SDL_CDStatus (void*) { return 0; }
+#endif // WITH_SDL_CDROM
 
 Splot_Audio::Splot_Audio ()
   : musicMaxIndex_ (1)
   , musicCurrentIndex_ (0)
-#ifdef USE_SDL
+#ifdef WITH_SDL_CDROM
   , CDROM_ (NULL)
-#endif // USE_SDL
+#endif // WITH_SDL_CDROM
 {
   std::string path_base = ACE_TEXT_ALWAYS_CHAR (SPLOT_AUDIO_DATA_DIR);
   path_base += ACE_DIRECTORY_SEPARATOR_STR;
@@ -67,15 +51,16 @@ Splot_Audio::Splot_Audio ()
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
   if (configuration.audio_enabled)
   {
-#ifdef USE_SDL
-    initCDROM ();
-#endif // USE_SDL
+#ifdef WITH_SDL_CDROM
+    if (configuration.use_cdrom)
+      initCDROM ();
+#endif // WITH_SDL_CDROM
   } // end IF
 }
 
-Splot_Audio::~Splot_Audio()
+Splot_Audio::~Splot_Audio ()
 {
-#ifdef USE_SDL
+#ifdef WITH_SDL_CDROM
   if (CDROM_)
   {
     if (SDL_CDStop (CDROM_) == -1)
@@ -85,7 +70,7 @@ Splot_Audio::~Splot_Audio()
 
     SDL_CDClose (CDROM_);
   } // end IF
-#endif // USE_SDL
+#endif // WITH_SDL_CDROM
 }
 //
 //void
@@ -106,12 +91,7 @@ Splot_Audio::~Splot_Audio()
 //
 //}
 
-/**
- * If SDL is being used as the windowing toolkit, check
- * availability of CDROM for music tracks. Does nothing
- * if GLUT is being used.
- */
-#ifdef USE_SDL
+#ifdef WITH_SDL_CDROM
 static
 const char*
 trackType (int track_in)
@@ -239,12 +219,12 @@ Splot_Audio::initCDROM ()
                 ACE_TEXT ("use_cdrom enabled. Set to '0' in the configuration file to disable.\n")
                 ACE_TEXT ("Press the \'N\' key to skip to next CD track during a game.\n")));
 }
-#endif // USE_SDL
+#endif // WITH_SDL_CDROM
 
 void
 Splot_Audio::stopMusic ()
 {
-#ifdef USE_SDL
+#ifdef WITH_SDL_CDROM
   if (!CDROM_)
     return; // nothing to do
   if (SDL_CDStop (CDROM_) == -1)
@@ -252,13 +232,13 @@ Splot_Audio::stopMusic ()
                 ACE_TEXT ("failed to SDL_CDStop (%@): \"%s\", continuing\n"),
                 CDROM_,
                 ACE_TEXT (SDL_GetError ())));
-#endif // USE_SDL
+#endif // WITH_SDL_CDROM
 }
 
 void
 Splot_Audio::pauseMusic (bool status_in)
 {
-#ifdef USE_SDL
+#ifdef WITH_SDL_CDROM
   if (!CDROM_)
     return; // nothing to do
 
@@ -299,7 +279,7 @@ Splot_Audio::pauseMusic (bool status_in)
   //              configuration.cdrom_device,
   //              cdrom_status));
   //} // end ELSE
-#endif // USE_SDL
+#endif // WITH_SDL_CDROM
 }
 
 void
@@ -310,7 +290,7 @@ Splot_Audio::setMusicMode (SoundType_t soundType_in)
   if (!configuration.audio_enabled)
     return; // nothing to do
 
-#ifdef USE_SDL
+#ifdef WITH_SDL_CDROM
   if (!CDROM_)
     return; // nothing to do
 
@@ -362,7 +342,7 @@ Splot_Audio::setMusicMode (SoundType_t soundType_in)
                   soundType_in));
       return;
   } // end SWITCH
-#endif // USE_SDL
+#endif // WITH_SDL_CDROM
 }
 
 void
@@ -373,7 +353,7 @@ Splot_Audio::setMusicVolume (float value_in)
   if (!configuration.audio_enabled)
     return; // nothing to do
 
-#ifdef USE_SDL
+#ifdef WITH_SDL_CDROM
   if (!configuration.use_cdrom)
     return; // nothing to do
 
@@ -394,7 +374,7 @@ Splot_Audio::setMusicVolume (float value_in)
                 ACE_TEXT ("failed to set CD volume, amixer returned status: %d, continuing\n"),
                 status));
 #endif
-#endif // USE_SDL
+#endif // WITH_SDL_CDROM
 }
 
 void
@@ -408,7 +388,7 @@ Splot_Audio::setMusicIndex (int track_in)
   if (musicMaxIndex_)
     musicCurrentIndex_ = track_in%musicMaxIndex_;
 
-#ifdef USE_SDL
+#ifdef WITH_SDL_CDROM
   if (!CDROM_)
     return; // nothing to do
 
@@ -444,7 +424,7 @@ Splot_Audio::setMusicIndex (int track_in)
                   ACE_TEXT ("failed to SDL_CDPause (%@): \"%s\", continuing\n"),
                   CDROM_,
                   ACE_TEXT (SDL_GetError ())));
-#endif // USE_SDL
+#endif // WITH_SDL_CDROM
 }
 
 void

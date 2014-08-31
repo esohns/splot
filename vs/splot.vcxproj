@@ -137,6 +137,7 @@
     <ClCompile Include="..\src\image.cpp" />
     <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\main_SDL.cpp" />
+    <ClCompile Include="..\src\main_SDL_event.cpp" />
     <ClCompile Include="..\src\menu.cpp" />
     <ClCompile Include="..\src\OpenGL_common.cpp" />
     <ClCompile Include="..\src\player_aircraft.cpp" />

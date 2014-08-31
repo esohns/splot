@@ -196,7 +196,9 @@ ACE_TMAIN (int argc_in,
   } // end IF
 
 #ifdef ENABLE_NLS
+#ifdef HAVE_LOCALE_H
   setlocale (LC_ALL, "");
+#endif
   bindtextdomain (PACKAGE, LOCALEDIR);
   bind_textdomain_codeset (PACKAGE, "UTF-8");
   textdomain (PACKAGE);
@@ -266,7 +268,7 @@ ACE_TMAIN (int argc_in,
 
   return EXIT_SUCCESS;
 } // end main
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

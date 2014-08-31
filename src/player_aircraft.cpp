@@ -14,11 +14,13 @@
 
 //#include "compatibility.h"
 
-//#if defined(HAVE_APPLE_OPENGL_FRAMEWORK) || defined(HAVE_OPENGL_GL_H)
-//#include <OpenGL/gl.h>
-//#else
-//#include <GL/gl.h>
-//#endif
+#if defined(HAVE_APPLE_OPENGL_FRAMEWORK) || defined(HAVE_OPENGL_GL_H)
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#else
+#include "GL/gl.h"
+#include "GL/glu.h"
+#endif
 
 #include "ace/OS.h"
 #include "ace/OS_Memory.h"
@@ -906,11 +908,12 @@ Splot_PlayerAircraft::drawGL ()
   } // end IF
 
   // check OpenGL error(s)
-  GLenum err = GL_NO_ERROR;
-  while ((err = glGetError()) != GL_NO_ERROR)
+  GLenum OpenGL_error = glGetError ();
+  //while ((OpenGL_error = glGetError ()) != GL_NO_ERROR)
+  if (OpenGL_error != GL_NO_ERROR)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("OpenGL error: %d, continuing\n"),
-                err));
+                ACE_TEXT ("OpenGL error: \"%s\", continuing\n"),
+                gluErrorString (OpenGL_error)));
 }
 
 void

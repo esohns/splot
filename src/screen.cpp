@@ -279,7 +279,7 @@ Splot_Screen::add (const EnemyWave_t& wave_in)
 
 Splot_EnemyAircraft*
 Splot_Screen::makeAdd (EnemyAircraftType_t type_in,
-                       float position_in[3],
+                       const float (&position_in)[3],
                        int releaseTime_in)
 {
   Splot_EnemyAircraft* enemy = NULL;

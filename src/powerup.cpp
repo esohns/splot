@@ -357,8 +357,8 @@ Splot_PowerUp::Splot_PowerUp ()
 }
 
 Splot_PowerUp::Splot_PowerUp (PowerUpType_t type_in,
-                              float position_in[3],
-                              float velocity_in[3],
+                              const float (&position_in)[3],
+                              const float (&velocity_in)[3],
                               float potency_in)
  : inherited ()
  , type_ (type_in)

@@ -40,15 +40,15 @@ class Splot_EnemyAircraft
  public:
   Splot_EnemyAircraft (); // *WARNING*: do NOT use !
   Splot_EnemyAircraft (EnemyAircraftType_t, // type
-                       float p[3],          // position
+                       const float (&)[3],  // position
                        float = 1.0);        // random movement factor
   virtual ~Splot_EnemyAircraft ();
 
   virtual Splot_EnemyAircraft* get_next () { return dynamic_cast<Splot_EnemyAircraft*> (inherited::get_next ()); };
 
   void update ();
-  void reset (float p[3],   // position
-              float = 1.0); // random movement factor
+  void reset (const float (&)[3], // position
+              float = 1.0);       // random movement factor
 
   EnemyAircraftType_t type () const { return type_; };
 
