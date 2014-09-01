@@ -4,8 +4,11 @@
 #ifdef HAVE_CONFIG_H
 #include "splot-config.h"
 #endif
-#if defined (HAVE_APPLE_OPENGL_FRAMEWORK) || defined (HAVE_OPENGL_GL_H)
-#include "OpenGL/gl.h"
+
+#ifdef USE_SDL
+#include "SDL_opengl.h"
+#elif defined (HAVE_APPLE_OPENGL_FRAMEWORK) || defined (HAVE_OPENGL_GL_H)
+#include <OpenGL/gl.h>
 #else
 #include "GL/gl.h"
 #endif
@@ -47,13 +50,14 @@ class Splot_PowerUp
                  float = 1.0);       // potency
   virtual ~Splot_PowerUp ();
 
-  virtual Splot_PowerUp* get_next() { return dynamic_cast<Splot_PowerUp*> (inherited::get_next ()); };
+//  virtual Splot_PowerUp* get_next() { return dynamic_cast<Splot_PowerUp*> (inherited::get_next ()); };
+  virtual Splot_PowerUp* get_next() { return (Splot_PowerUp*)inherited::get_next (); };
 
   PowerUpType_t type () { return type_; }
 
   float potency_;
 
-  static unsigned int count_;
+  static unsigned int count;
 
  private:
   typedef Splot_GameElement inherited;

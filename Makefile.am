@@ -3,8 +3,8 @@ MAINTAINERCLEANFILES = \
 	Makefile.in \
 	config.h.in \
 	config.h.in~ \
-	chromium-bsu-config.h.in \
-	chromium-bsu-config.h.in~ \
+	splot-config.h.in \
+	splot-config.h.in~ \
 	config.sub \
 	config.guess \
 	aclocal.m4 \
@@ -31,8 +31,6 @@ MAINTAINERCLEANFILES = \
 	m4/intldir.m4 \
 	m4/threadlib.m4 \
 	m4/acx_pthread.m4 \
-	m4/ax_check_gl.m4 \
-	m4/ax_check_glu.m4 \
 	m4/ax_check_glut.m4 \
 	m4/ax_lang_compiler_ms.m4 \
 	m4/codeset.m4 \
@@ -77,13 +75,15 @@ EXTRA_DIST = \
 ACLOCAL_AMFLAGS = -I m4 --install
 
 SUBDIRS = \
-	po \
-	misc \
-	src \
+	data \
 	m4 \
-	data
+	misc \
+	po \
+	prj \
+	src
 
 dist-hook:
 	if test -d .git -a \( ! -e $(distdir)/ChangeLog -o -w $(distdir)/ChangeLog \) ; then \
 		LC_ALL=C git log --pretty --numstat --summary $(VERSION) | git2cl > $(distdir)/ChangeLog ; \
 	fi
+

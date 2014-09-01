@@ -37,7 +37,7 @@
 #include "AudioOpenAL.h"
 #endif
 #if defined (USE_SDLMIXER_AUDIO)
-#include "audio_SDLMixer.h"
+#include "audio_SDLmixer.h"
 #endif
 
 Splot_State::Splot_State ()

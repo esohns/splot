@@ -52,10 +52,8 @@ Splot_StatusDisplay::Splot_StatusDisplay ()
  : ammoAlpha_ (0.0)
  , damageAlpha_ (0.0)
  , shieldAlpha_ (0.0)
- , enemyWarn_ (0.0)
- , tipShipShow_ (0)
- , tipSuperShow_ (0)
  , texStat_ (0)
+ , texShld_ (0)
  , texTop_ (0)
  , texPlayerSuper_ (0)
  , texPlayerShield_ (0)
@@ -63,12 +61,14 @@ Splot_StatusDisplay::Splot_StatusDisplay ()
  , texUseFocus_ (0)
  //, texUseItem_ ()
  , blink_ (true)
+ , tipShipShow_ (0)
+ , tipSuperShow_ (0)
+ , enemyWarn_ (0.0)
 {
   for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
-  {
     texPlayerAmmoFlash_[i] = 0;
+  for (int i = 0; i < MAX_PLAYER_ITEMS; i++)
     texUseItem_[i] = 0;
-  } // end FOR
 
   loadTextures ();
 }

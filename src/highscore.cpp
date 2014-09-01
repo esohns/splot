@@ -176,7 +176,7 @@ Splot_HighScore::save ()
   if (ACE_OS::fprintf (file,
                        ACE_TEXT_ALWAYS_CHAR ("%s"),
                        ACE_TEXT_ALWAYS_CHAR (SPLOT_HIGHSCORE_HEADER_LINE)) !=
-      (ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (SPLOT_HIGHSCORE_HEADER_LINE)+1)))
+      ((int)ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (SPLOT_HIGHSCORE_HEADER_LINE))+1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to fprintf (\"%s\"): \"%m\", aborting\n"),

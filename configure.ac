@@ -1,21 +1,25 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.58])
+AC_PREREQ([2.69])
 
-AC_INIT([Chromium B.S.U.], [0.9.15.1], [http://sf.net/projects/chromium-bsu/bugs], [chromium-bsu])
+#AC_CONFIG_AUX_DIR([aux_config])
+
+AC_INIT([splot],[0.0.1],[http://github/esohns/splot],[splot])
 AM_INIT_AUTOMAKE([foreign])
 
-AC_CONFIG_SRCDIR([src/main.cpp])
-AC_CONFIG_HEADERS([chromium-bsu-config.h])
+AC_CONFIG_SRCDIR([src/splot.cpp])
+AC_CONFIG_HEADERS([splot-config.h])
+AC_CONFIG_MACRO_DIR([m4])
 
 # Programs
 AC_PROG_CXX
+AC_PROG_LN_S
 PKG_PROG_PKG_CONFIG
 
 # Headers
 AC_HEADER_STDC
-AC_CHECK_HEADERS([fcntl.h stdlib.h string.h unistd.h locale.h])
+#AC_CHECK_HEADERS([fcntl.h stdlib.h string.h unistd.h locale.h])
 
 # Types and compiler bits
 AC_HEADER_STDBOOL
@@ -24,10 +28,11 @@ AC_C_INLINE
 AC_STRUCT_TM
 
 # Functions
-AC_FUNC_MALLOC
+AC_FUNC_MKTIME
 AC_FUNC_STAT
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([atexit floor setenv sqrt strcasecmp strchr strerror strrchr])
+AC_FUNC_ERROR_AT_LINE
+AC_CHECK_FUNCS([getcwd memset setlocale strdup tzset atexit floor setenv sqrt strchr])
 
 # Enable some special macintosh path handling
 AC_ARG_WITH(macintosh,
@@ -39,7 +44,7 @@ AC_ARG_WITH(macintosh,
 
 # gettext for internationalisation
 AM_GNU_GETTEXT([external])
-AM_GNU_GETTEXT_VERSION([0.18])
+AM_GNU_GETTEXT_VERSION([0.18.3])
 
 # Need OpenGL and GLU for drawing stuff
 AX_CHECK_GL
@@ -144,17 +149,17 @@ fi
 
 
 if test \( "x$HAVE_GL_GLC_H" = xyes -o "x$HAVE_QUESOGLC_GLC_H" = xyes \) -a "x$HAVE_GLC_LIB" = xyes -a "x$enable_glc" != xno ; then
-	AC_DEFINE(TEXT_GLC, 1, [define to use GLC])
+	AC_DEFINE(USE_GLC_TEXT, 1, [define to use GLC])
 	TEXT_LIBS="-lGLC"
 	AC_SUBST(TEXT_LIBS)
 	TEXT_TYPE=GLC
 elif test \( "x$HAVE_GL_GLC_H" = xyes -o "x$HAVE_QUESOGLC_GLC_H" = xyes \) -a "x$HAVE_GLC32_LIB" = xyes -a "x$enable_glc" != xno ; then
-	AC_DEFINE(TEXT_GLC, 1, [define to use GLC])
+	AC_DEFINE(USE_GLC_TEXT, 1, [define to use GLC])
 	TEXT_LIBS="-lglc32"
 	AC_SUBST(TEXT_LIBS)
 	TEXT_TYPE=GLC
 elif test "x$HAVE_FTGL" = xyes -a "x$enable_ftgl" != xno ; then
-	AC_DEFINE(TEXT_FTGL, 1, [define to use FTGL])
+	AC_DEFINE(USE_FTGL_TEXT, 1, [define to use FTGL])
 	TEXT_CFLAGS="$FTGL_CFLAGS"
 	AC_SUBST(TEXT_CFLAGS)
 	TEXT_LIBS="$FTGL_LIBS"
@@ -200,7 +205,7 @@ if test "x$HAVE_SDL2" = xyes -a "x$enable_sdl2" != xno ; then
 	WINDOW_TYPE=SDL2
 elif test "x$HAVE_SDL" = xyes -a "x$enable_sdl" != xno ; then
 	AC_DEFINE(USE_SDL, 1, [define to use SDL])
-	AC_DEFINE(USE_SDL_CDROM, 1, [define to use SDL CDROM support])
+	AC_DEFINE(WITH_SDL_CDROM, 1, [define to use SDL CDROM support])
 	WINDOW_CFLAGS="$SDL_CFLAGS"
 	AC_SUBST(WINDOW_CFLAGS)
 	WINDOW_LIBS="$SDL_LIBS"
@@ -235,14 +240,14 @@ if test "x$HAVE_OPENAL" = xyes -a "x$HAVE_FREEALUT" = xyes -a "x$enable_openal" 
 	CPPFLAGS="${ac_save_CPPFLAGS}"
 	CFLAGS="${ac_save_CFLAGS}"
 elif test "x$HAVE_SDL2MIXER" = xyes -a "x$enable_sdl2mixer" != xno ; then
-	AC_DEFINE(AUDIO_SDLMIXER, 1, [define to use SDL Mixer])
+	AC_DEFINE(USE_SDLMIXER_AUDIO, 1, [define to use SDL Mixer])
 	AUDIO_CFLAGS="$SDL2MIXER_CFLAGS"
 	AC_SUBST(AUDIO_CFLAGS)
 	AUDIO_LIBS="$SDL2MIXER_LIBS"
 	AC_SUBST(AUDIO_LIBS)
 	AUDIO_TYPE="SDL mixer"
 elif test "x$HAVE_SDLMIXER" = xyes -a "x$enable_sdlmixer" != xno ; then
-	AC_DEFINE(AUDIO_SDLMIXER, 1, [define to use SDL Mixer])
+	AC_DEFINE(USE_SDLMIXER_AUDIO, 1, [define to use SDL Mixer])
 	AUDIO_CFLAGS="$SDLMIXER_CFLAGS"
 	AC_SUBST(AUDIO_CFLAGS)
 	AUDIO_LIBS="$SDLMIXER_LIBS"
@@ -258,12 +263,12 @@ if test  \( "x$HAVE_GL_GLPNG_H" = xyes -o "x$HAVE_GLPNG_GLPNG_H" = xyes \) -a "x
 	IMAGE_GLPNG=yes
 elif test "x$WINDOW_TYPE" = xSDL2 -a "x$HAVE_SDL2IMAGE" = xyes -a "x$enable_sdl2image" != no ; then
 	AC_MSG_WARN([Using SDL2_image to load images into textures, some rendering artifacts may be present])
-	AC_DEFINE(IMAGE_SDL, 1, [define to use SDL_image])
+	AC_DEFINE(USE_SDL_IMAGE, 1, [define to use SDL_image])
 	IMAGE_TYPE=SDL2_image
 	IMAGE_SDL2IMAGE=yes
 elif test "x$WINDOW_TYPE" = xSDL -a "x$HAVE_SDLIMAGE" = xyes -a "x$enable_sdlimage" != no ; then
 	AC_MSG_WARN([Using SDL_image to load images into textures, some rendering artifacts may be present])
-	AC_DEFINE(IMAGE_SDL, 1, [define to use SDL_image])
+	AC_DEFINE(USE_SDL_IMAGE, 1, [define to use SDL_image])
 	IMAGE_TYPE=SDL_image
 	IMAGE_SDLIMAGE=yes
 else
@@ -304,24 +309,76 @@ if test "x$IMAGE_SDLIMAGE" = xyes ; then
 	AC_SUBST(IMAGE_LIBS)
 fi
 
+# reset the cpp compiler flags
+CXXFLAGS=
+# --> enable debug support ?
+AC_MSG_CHECKING(whether to enable debugging)
+debug_default="no"
+AC_ARG_ENABLE(debug,
+              [--enable-debug=[no/yes] turn on debugging [default=$debug_default]],
+              ,
+              enable_debug=$debug_default)
+if test "x$enable_debug" = "xyes"; then
+  CXXFLAGS="-g -O0 -Wall -D_DEBUG -DDEBUG_DEBUGGER"
+  AC_MSG_RESULT(yes)
+else
+#  CXXFLAGS="-O3 -march=native -Wall -Werror -Wno-unused-variable -Wno-sign-compare"
+  CXXFLAGS="-O3 -march=native -DNDEBUG -Wall -Werror"
+  AC_MSG_RESULT(no)
+fi
+
+# --> enable tracing support ?
+AC_MSG_CHECKING(whether to enable tracing)
+tracing_default="no"
+AC_ARG_ENABLE(tracing,
+              [--enable-tracing=[no/yes] turn on tracing [default=$tracing_default]],
+              ,
+              enable_tracing=$tracing_default)
+if test "x$enable_tracing" = "xyes"; then
+  CXXFLAGS="${CXXFLAGS} -DRPG_NTRACE=0"
+  AC_MSG_RESULT(yes)
+else
+  CXXFLAGS="${CXXFLAGS} -DRPG_NTRACE=1"
+  AC_MSG_RESULT(no)
+fi
+
+# --> enable valgrind support ?
+AC_MSG_CHECKING(whether to enable valgrind support)
+valgrind_support_default="no"
+AC_ARG_ENABLE(valgrind,
+              [--enable-valgrind=[no/yes] turn on valgrind support [default=$valgrind_support_default]],
+              ,
+              enable_valgrind=$valgrind_support_default)
+if test "x$enable_valgrind" = "xyes"; then
+  CXXFLAGS="${CXXFLAGS} -DRPG_ENABLE_VALGRIND_SUPPORT"
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+fi
+
+# Checks for libraries.
+# FIXME: Replace `main' with a function in `-lACE':
+AC_CHECK_LIB([ACE], [main])
+
 AC_CONFIG_FILES([
 	Makefile
-	data/doc/Makefile
-	data/doc/images/Makefile
+	data/fnt/Makefile
 	data/png/Makefile
 	data/wav/Makefile
 	data/Makefile
-	misc/Makefile
-	src/Makefile
 	m4/Makefile
+	misc/Makefile
 	po/Makefile.in
+	prj/msvc/Makefile
+	prj/Makefile
+	src/Makefile
 ])
 
 AC_OUTPUT
 
 echo "
 
-Chromium B.S.U. ready for building!
+splot ready for building!
 
   Window type: $WINDOW_TYPE
   Window icon: $WINDOW_ICON

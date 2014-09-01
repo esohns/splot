@@ -1,10 +1,6 @@
 #include "stdafx.h"
 
-#include "text_ftgl.h"
-
-//#ifdef HAVE_CONFIG_H
-//#include "splot-config.h"
-//#endif
+#include "text_FTGL.h"
 
 #ifdef USE_FTGL_TEXT
 
@@ -14,19 +10,12 @@
 #include "ace/OS_Memory.h"
 #include "ace/Log_Msg.h"
 
-//#include "gettext.h"
-//
 #include "defines.h"
 #include "common.h"
-//
-//#include <sys/stat.h>
-//#include <FTGL/ftgl.h>
-//
-//#ifdef HAVE_FONTCONFIG
-//#include <fontconfig/fontconfig.h>
-//#endif
 
-//using namespace std;
+#ifdef HAVE_FONTCONFIG
+#include "fontconfig/fontconfig.h"
+#endif
 
 Splot_TextFTGL::Splot_TextFTGL ()
  : inherited ()
@@ -152,7 +141,7 @@ Splot_TextFTGL::findFont ()
   {
     FcChar8* file;
     if (FcPatternGetString (fs->fonts[0], FC_FILE, 0, &file) == FcResultMatch)
-      font = checkFont ((const char*)file)
+      font = checkFont ((const char*)file);
     FcFontSetDestroy (fs);
   } // end IF
   FcFini ();

@@ -8,6 +8,10 @@
 #include "ace/Configuration.h"
 #include "ace/Configuration_Import_Export.h"
 
+#ifdef USE_SDLMIXER_AUDIO
+#include "SDL_mixer.h"
+#endif
+
 #include "defines.h"
 #include "common.h"
 
@@ -37,7 +41,7 @@ Splot_Configuration::Splot_Configuration ()
 
   configuration_.audio_enabled = CONFIGURATION_DEFAULT_AUDIO_ENABLED;
   configuration_.swap_stereo = CONFIGURATION_DEFAULT_SWAP_STEREO;
-  configuration_.use_playList = CONFIGURATION_DEFAULT_USE_PLAYLIST;
+  configuration_.use_playlist = CONFIGURATION_DEFAULT_USE_PLAYLIST;
   configuration_.use_cdrom = CONFIGURATION_DEFAULT_USE_CDROM;
   configuration_.cdrom_device = 0;
   configuration_.vol_sound = CONFIGURATION_DEFAULT_VOL_SOUND;
@@ -74,7 +78,7 @@ Splot_Configuration::init (int argc_in,
                                ACE_TEXT (""));
   if (argument_parser.long_option (ACE_TEXT (OPTIONS_LONG_OPTION_NOAUDIO),
                                    'a',
-                                   ACE_Get_Opt::OPTION_ARG_MODE::NO_ARG) == -1)
+                                   ACE_Get_Opt::NO_ARG) == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Get_Opt::long_option (\"%s\"): \"%m\", aborting\n"),
@@ -84,7 +88,7 @@ Splot_Configuration::init (int argc_in,
   } // end IF
   if (argument_parser.long_option (ACE_TEXT (OPTIONS_LONG_OPTION_NOBLEND),
                                    'b',
-                                   ACE_Get_Opt::OPTION_ARG_MODE::NO_ARG) == -1)
+                                   ACE_Get_Opt::NO_ARG) == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Get_Opt::long_option (\"%s\"): \"%m\", aborting\n"),
@@ -94,7 +98,7 @@ Splot_Configuration::init (int argc_in,
   } // end IF
   if (argument_parser.long_option (ACE_TEXT (OPTIONS_LONG_OPTION_CDMUSIC),
                                    'c',
-                                   ACE_Get_Opt::OPTION_ARG_MODE::NO_ARG) == -1)
+                                   ACE_Get_Opt::NO_ARG) == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Get_Opt::long_option (\"%s\"): \"%m\", aborting\n"),
@@ -104,7 +108,7 @@ Splot_Configuration::init (int argc_in,
   } // end IF
   if (argument_parser.long_option (ACE_TEXT (OPTIONS_LONG_OPTION_DEBUG),
                                    'd',
-                                   ACE_Get_Opt::OPTION_ARG_MODE::NO_ARG) == -1)
+                                   ACE_Get_Opt::NO_ARG) == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Get_Opt::long_option (\"%s\"): \"%m\", aborting\n"),
@@ -114,7 +118,7 @@ Splot_Configuration::init (int argc_in,
   } // end IF
   if (argument_parser.long_option (ACE_TEXT (OPTIONS_LONG_OPTION_INI_FILE),
                                    'i',
-                                   ACE_Get_Opt::OPTION_ARG_MODE::ARG_REQUIRED) == -1)
+                                   ACE_Get_Opt::ARG_REQUIRED) == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Get_Opt::long_option (\"%s\"): \"%m\", aborting\n"),
@@ -124,7 +128,7 @@ Splot_Configuration::init (int argc_in,
   } // end IF
   if (argument_parser.long_option (ACE_TEXT (OPTIONS_LONG_OPTION_FULLSCREEN),
                                    'f',
-                                   ACE_Get_Opt::OPTION_ARG_MODE::NO_ARG) == -1)
+                                   ACE_Get_Opt::NO_ARG) == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Get_Opt::long_option (\"%s\"): \"%m\", aborting\n"),
@@ -134,7 +138,7 @@ Splot_Configuration::init (int argc_in,
   } // end IF
   if (argument_parser.long_option( ACE_TEXT (OPTIONS_LONG_OPTION_VIDEO_MODE),
                                    'm',
-                                   ACE_Get_Opt::OPTION_ARG_MODE::ARG_REQUIRED) == -1)
+                                   ACE_Get_Opt::ARG_REQUIRED) == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Get_Opt::long_option (\"%s\"): \"%m\", aborting\n"),
@@ -144,7 +148,7 @@ Splot_Configuration::init (int argc_in,
   } // end IF
   if (argument_parser.long_option (ACE_TEXT (OPTIONS_LONG_OPTION_NOTEXBORDER),
                                    't',
-                                   ACE_Get_Opt::OPTION_ARG_MODE::NO_ARG) == -1)
+                                   ACE_Get_Opt::NO_ARG) == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Get_Opt::long_option (\"%s\"): \"%m\", aborting\n"),
@@ -154,7 +158,7 @@ Splot_Configuration::init (int argc_in,
   } // end IF
   if (argument_parser.long_option (ACE_TEXT (OPTIONS_LONG_OPTION_VERSION),
                                    'v',
-                                   ACE_Get_Opt::OPTION_ARG_MODE::NO_ARG) == -1)
+                                   ACE_Get_Opt::NO_ARG) == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Get_Opt::long_option (\"%s\"): \"%m\", aborting\n"),
@@ -164,7 +168,7 @@ Splot_Configuration::init (int argc_in,
   } // end IF
   if (argument_parser.long_option (ACE_TEXT (OPTIONS_LONG_OPTION_WINDOWED),
                                    'w',
-                                   ACE_Get_Opt::OPTION_ARG_MODE::NO_ARG) == -1)
+                                   ACE_Get_Opt::NO_ARG) == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Get_Opt::long_option (\"%s\"): \"%m\", aborting\n"),
@@ -319,11 +323,22 @@ usage:
     } // end SWITCH
   } // end WHILE
 
+  if (ini_file.empty ()) ini_file = Splot_Configuration::getFileName ();
+  ACE_stat stat;
+  int result = ACE_OS::stat (ACE_TEXT (ini_file.c_str ()), &stat);
+  if ((result == -1)                         ||
+      !S_ISREG (stat.st_mode)                || // regular file ?
+      ((stat.st_mode & S_IRUSR) != S_IRUSR))    // readable ?
+    ini_file.clear ();
   if (!ini_file.empty ())
     if (!load (ini_file))
+    {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Splot_Configuration::load (\"%s\"), continuing\n"),
+                  ACE_TEXT ("failed to Splot_Configuration::load (\"%s\"), aborting\n"),
                   ACE_TEXT (ini_file.c_str ())));
+
+      return false;
+    } // end IF
 
   return true;
 }
@@ -461,6 +476,7 @@ Splot_Configuration::load (const std::string& filename_in)
   ACE_TString value_name, value;
   ACE_Configuration::VALUETYPE value_type;
   std::istringstream converter;
+  int factor = 1;
   while (configuration_heap.enumerate_values (section_key,
                                               value_index,
                                               value_name,
@@ -475,21 +491,26 @@ Splot_Configuration::load (const std::string& filename_in)
                   ACE_TEXT (value_name.c_str ())));
 
       return false;
-    } // end IF
+    } // end IF800
 
     //     ACE_DEBUG ((LM_DEBUG,
     //                 ACE_TEXT ("enumerated \"%s\", type %d\n"),
     //                 ACE_TEXT (value_name.c_str()),
     //                 value_type));
 
+    converter.clear ();
     // *TODO*: move these strings...
     if (value_name == ACE_TEXT ("screen_width"))
     {
-      configuration_.screen_width = ::atoi (value.c_str ());
+      converter.str (value.c_str ());
+      converter >> std::hex >> configuration_.screen_width;
+//      configuration_.screen_width = ::atoi (value.c_str ());
     } // end IF
     else if (value_name == ACE_TEXT ("screen_height"))
     {
-      configuration_.screen_height = ::atoi (value.c_str ());
+      converter.str (value.c_str ());
+      converter >> std::hex >> configuration_.screen_height;
+//      configuration_.screen_height = ::atoi (value.c_str ());
     } // end IF
     else if (value_name == ACE_TEXT ("full_screen"))
     {
@@ -513,7 +534,9 @@ Splot_Configuration::load (const std::string& filename_in)
     } // end IF
     else if (value_name == ACE_TEXT ("gfx_level"))
     {
-      configuration_.gfx_level = ::atoi (value.c_str ());
+      converter.str (value.c_str ());
+      converter >> std::hex >> configuration_.gfx_level;
+//      configuration_.gfx_level = ::atoi (value.c_str ());
     } // end IF
     else if (value_name == ACE_TEXT ("true_color"))
     {
@@ -551,7 +574,11 @@ Splot_Configuration::load (const std::string& filename_in)
     } // end IF
     else if (value_name == ACE_TEXT ("text_type"))
     {
-      configuration_.text_type = (TextType_t)::atoi (value.c_str ());
+      int tmp = -1;
+      converter.str (value.c_str ());
+      converter >> std::hex >> tmp;
+      configuration_.text_type = (TextType_t)tmp;
+//      configuration_.text_type = (TextType_t)::atoi (value.c_str ());
     } // end IF
     else if (value_name == ACE_TEXT ("auto_speed"))
     {
@@ -583,14 +610,14 @@ Splot_Configuration::load (const std::string& filename_in)
         converter >> std::boolalpha >> configuration_.swap_stereo;
       } // end IF
     } // end IF
-    else if (value_name == ACE_TEXT ("use_playList"))
+    else if (value_name == ACE_TEXT ("use_playlist"))
     {
       converter.str (value.c_str ());
-      converter >> configuration_.use_playList;
+      converter >> configuration_.use_playlist;
       if (converter.fail ())
       {
         converter.clear ();
-        converter >> std::boolalpha >> configuration_.use_playList;
+        converter >> std::boolalpha >> configuration_.use_playlist;
       } // end IF
     } // end IF
     else if (value_name == ACE_TEXT ("use_cdrom"))
@@ -605,15 +632,37 @@ Splot_Configuration::load (const std::string& filename_in)
     } // end IF
     else if (value_name == ACE_TEXT ("vol_sound"))
     {
-      configuration_.vol_sound = (float)::atof (value.c_str ());
+      int tmp = -1;
+      converter.str (value.c_str ());
+      converter >> std::hex >> tmp;
+#ifdef USE_SDLMIXER_AUDIO
+      factor = MIX_MAX_VOLUME;
+#else
+#error "sorry, OPENAL not fully supported yet"
+#endif
+     configuration_.vol_sound = (float)tmp/(float)factor;
+//      configuration_.vol_sound = (float)::atof (value.c_str ());
     } // end IF
     else if (value_name == ACE_TEXT ("vol_music"))
     {
-      configuration_.vol_music = (float)::atof (value.c_str ());
+      int tmp = -1;
+      converter.str (value.c_str ());
+      converter >> std::hex >> tmp;
+#ifdef USE_SDLMIXER_AUDIO
+      factor = MIX_MAX_VOLUME;
+#else
+#error "sorry, OPENAL not fully supported yet"
+#endif
+      configuration_.vol_music = (float)tmp/(float)factor;
+//      configuration_.vol_music = (float)::atof (value.c_str ());
     } // end IF
     else if (value_name == ACE_TEXT ("audio_type"))
     {
-      configuration_.audio_type = (AudioType_t)::atoi (value.c_str ());
+      int tmp = -1;
+      converter.str (value.c_str ());
+      converter >> std::hex >> tmp;
+      configuration_.audio_type = (AudioType_t)tmp;
+//      configuration_.audio_type = (AudioType_t)::atoi (value.c_str ());
     } // end IF
     else if (value_name == ACE_TEXT ("skill_base"))
     {
@@ -718,7 +767,7 @@ Splot_Configuration::save ()
   } // end IF
 
   // export values...
-  std::string value_name = ACE_TEXT_ALWAYS_CHAR ("screen_w");
+  std::string value_name = ACE_TEXT_ALWAYS_CHAR ("screen_width");
   if (configuration_heap.set_integer_value (section_key,
                                             ACE_TEXT (value_name.c_str ()),
                                             (u_int)configuration_.screen_width))
@@ -729,7 +778,7 @@ Splot_Configuration::save ()
 
     return false;
   } // end IF
-  value_name = ACE_TEXT_ALWAYS_CHAR ("screen_h");
+  value_name = ACE_TEXT_ALWAYS_CHAR ("screen_height");
   if (configuration_heap.set_integer_value (section_key,
                                             ACE_TEXT (value_name.c_str ()),
                                             (u_int)configuration_.screen_height))
@@ -861,10 +910,10 @@ Splot_Configuration::save ()
 
     return false;
   } // end IF
-  value_name = ACE_TEXT_ALWAYS_CHAR ("use_playList");
+  value_name = ACE_TEXT_ALWAYS_CHAR ("use_playlist");
   if (configuration_heap.set_integer_value (section_key,
                                             ACE_TEXT (value_name.c_str ()),
-                                            (u_int)configuration_.use_playList))
+                                            (u_int)configuration_.use_playlist))
   {
     ACE_ERROR ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Configuration_Heap::set_integer_value (\"%s\"): \"%m\", aborting\n"),
@@ -884,9 +933,15 @@ Splot_Configuration::save ()
     return false;
   } // end IF
   value_name = ACE_TEXT_ALWAYS_CHAR ("vol_sound");
+  u_int factor = 1;
+#ifdef USE_SDLMIXER_AUDIO
+  factor = MIX_MAX_VOLUME;
+#else
+#error "sorry, OPENAL not fully supported yet"
+#endif
   if (configuration_heap.set_integer_value (section_key,
                                             ACE_TEXT (value_name.c_str ()),
-                                            (u_int)configuration_.vol_sound))
+                                            (u_int)(configuration_.vol_sound*factor)))
   {
     ACE_ERROR ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Configuration_Heap::set_integer_value (\"%s\"): \"%m\", aborting\n"),
@@ -897,7 +952,7 @@ Splot_Configuration::save ()
   value_name = ACE_TEXT_ALWAYS_CHAR ("vol_music");
   if (configuration_heap.set_integer_value (section_key,
                                             ACE_TEXT (value_name.c_str ()),
-                                            (u_int)configuration_.vol_music))
+                                            (u_int)(configuration_.vol_music*factor)))
   {
     ACE_ERROR ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Configuration_Heap::set_integer_value (\"%s\"): \"%m\", aborting\n"),
@@ -937,38 +992,6 @@ Splot_Configuration::save ()
 
     return false;
   } // end IF
-
-//		fprintf(file, "# Chromium B.S.U. configuration file\n");
-//		fprintf(file, "# Please read the documentation for more info\n");
-//		fprintf(file, "# Only modifications to option values are preserved.\n");
-//		fprintf(file, "use_playList %d\n",	(int)m_use_playList);
-//#ifdef WITH_SDL_CDROM
-//		fprintf(file, "use_cdrom %d\n",		(int)m_use_cdrom);
-//#endif // WITH_SDL_CDROM
-//		fprintf(file, "debug %d\n",		(int)m_debug);
-//		fprintf(file, "full_screen %d\n", 	(int)m_full_screen);
-//		fprintf(file, "true_color %d\n", 	(int)m_true_color);
-//		fprintf(file, "swap_stereo %d\n",	(int)m_swap_stereo);
-//		fprintf(file, "auto_speed %d\n",	(int)m_auto_speed);
-//		fprintf(file, "show_fps %d\n",		(int)m_show_fps);
-//		fprintf(file, "screenWidth %d\n",	m_screenW);
-//		fprintf(file, "screenHeight %d\n",	m_screenH);
-//		fprintf(file, "gfxLevel %d\n",		m_gfxLevel);
-//		fprintf(file, "gameSkillBase %g\n",	m_gameSkillBase);
-//		fprintf(file, "movementSpeed %g\n",	m_movementSpeed);
-//		fprintf(file, "maxLevel %d\n",		m_maxLevel);
-//		fprintf(file, "volSound %g\n",		m_volSound);
-//		fprintf(file, "volMusic %g\n",		m_volMusic);
-//		fprintf(file, "viewGamma %g\n",		m_viewGamma);
-//		fprintf(file, "audioType %d\n",		(int)m_audioType);
-//		fprintf(file, "textType %d\n",		(int)m_textType);
-//#ifdef WITH_SDL_CDROM
-//		fprintf(file, "cdromCount %d\n",	m_cdromCount);
-//		fprintf(file, "cdromDevice %d\n",	m_cdromDevice);
-//#endif // WITH_SDL_CDROM
-//#ifdef HAVE_LOCALE_H
-//		setlocale(LC_NUMERIC,locale);
-//#endif
 
   return true;
 }

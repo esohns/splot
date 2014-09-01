@@ -3,26 +3,16 @@
 #include "menu.h"
 
 #include <cstdlib>
-//#include <cstring>
 #include <cmath>
-//
-//#include "compatibility.h"
-//
-//#if defined(HAVE_APPLE_OPENGL_FRAMEWORK) || defined(HAVE_OPENGL_GL_H)
-//#include <OpenGL/gl.h>
-//#else
-//#include <GL/gl.h>
-//#endif
-//
 
 #include "ace/OS.h"
 #include "ace/Log_Msg.h"
 
-#include "gettext.h"
+#ifdef HAVE_CONFIG_H
+#include "splot-config.h"
+#endif
 
-//#ifdef HAVE_CONFIG_H
-//#include "splot-config.h"
-//#endif
+#include "gettext.h"
 
 #include "common.h"
 #include "defines.h"
@@ -50,15 +40,26 @@ ACE_TEXT_ALWAYS_CHAR ("  d o w n l o a d   S P L O T   a t   http://github.com/e
 
 Splot_Menu::Splot_Menu ()
  : currentSelection_ (MENU_NEWGAME)
- , elecStretch_ (10.0F)
+// , menuText_ ()
+// , skillText_ ()
+ , listChrom_ (0)
+ , listBSU_ (0)
+ , texEnv_ (0)
+ , texCsr_ (0)
+ , texBack_ (0)
+ , texElec_ (0)
+ , texUpdwn_ (0)
  //, elecOff_ ({0.0, 0.0})
+ , elecStretch_ (10.0F)
  , textAngle_ (0.0)
+ , textCount_ (0)
  , txtHeight_ (0.5F)
- , titleTilt_ (-10.0F)
  //, butSize_ ({0.5*4.0, 0.5}) // butSize_[1]*4.0
  , butOffset_ (3.05F)
  , thickText_ (true)
+ , titleTilt_ (-10.0F)
  , msgAlpha_ (0.0)
+// , msgText_ ()
  , msgIndex_ (0)
  , msgCount_ (0)
  , msgHelpOverride_ (false)
@@ -80,8 +81,8 @@ Splot_Menu::Splot_Menu ()
   ACE_OS::strcpy (menuText_[MENU_MOVEMENTSPEED], ACE_TEXT_ALWAYS_CHAR ("m o v e m e n t   s p e e d"));
   ACE_OS::strcpy (menuText_[MENU_QUIT], ACE_TEXT_ALWAYS_CHAR ("q u i t"));
 
-  //ACE_OS::strcpy (skillText_[0], ACE_TEXT_ALWAYS_CHAR ("-"));
-  //ACE_OS::strcpy (skillText_[1], ACE_TEXT_ALWAYS_CHAR ("-"));
+  ACE_OS::strcpy (skillText_[0], ACE_TEXT_ALWAYS_CHAR ("-"));
+  ACE_OS::strcpy (skillText_[1], ACE_TEXT_ALWAYS_CHAR ("-"));
   ACE_OS::strcpy (skillText_[2], ACE_TEXT_ALWAYS_CHAR ("fish in a barrel"));
   ACE_OS::strcpy (skillText_[3], ACE_TEXT_ALWAYS_CHAR ("wimp"));
   ACE_OS::strcpy (skillText_[4], ACE_TEXT_ALWAYS_CHAR ("easy"));
@@ -441,18 +442,21 @@ Splot_Menu::drawIndicator ()
   const Configuration_t configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
   char  buffer[BUFSIZ];
+  ACE_OS::memset(&buffer, 0, sizeof (buffer));
   float level = 0.0;
   int   tmp;
   switch (currentSelection_)
   {
     case MENU_GAME_LEVEL:
       level = state.game_level/9.0F;
-      ACE_OS::sprintf (buffer, "%d", state.game_level);
+      ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("%d"),
+                       state.game_level);
       break;
     case MENU_SKILL_LEVEL:
       level = configuration.skill_base;
       tmp = (int)((level+0.05)*10.0);
-      ACE_OS::sprintf (buffer, "%s", skillText_[tmp]);
+      ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("%s"),
+                       skillText_[tmp]);
       break;
     case MENU_GRAPHICS:
       level = configuration.gfx_level/2.0F;
@@ -475,15 +479,18 @@ Splot_Menu::drawIndicator ()
       break;
     case MENU_SOUND:
       level = configuration.vol_sound;
-      ACE_OS::sprintf (buffer, "%d", (int)((level+0.05)*10.0));
+      ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("%d"),
+                       (int)((level+0.05)*10.0));
       break;
     case MENU_MUSIC:
       level = configuration.vol_music;
-      ACE_OS::sprintf (buffer, "%d", (int)((level+0.05)*10.0));
+      ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("%d"),
+                       (int)((level+0.05)*10.0));
       break;
     case MENU_MOVEMENTSPEED:
       level = configuration.movement_speed*10.0F;
-      ACE_OS::sprintf (buffer, "%d", (int)((level+0.005)*100.0));	 
+      ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("%d"),
+                       (int)((level+0.005)*100.0));
       break;
     default: 
       level = -5.0;

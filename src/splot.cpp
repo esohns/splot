@@ -5,29 +5,12 @@
 
 #include <iostream>
 #include <sstream>
-//#include <cstdlib>
-//#include <cstdio>
-//#include <cstring>
-//#include <ctime>
-//#ifndef _WIN32
-//#include <unistd.h>
-//#include <fcntl.h>
-//#include <cerrno>
-//#endif // _WIN32
-//#include <sys/stat.h>
-//#ifdef ENABLE_NLS
-//#include <locale.h>
-//#include <libintl.h>
-//#endif
 
-//#include "gettext.h"
-//#include "compatibility.h"
-//
-//#if defined(HAVE_APPLE_OPENGL_FRAMEWORK) || defined(HAVE_OPENGL_GL_H)
-//#include <OpenGL/gl.h>
-//#else
-//#include <GL/gl.h>
-//#endif
+#ifdef ENABLE_NLS
+#include <locale.h>
+#include <libintl.h>
+#endif
+#include "gettext.h"
 
 #include "ace/OS.h"
 #include "ace/OS_main.h"
@@ -60,7 +43,7 @@ do_printVersion(const std::string& programName_in)
   std::cout << programName_in
             << ACE_TEXT_ALWAYS_CHAR (": ")
 #ifdef HAVE_CONFIG_H
-            << SPLOT_VERSION
+            << VERSION
 #else
             << ACE_TEXT_ALWAYS_CHAR ("N/A")
 #endif

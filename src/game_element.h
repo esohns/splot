@@ -20,7 +20,7 @@ class Splot_GameElement;
 
 class Splot_GameElementBase
 {
- friend class Splot_GameElementBase;
+ friend class Splot_GameElement;
 
  public:
   virtual ~Splot_GameElementBase ();

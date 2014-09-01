@@ -4,7 +4,10 @@
 #ifdef HAVE_CONFIG_H
 #include "splot-config.h"
 #endif
-#if defined (HAVE_APPLE_OPENGL_FRAMEWORK) || defined (HAVE_OPENGL_GL_H)
+
+#ifdef USE_SDL
+#include "SDL_opengl.h"
+#elif defined (HAVE_APPLE_OPENGL_FRAMEWORK) || defined (HAVE_OPENGL_GL_H)
 #include <OpenGL/gl.h>
 #else
 #include "GL/gl.h"
@@ -28,14 +31,11 @@ enum EnemyAircraftType_t
 };
 
 class Splot_EnemyFleet;
-//class EnemyAircraft_Boss01;
 
 class Splot_EnemyAircraft
  : public Splot_GameElement
 {
   friend class Splot_EnemyFleet;
-  //friend class ScreenItemAdd;
-  //friend class EnemyAircraft_Boss01;
 
  public:
   Splot_EnemyAircraft (); // *WARNING*: do NOT use !
@@ -44,7 +44,7 @@ class Splot_EnemyAircraft
                        float = 1.0);        // random movement factor
   virtual ~Splot_EnemyAircraft ();
 
-  virtual Splot_EnemyAircraft* get_next () { return dynamic_cast<Splot_EnemyAircraft*> (inherited::get_next ()); };
+  virtual Splot_EnemyAircraft* get_next () { return (Splot_EnemyAircraft*)inherited::get_next (); };
 
   void update ();
   void reset (const float (&)[3], // position

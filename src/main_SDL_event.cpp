@@ -329,6 +329,7 @@ Splot_MainSDL::activation (bool shown_in,
       ACE_DEBUG ((LM_INFO,
                   ACE_TEXT ("mouse active\n")));
     Uint8 button_state = SDL_GetMouseState (&last_[0], &last_[1]);
+    ACE_UNUSED_ARG (button_state);
   } // end IF
   else if (input_in)
   {
@@ -683,6 +684,7 @@ Splot_MainSDL::grabMouse (bool status_in, bool warpmouse_in)
 
   mouseToggle_ = status_in;
   int status_before = SDL_ShowCursor ((int)!status_in); // toggle ?
+  ACE_UNUSED_ARG (status_before);
 
   if (!warpmouse_in)
     return;

@@ -6,13 +6,7 @@
 #include "splot-config.h"
 #endif
 
-//#include <cstdio>
-//#include <cstdlib>
-//#include <cmath>
-
 #include <string>
-
-//#include "compatibility.h"
 
 #if defined(HAVE_APPLE_OPENGL_FRAMEWORK) || defined(HAVE_OPENGL_GL_H)
 #include <OpenGL/gl.h>
@@ -33,7 +27,6 @@
 #include "player_bullets.h"
 #include "explosion.h"
 #include "enemy_fleet.h"
-//#include "enemy_aircraft.h"
 #include "powerup.h"
 #include "audio.h"
 #include "status_display.h"
@@ -289,10 +282,10 @@ Splot_PlayerAircraft::useItem ()
             v[0] = SRAND*0.15F;
             v[1] = 0.1F+(FRAND*0.1F);
             ACE_NEW (pwrUp,
-                     Splot_PowerUp ((PowerUpType_t)(i + (int)POWERUP_AMMO_0),
+                     Splot_PowerUp ((PowerUpType_t)(i+(int)POWERUP_AMMO_0),
                                     inherited::position_,
                                     v,
-                                    (game_state.ammo_stock[i] / AMMO_REFILL)));
+                                    (game_state.ammo_stock[i]/AMMO_REFILL)));
             state.power_ups->add (pwrUp);
           } // end IF
         } // end FOR
@@ -569,7 +562,7 @@ Splot_PlayerAircraft::checkForCollisions (Splot_EnemyFleet* fleet_in)
   Splot_EnemyAircraft* enemy = NULL;
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
   GameState_t& game_state = SPLOT_STATE_SINGLETON::instance ()->gameState ();
-  while (enemy = fleet_in->getShip ())
+  while ((enemy = fleet_in->getShip ()))
   {
     diffX = inherited::position_[0]-enemy->position_[0];
     diffY = inherited::position_[1]-enemy->position_[1];
@@ -649,42 +642,41 @@ Splot_PlayerAircraft::checkForPowerUps (Splot_PowerUps* powerUps_in)
 
   float dist, stock, score = 0.0F;
   ACE_ASSERT (powerUps_in);
-  Splot_PowerUp* pwrUp = powerUps_in->getFirst ();
+  Splot_PowerUp* current = powerUps_in->getFirst ();
   Splot_PowerUp* delUp = NULL;
   float p0[3] = {10.4F,-8.3F, 25.0F };
   float v0[3] = { 0.0F, 0.08F, 0.0F };
   float clr[4] = { 1.0F, 1.0F, 1.0F, 1.0F };
-  while (pwrUp &&
-         (pwrUp->type () != POWERUP_INVALID))
+  while (current)
   {
-    dist = fabs (inherited::position_[0]-pwrUp->position_[0]) +
-           fabs (inherited::position_[1]-pwrUp->position_[1]);
+    dist = fabs (inherited::position_[0]-current->position_[0]) +
+           fabs (inherited::position_[1]-current->position_[1]);
     if (dist >= size_[1])
     {
-      pwrUp = pwrUp->get_next ();
+      current = current->get_next ();
       continue;
     } // end IF
 
     state.audio->play (SOUND_POWERUP, inherited::position_);
-    switch (pwrUp->type ())
+    switch (current->type ())
     {
       case POWERUP_AMMO_0:
         score += SCORE_POWERUP_AMMUNITION;
-        stock = game_state.ammo_stock[0] + pwrUp->potency_*AMMO_REFILL;
+        stock = game_state.ammo_stock[0]+current->potency_*AMMO_REFILL;
         if (stock > AMMO_REFILL)
           stock = AMMO_REFILL;
         setAmmoStock (0, stock);
         break;
       case POWERUP_AMMO_1:
         score += SCORE_POWERUP_AMMUNITION;
-        stock = game_state.ammo_stock[1] + pwrUp->potency_*AMMO_REFILL;
+        stock = game_state.ammo_stock[1]+current->potency_*AMMO_REFILL;
         if (stock > AMMO_REFILL)
           stock = AMMO_REFILL;
         setAmmoStock (1, stock);
         break;
       case POWERUP_AMMO_2:
         score += SCORE_POWERUP_AMMUNITION;
-        stock = game_state.ammo_stock[2] + pwrUp->potency_*AMMO_REFILL;
+        stock = game_state.ammo_stock[2]+current->potency_*AMMO_REFILL;
         if (stock > AMMO_REFILL)
           stock = AMMO_REFILL;
         setAmmoStock (2, stock);
@@ -738,13 +730,13 @@ Splot_PlayerAircraft::checkForPowerUps (Splot_PowerUps* powerUps_in)
       default:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid power-up type (was: %d), continuing\n"),
-                    pwrUp->type ()));
+                    current->type ()));
         break;
     } // end SWITCH
 
-    state.explosions->add (EXPLOSION_POWER_BURST, pwrUp->position_);
-    delUp = pwrUp;
-    pwrUp = pwrUp->get_next ();
+    state.explosions->add (EXPLOSION_POWER_BURST, current->position_);
+    delUp = current;
+    current = current->get_next ();
     powerUps_in->remove (delUp);
   } // end WHILE
   game_state.score += score;

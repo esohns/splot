@@ -2,32 +2,9 @@
 
 #include "audio_SDLmixer.h"
 
-//#ifdef HAVE_CONFIG_H
-//#include "splot-config.h"
-//#endif
-
 #ifdef USE_SDLMIXER_AUDIO
-
-//#include "gettext.h"
-//
-//#include "Splot_AudioSDLMixer.h"
-//
-//#include <cstdio>
-//#include <cstdlib>
-//#include <cstdarg>
-//#include <cstring>
-//
-//#ifndef _WIN32
-//#include <unistd.h>
-//#include <cerrno>
-//#include <fcntl.h>
-//#include <sys/stat.h>
-//#endif // _WIN32
-//
 #include "common.h"
-//#include "define.h"
 #include "configuration.h"
-//#include "Global.h"
 
 Splot_AudioSDLMixer::Splot_AudioSDLMixer ()
  : inherited ()
@@ -111,27 +88,27 @@ Splot_AudioSDLMixer::init ()
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("*** audio capabilities (driver: \"%s\") ***\nfrequency:\t%d\nformat:\t\t%s\nchannels:\t%d\nCD:\t\t%s\n"),
+              ACE_TEXT ("*** audio capabilities (driver: \"%s\") ***\nfrequency:\t%d\nformat:\t%s\nchannels:\t%d\nCD:\t%s\n"),
               ACE_TEXT (driver),
               frequency,
               ACE_TEXT (format_string.c_str ()),
               channels,
               (configuration.use_cdrom ? ACE_TEXT (SDL_CDName (configuration.cdrom_device)) : ACE_TEXT ("N/A"))));
 
-  int total = Mix_GetNumChunkDecoders ();
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("*** audio decoders (effects) ***\n")));
-  for (int i = 0; i < total; i++)
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("chunk decoder: [%s]\n"),
-                ACE_TEXT (Mix_GetChunkDecoder (i))));
-  total = Mix_GetNumMusicDecoders ();
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("*** audio decoders (music) ***\n")));
-  for (int i = 0; i < total; i++)
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("music decoder: [%s]\n"),
-                ACE_TEXT (Mix_GetMusicDecoder (i))));
+//  int total = Mix_GetNumChunkDecoders ();
+//  ACE_DEBUG ((LM_DEBUG,
+//              ACE_TEXT ("*** audio decoders (effects) ***\n")));
+//  for (int i = 0; i < total; i++)
+//    ACE_DEBUG ((LM_DEBUG,
+//                ACE_TEXT ("chunk decoder: [%s]\n"),
+//                ACE_TEXT (Mix_GetChunkDecoder (i))));
+//  total = Mix_GetNumMusicDecoders ();
+//  ACE_DEBUG ((LM_DEBUG,
+//              ACE_TEXT ("*** audio decoders (music) ***\n")));
+//  for (int i = 0; i < total; i++)
+//    ACE_DEBUG ((LM_DEBUG,
+//                ACE_TEXT ("music decoder: [%s]\n"),
+//                ACE_TEXT (Mix_GetMusicDecoder (i))));
 
   std::string filename;
   SDL_RWops* rw_ops = NULL;

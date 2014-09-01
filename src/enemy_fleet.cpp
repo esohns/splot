@@ -8,30 +8,13 @@
 #include "ace/OS_Memory.h"
 #include "ace/OS.h"
 
-//#include <cstdio>
-//#include <cmath>
-//
-//#ifdef HAVE_CONFIG_H
-//#include "splot-config.h"
-//#endif
-//
-//#include "compatibility.h"
-//
-//#if defined(HAVE_APPLE_OPENGL_FRAMEWORK) || defined(HAVE_OPENGL_GL_H)
-//#include <OpenGL/gl.h>
-//#else
-//#include <GL/gl.h>
-//#endif
-//
 //#include "gettext.h"
 #include "defines.h"
 #include "common.h"
-//#include "Ammo.h"
-#include "Audio.h"
+#include "audio.h"
 #include "configuration.h"
 #include "state.h"
 #include "explosion.h"
-//#include "EnemyAmmo.h"
 #include "player_aircraft.h"
 #include "screen.h"
 #include "status_display.h"
@@ -45,11 +28,11 @@ Splot_EnemyFleet::Splot_EnemyFleet ()
               ACE_DEFAULT_FREE_LIST_INC)
  , currentShip_ (NULL)
 {
-  float p[3] = { 0.0, 0.0, 0.0 };
-  ACE_NEW (inherited::free_list_,
-           Splot_EnemyAircraft (ENEMYAIRCRAFT_STRAIGHT,
-                                p));
-  inherited::size_++;
+//  float p[3] = { 0.0, 0.0, 0.0 };
+//  ACE_NEW (inherited::free_list_,
+//           Splot_EnemyAircraft (ENEMYAIRCRAFT_STRAIGHT,
+//                                p));
+//  inherited::size_++;
 
   loadTextures ();
 }
@@ -58,7 +41,7 @@ Splot_EnemyFleet::~Splot_EnemyFleet ()
 {
   deleteTextures ();
   clear ();
-  inherited::dealloc(1);
+//  inherited::dealloc(1);
   ACE_ASSERT (inherited::size_ == 0);
 }
 
@@ -74,9 +57,9 @@ Splot_EnemyFleet::loadTextures ()
   format_string += ACE_TEXT_ALWAYS_CHAR ("enemy%02d.png");
   for (int i = 0; i < MAX_ENEMYAIRCRAFT_TYPES; i++)
   {
-    sprintf (filename,
-             format_string.c_str (),
-             i);
+    ACE_OS::sprintf (filename,
+                     format_string.c_str (),
+                     i);
     shipTex_[i] = Splot_Image::load (dataLoc (filename));
     if (!shipTex_[i])
       ACE_DEBUG ((LM_ERROR,
@@ -110,11 +93,8 @@ Splot_EnemyFleet::loadTextures ()
 void
 Splot_EnemyFleet::deleteTextures ()
 {
-  for (int i = 0; i < MAX_ENEMYAIRCRAFT_TYPES; i++)
-  {
-    glDeleteTextures (1, &shipTex_[i]);
-    glDeleteTextures (1, &extraTex_[i]);
-  } // end FOR
+  glDeleteTextures (MAX_ENEMYAIRCRAFT_TYPES, &(shipTex_[0]));
+  glDeleteTextures (MAX_ENEMYAIRCRAFT_TYPES, &(extraTex_[0]));
 }
 
 void
@@ -122,118 +102,115 @@ Splot_EnemyFleet::clear ()
 {
   currentShip_ = NULL;
 
-  Splot_EnemyAircraft* cur = inherited::remove ();
-  Splot_EnemyAircraft* del = NULL;
-  while (cur &&
-         (cur->type_ != ENEMYAIRCRAFT_INVALID))
+  Splot_EnemyAircraft* current = inherited::remove ();
+  while (current)
   {
-    del = cur;
-    cur = inherited::remove ();
-    Splot_Screen::remove (cur);
+    Splot_Screen::remove (current);
+    current = inherited::remove ();
   } // end WHILE
 }
 
 void
 Splot_EnemyFleet::drawGL ()
 {
-  State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-  float szx, szy;
-
   glColor4f (1.0, 1.0, 1.0, 1.0);
 
+  State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
   int num = 0;
-  Splot_EnemyAircraft* thisEnemy = inherited::free_list_;
-  while (thisEnemy &&
-         (thisEnemy->type_ != ENEMYAIRCRAFT_INVALID))
+  float szx;
+  Splot_EnemyAircraft* current = inherited::free_list_;
+  while (current)
   {
     num++;
-    szx = thisEnemy->size_[0];
-    szy = thisEnemy->size_[1];
 
-    glBindTexture (GL_TEXTURE_2D, shipTex_[(int)thisEnemy->type_]);
+    glBindTexture (GL_TEXTURE_2D, shipTex_[(int)current->type_]);
     glColor4f (1.0, 1.0, 1.0, 1.0);
     glPushMatrix();
-    glTranslatef (thisEnemy->position_[0],
-                  thisEnemy->position_[1],
-                  thisEnemy->position_[2]);
+    glTranslatef (current->position_[0],
+                  current->position_[1],
+                  current->position_[2]);
     glBegin (GL_TRIANGLE_STRIP);
-    glTexCoord2f (1.0, 0.0); glVertex3f ( szx,  szy, 0.0);
-    glTexCoord2f (0.0, 0.0); glVertex3f (-szx,  szy, 0.0);
-    glTexCoord2f (1.0, 1.0); glVertex3f ( szx, -szy, 0.0);
-    glTexCoord2f (0.0, 1.0); glVertex3f (-szx, -szy, 0.0);
+    glTexCoord2f (1.0, 0.0); glVertex3f ( current->size_[0],  current->size_[1], 0.0);
+    glTexCoord2f (0.0, 0.0); glVertex3f (-current->size_[0],  current->size_[1], 0.0);
+    glTexCoord2f (1.0, 1.0); glVertex3f ( current->size_[0], -current->size_[1], 0.0);
+    glTexCoord2f (0.0, 1.0); glVertex3f (-current->size_[0], -current->size_[1], 0.0);
     glEnd ();
     glPopMatrix ();
   
-    switch (thisEnemy->type_)
+    switch (current->type_)
     {
       case ENEMYAIRCRAFT_STRAIGHT:
-        if (thisEnemy->preFire_)
+        if (current->preFire_)
         {
           glBlendFunc (GL_SRC_ALPHA, GL_ONE);
           glBindTexture (GL_TEXTURE_2D, extraTex_[ENEMYAIRCRAFT_STRAIGHT]);
-          glColor4f (1.0, 1.0, 1.0, thisEnemy->preFire_);
-          szx = 0.55F*thisEnemy->preFire_;
+          glColor4f (1.0, 1.0, 1.0, current->preFire_);
+          szx = 0.55F*current->preFire_;
           glPushMatrix ();
-          glTranslatef (thisEnemy->position_[0],
-                        thisEnemy->position_[1]-0.9F,
-                        thisEnemy->position_[2]);
+          glTranslatef (current->position_[0],
+                        current->position_[1]-0.9F,
+                        current->position_[2]);
           glRotatef ((float)IRAND, 0.0, 0.0, 1.0);
           drawQuad (szx, szx+0.1F);
           glPopMatrix ();
           glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
           glColor4f (1.0, 1.0, 1.0, 1.0);
         } // end IF
-        if (!((thisEnemy->age_-192)%256))
+        if (!((current->age_-192)%256))
           retarget (ENEMYAIRCRAFT_GNAT, state.player);
         break;
       case ENEMYAIRCRAFT_OMNI:
         glColor4f (1.0, 0.0, 0.0, 1.0);
         glBindTexture (GL_TEXTURE_2D, extraTex_[ENEMYAIRCRAFT_OMNI]);
         glPushMatrix ();
-        glTranslatef (thisEnemy->position_[0],
-                      thisEnemy->position_[1],
-                      thisEnemy->position_[2]);
-        glRotatef ((float)-(thisEnemy->age_*8), 0.0F, 0.0F, 1.0F);
-        drawQuad (szx, szy);
+        glTranslatef (current->position_[0],
+                      current->position_[1],
+                      current->position_[2]);
+        glRotatef ((float)-(current->age_*8), 0.0F, 0.0F, 1.0F);
+        drawQuad (current->size_[0], current->size_[1]);
         glPopMatrix ();
         glColor4f (1.0F, 1.0F, 1.0F, 1.0F);
         break;
+      case ENEMYAIRCRAFT_RAYGUN:
+        break;
       case ENEMYAIRCRAFT_TANK:
-        if (thisEnemy->preFire_)
+        if (current->preFire_)
         {
           glBlendFunc (GL_SRC_ALPHA, GL_ONE);
           glBindTexture (GL_TEXTURE_2D, extraTex_[ENEMYAIRCRAFT_TANK]);
-          glColor4f (1.0F, 1.0F, 1.0F, thisEnemy->preFire_);
+          glColor4f (1.0F, 1.0F, 1.0F, current->preFire_);
           glPushMatrix ();
-          glTranslatef (thisEnemy->position_[0],
-                        thisEnemy->position_[1]-0.63F,
-                        thisEnemy->position_[2]);//NOTE: offset is ~szy*0.3
+          glTranslatef (current->position_[0],
+                        current->position_[1]-0.63F,
+                        current->position_[2]);//NOTE: offset is ~szy*0.3
           glRotatef ((float)IRAND, 0.0, 0.0, 1.0);
-          szx = 0.4F+0.6F*thisEnemy->preFire_;
+          szx = 0.4F+0.6F*current->preFire_;
           drawQuad (szx, szx);
           glPopMatrix ();
           glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
           glColor4f (1.0, 1.0, 1.0, 1.0);
         } // end IF
         break;
+      case ENEMYAIRCRAFT_GNAT:
+        break;
       case ENEMYAIRCRAFT_BOSS_0:
-        if (thisEnemy->preFire_)
+        if (current->preFire_)
         {
           glBlendFunc (GL_SRC_ALPHA, GL_ONE);
           glBindTexture (GL_TEXTURE_2D, extraTex_[ENEMYAIRCRAFT_BOSS_0]);
-          glColor4f (1.0F, 1.0F, 1.0F, thisEnemy->preFire_);
-          szx = 0.4F+0.6F*thisEnemy->preFire_;
+          glColor4f (1.0F, 1.0F, 1.0F, current->preFire_);
+          szx = 0.4F+0.6F*current->preFire_;
           glPushMatrix ();
-          glTranslatef (thisEnemy->position_[0]+1.1F,
-                        thisEnemy->position_[1]-0.4F,
-                        thisEnemy->position_[2]);
+          glTranslatef (current->position_[0]+1.1F,
+                        current->position_[1]-0.4F,
+                        current->position_[2]);
           glRotatef ((float)IRAND, 0.0, 0.0, 1.0);
           drawQuad (szx, szx);
           glPopMatrix ();
           glPushMatrix ();
-          glTranslatef (thisEnemy->position_[0]-1.1F,
-                        thisEnemy->position_[1]-0.4F,
-                        thisEnemy->position_[2]);
+          glTranslatef (current->position_[0]-1.1F,
+                        current->position_[1]-0.4F,
+                        current->position_[2]);
           glRotatef ((float)IRAND, 0.0, 0.0, 1.0);
           drawQuad (szx, szx);
           glPopMatrix ();
@@ -242,18 +219,18 @@ Splot_EnemyFleet::drawGL ()
         } // end IF
         break;
       case ENEMYAIRCRAFT_BOSS_1:
-        if (thisEnemy->preFire_)
+        if (current->preFire_)
         {
           glBlendFunc (GL_SRC_ALPHA, GL_ONE);
           glBindTexture (GL_TEXTURE_2D, extraTex_[ENEMYAIRCRAFT_BOSS_1]);
-          glColor4f (1.0F, 1.0F, 1.0F, thisEnemy->preFire_);
-          szx = 0.9F*thisEnemy->preFire_;
-          if (thisEnemy->shootSwap_)
+          glColor4f (1.0F, 1.0F, 1.0F, current->preFire_);
+          szx = 0.9F*current->preFire_;
+          if (current->shootSwap_)
           {
             glPushMatrix ();
-            glTranslatef (thisEnemy->position_[0]-1.22F,
-                          thisEnemy->position_[1]-1.22F,
-                          thisEnemy->position_[2]);
+            glTranslatef (current->position_[0]-1.22F,
+                          current->position_[1]-1.22F,
+                          current->position_[2]);
             glRotatef ((float)IRAND, 0.0, 0.0, 1.0);
             drawQuad (szx, szx);
             drawQuad (szx+0.2F, szx+0.2F);
@@ -262,9 +239,9 @@ Splot_EnemyFleet::drawGL ()
           else
           {
             glPushMatrix ();
-            glTranslatef (thisEnemy->position_[0]+0.55F,
-                          thisEnemy->position_[1]-1.7F,
-                          thisEnemy->position_[2]);
+            glTranslatef (current->position_[0]+0.55F,
+                          current->position_[1]-1.7F,
+                          current->position_[2]);
             glRotatef ((float)IRAND, 0.0, 0.0, 1.0);
             drawQuad (szx, szx);
             drawQuad (szx+0.3F, szx+0.3F);
@@ -273,41 +250,37 @@ Splot_EnemyFleet::drawGL ()
           glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
           glColor4f (1.0, 1.0, 1.0, 1.0);
         } // end IF
-        if (!((thisEnemy->age_-272)%256))
+        if (!((current->age_-272)%256))
           retarget(ENEMYAIRCRAFT_GNAT, state.player);
         break;
       default:
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid enemy aircraft type (was: %d), continuing\n"),
-                    thisEnemy->type_));
+                    ACE_TEXT ("invalid/unknown enemy aircraft type (was: %d), continuing\n"),
+                    current->type_));
         break;
     } // end SWITCH
-    thisEnemy = thisEnemy->get_next ();
+    current = current->get_next ();
   } // end WHILE
 
-  const Configuration_t& configuration =
-    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
-  if (configuration.debug && num)
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("# enemies on screen: %d\n"),
-                num));
+//  const Configuration_t& configuration =
+//    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
+//  if (configuration.debug && num)
+//    ACE_DEBUG ((LM_DEBUG,
+//                ACE_TEXT ("# enemies on screen: %d\n"),
+//                num));
 }
 
 void
 Splot_EnemyFleet::toFirst ()
 {
   currentShip_ = inherited::free_list_;
-  if (currentShip_->type_ == ENEMYAIRCRAFT_INVALID)
-    currentShip_ = NULL;
 }
 
 Splot_EnemyAircraft*
 Splot_EnemyFleet::getShip ()
 {
   Splot_EnemyAircraft* return_value = currentShip_;
-
-  if (currentShip_ &&
-      (currentShip_->type_ != ENEMYAIRCRAFT_INVALID))
+  if (currentShip_)
     currentShip_ = currentShip_->get_next ();
 
   return return_value;
@@ -317,13 +290,12 @@ void
 Splot_EnemyFleet::retarget (EnemyAircraftType_t type_in,
                             Splot_GameElement* target_in)
 {
-  Splot_EnemyAircraft* thisEnemy = inherited::free_list_;
-  while (thisEnemy &&
-         (thisEnemy->type_ != ENEMYAIRCRAFT_INVALID))
+  Splot_EnemyAircraft* current = inherited::free_list_;
+  while (current)
   {
-    if (thisEnemy->type_ == type_in)
-      thisEnemy->target_ = target_in;
-    thisEnemy = thisEnemy->get_next ();
+    if (current->type_ == type_in)
+      current->target_ = target_in;
+    current = current->get_next ();
   } // end WHILE
 }
 
@@ -335,85 +307,86 @@ Splot_EnemyFleet::update ()
 
   //-- maintain fleet enemies
   float size, s[2], p[3], score = 0.0F;
+  int num = 0;
   Splot_EnemyAircraft* prev, *tmp;
-  Splot_EnemyAircraft* thisEnemy = inherited::free_list_;
-  while (thisEnemy &&
-         (thisEnemy->type_ != ENEMYAIRCRAFT_INVALID))
+  Splot_EnemyAircraft* current = inherited::free_list_;
+  while (current)
   {
-    thisEnemy->update ();
+    num++;
+    current->update ();
 
     // add some damage explosions to the bosses when hit
-    if (thisEnemy->type_ >= ENEMYAIRCRAFT_BOSS_0)
+    if (current->type_ >= ENEMYAIRCRAFT_BOSS_0)
     {
-      size = thisEnemy->size_[0]*0.7F;
+      size = current->size_[0]*0.7F;
       s[0] = size;
       s[1] = size;
-      if ((thisEnemy->damage_ > thisEnemy->baseDamage_*0.7F) &&
+      if ((current->damage_ > current->baseDamage_*0.7F) &&
           !(state.game_frame%18))
       {
-        p[0] = thisEnemy->position_[0]+SRAND*s[0];
-        p[1] = thisEnemy->position_[1]+SRAND*s[1];
-        p[2] = thisEnemy->position_[2];
+        p[0] = current->position_[0]+SRAND*s[0];
+        p[1] = current->position_[1]+SRAND*s[1];
+        p[2] = current->position_[2];
         state.explosions->add (EXPLOSION_ENEMY_DAMAGED, p, 0, 1.0);
       } // end IF
-      if ((thisEnemy->damage_ > thisEnemy->baseDamage_*0.5F) &&
+      if ((current->damage_ > current->baseDamage_*0.5F) &&
           !(state.game_frame%10))
       {
-        p[0] = thisEnemy->position_[0]+SRAND*s[0];
-        p[1] = thisEnemy->position_[1]+SRAND*s[1];
-        p[2] = thisEnemy->position_[2];
+        p[0] = current->position_[0]+SRAND*s[0];
+        p[1] = current->position_[1]+SRAND*s[1];
+        p[2] = current->position_[2];
         state.explosions->add (EXPLOSION_ENEMY_DAMAGED, p, 0, 1.0);
       } // end IF
-      if ((thisEnemy->damage_ > thisEnemy->baseDamage_*0.3F) &&
+      if ((current->damage_ > current->baseDamage_*0.3F) &&
           !(state.game_frame%4))
       {
-        p[0] = thisEnemy->position_[0]+SRAND*s[0];
-        p[1] = thisEnemy->position_[1]+SRAND*s[1];
-        p[2] = thisEnemy->position_[2];
+        p[0] = current->position_[0]+SRAND*s[0];
+        p[1] = current->position_[1]+SRAND*s[1];
+        p[2] = current->position_[2];
         state.explosions->add (EXPLOSION_ENEMY_DAMAGED, p, 0, 1.0);
       } // end IF
     } // end IF
 
     //-------------- remove enemies that got through
 
-    if ((thisEnemy->position_[1] < -8.0F) &&
-        (thisEnemy->type_ != ENEMYAIRCRAFT_GNAT))
-      state.status_display->enemyWarning (1.0F-((thisEnemy->position_[1]+14.0F)/6.0F));
-    if (thisEnemy->position_[1] < -14.0F)
+    if ((current->position_[1] < -8.0F) &&
+        (current->type_ != ENEMYAIRCRAFT_GNAT))
+      state.status_display->enemyWarning (1.0F-((current->position_[1]+14.0F)/6.0F));
+    if (current->position_[1] < -14.0F)
     {
-      thisEnemy->damage_ = 1.0F;
-      thisEnemy->age_ = 0;
+      current->damage_ = 1.0F;
+      current->age_ = 0;
       state.player->loseShip ();
       state.tip_ship_past++;
     } // end IF
 
-    //-------------- if enemies are critically damaged, destroy them
-    if (thisEnemy->damage_ > 0.0F)
+    // if enemies are critically damaged, destroy them
+    if (current->damage_ > 0.0F)
     {
-      prev = inherited::free_list_;
+      prev = NULL;
       tmp = inherited::free_list_;
-      do
+      while (tmp)
       {
-        if (tmp == thisEnemy)
+        if (tmp == current)
           break;
 
         prev = tmp;
         tmp = tmp->get_next ();
-      } while (true);
-      tmp = thisEnemy->get_next ();
+      } // end WHILE
+      tmp = current->get_next ();
       if (prev)
         prev->set_next (tmp);
       else
         inherited::free_list_ = tmp;
       inherited::size_--;
 
-      if (thisEnemy->age_) // *NOTE*: set age to 0 for quiet deletion...
-        switch (thisEnemy->type_)
+      if (current->age_) // *NOTE*: set age to 0 for quiet deletion...
+        switch (current->type_)
         {
           case ENEMYAIRCRAFT_BOSS_0:
           case ENEMYAIRCRAFT_BOSS_1:
             destroyAll ();
-            bossExplosion (thisEnemy);
+            bossExplosion (current);
 
             if (state.game_mode != GAMEMODE_GAME_OVER)
             {
@@ -425,65 +398,65 @@ Splot_EnemyFleet::update ()
             break;
           case ENEMYAIRCRAFT_OMNI:
             score += SCORE_KILL_OMNI;
-            state.explosions->add (EXPLOSION_ENEMY_DAMAGED, thisEnemy->position_);
-            state.explosions->add (EXPLOSION_ENEMY_DAMAGED, thisEnemy->position_, -3, 0.7F);
-            state.explosions->add (EXPLOSION_ENEMY_AMMUNITION_4, thisEnemy->position_);
-            state.audio->play (SOUND_EXPLOSION_LIGHT, thisEnemy->position_);
+            state.explosions->add (EXPLOSION_ENEMY_DAMAGED, current->position_);
+            state.explosions->add (EXPLOSION_ENEMY_DAMAGED, current->position_, -3, 0.7F);
+            state.explosions->add (EXPLOSION_ENEMY_AMMUNITION_4, current->position_);
+            state.audio->play (SOUND_EXPLOSION_LIGHT, current->position_);
             break;
           case ENEMYAIRCRAFT_RAYGUN:
             score += SCORE_KILL_RAYGUN;
             state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p);
-            p[0] = thisEnemy->position_[0]+0.55F;
+            p[0] = current->position_[0]+0.55F;
             state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, -5, 1.5F);
-            p[0] = thisEnemy->position_[0]-0.5F;
-            p[1] = thisEnemy->position_[1]+0.2F;
+            p[0] = current->position_[0]-0.5F;
+            p[1] = current->position_[1]+0.2F;
             state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, -15);
-            p[0] = thisEnemy->position_[0];
+            p[0] = current->position_[0];
             state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, -20, 2.0F);
             state.explosions->add (EXPLOSION_ENEMY_DAMAGED, p, -30, 2.0F);
-            state.audio->play (SOUND_EXPLOSION_DEFAULT, thisEnemy->position_);
-            state.audio->play (SOUND_EXPLOSION_HEAVY, thisEnemy->position_);
+            state.audio->play (SOUND_EXPLOSION_DEFAULT, current->position_);
+            state.audio->play (SOUND_EXPLOSION_HEAVY, current->position_);
             break;
           case ENEMYAIRCRAFT_TANK:
             score += SCORE_KILL_TANK;
-            p[0] = thisEnemy->position_[0];
-            p[1] = thisEnemy->position_[1];
+            p[0] = current->position_[0];
+            p[1] = current->position_[1];
             state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, -5, 2.5F);
-            p[0] = thisEnemy->position_[0]-0.9F;
-            p[1] = thisEnemy->position_[1]-1.0F;
+            p[0] = current->position_[0]-0.9F;
+            p[1] = current->position_[1]-1.0F;
             state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, -0, 1.5F);
-            p[0] = thisEnemy->position_[0]+1.0F;
-            p[1] = thisEnemy->position_[1]-0.8F;
+            p[0] = current->position_[0]+1.0F;
+            p[1] = current->position_[1]-0.8F;
             state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, -13, 2.0F);
             state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, -2, 1.0F);
-            p[0] = thisEnemy->position_[0]+0.7F;
-            p[1] = thisEnemy->position_[1]+0.7F;
+            p[0] = current->position_[0]+0.7F;
+            p[1] = current->position_[1]+0.7F;
             state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, -20, 1.7F);
-            p[0] = thisEnemy->position_[0]-0.7F;
-            p[1] = thisEnemy->position_[1]+0.9F;
+            p[0] = current->position_[0]-0.7F;
+            p[1] = current->position_[1]+0.9F;
             state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, -8, 1.5F);
-            state.audio->play (SOUND_EXPLOSION_DEFAULT, thisEnemy->position_);
-            state.audio->play (SOUND_EXPLOSION_HEAVY, thisEnemy->position_);
+            state.audio->play (SOUND_EXPLOSION_DEFAULT, current->position_);
+            state.audio->play (SOUND_EXPLOSION_HEAVY, current->position_);
             break;
           case ENEMYAIRCRAFT_GNAT:
             score += SCORE_KILL_GNAT;
-            state.explosions->add (EXPLOSION_ENEMY_AMMUNITION_4, thisEnemy->position_);
-            state.audio->play (SOUND_EXPLOSION_LIGHT, thisEnemy->position_);
+            state.explosions->add (EXPLOSION_ENEMY_AMMUNITION_4, current->position_);
+            state.audio->play (SOUND_EXPLOSION_LIGHT, current->position_);
             break;
           default: //-- extra damage explosion delayed for bloom effect *TODO*
             score += SCORE_KILL_DEFAULT;
-            state.explosions->add (EXPLOSION_ENEMY_DESTROYED, thisEnemy->position_);
-            state.explosions->add (EXPLOSION_ENEMY_DAMAGED, thisEnemy->position_, -15);
-            state.audio->play (SOUND_EXPLOSION_DEFAULT, thisEnemy->position_);
+            state.explosions->add (EXPLOSION_ENEMY_DESTROYED, current->position_);
+            state.explosions->add (EXPLOSION_ENEMY_DAMAGED, current->position_, -15);
+            state.audio->play (SOUND_EXPLOSION_DEFAULT, current->position_);
             break;
         } // end SWITCH
 
-      Splot_Screen::remove (thisEnemy);
+      Splot_Screen::remove (current);
 
-      thisEnemy = tmp;
+      current = tmp;
     } // end IF
     else
-      thisEnemy = thisEnemy->get_next ();
+      current = current->get_next ();
   } // end WHILE
   game_state.score += score;
 }
@@ -494,7 +467,8 @@ Splot_EnemyFleet::bossExplosion (Splot_EnemyAircraft* enemy_in)
   ACE_ASSERT (enemy_in);
 
   float a, b;
-  float p[3];
+  float p[3] = {0.0, 0.0, 0.0};
+  int tmp = 0;
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
   for (int i = 4; i > 0; i--)
   {
@@ -502,16 +476,20 @@ Splot_EnemyFleet::bossExplosion (Splot_EnemyAircraft* enemy_in)
     b = enemy_in->size_[1]*(i*0.2F);
     p[0] = enemy_in->position_[0]+a*FRAND;
     p[1] = enemy_in->position_[1]+b*FRAND;
-    state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, (int)(-FRAND*8.0F), 1.5F + FRAND);
+    tmp = (int)(-FRAND*8.0F);
+    state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, tmp, 1.5F+FRAND);
     p[0] = enemy_in->position_[0]-a*FRAND;
     p[1] = enemy_in->position_[1]+b*FRAND;
-    state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, (int)(-FRAND*8.0F), 1.5F + FRAND);
+    tmp = (int)(-FRAND*8.0F);
+    state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, tmp, 1.5F+FRAND);
     p[0] = enemy_in->position_[0]+a*FRAND;
     p[1] = enemy_in->position_[1]-b*FRAND;
-    state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, (int)(-FRAND*8.0F), 1.5F + FRAND);
+    tmp = (int)(-FRAND*8.0F);
+    state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, tmp, 1.5F+FRAND);
     p[0] = enemy_in->position_[0]-a*FRAND;
     p[1] = enemy_in->position_[1]-b*FRAND;
-    state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, (int)(-FRAND*8.0), 1.5F + FRAND);
+    tmp = (int)(-FRAND*8.0F);
+    state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, tmp, 1.5F+FRAND);
   } // end FOR
 
   float c, d;
@@ -591,17 +569,17 @@ Splot_EnemyFleet::bossExplosion (Splot_EnemyAircraft* enemy_in)
 void
 Splot_EnemyFleet::destroyAll ()
 {
-  Splot_EnemyAircraft* thisEnemy = inherited::free_list_;
-  while (thisEnemy &&
-         (thisEnemy->type_ != ENEMYAIRCRAFT_INVALID))
+  Splot_EnemyAircraft* current = inherited::free_list_;
+  while (current &&
+         (current->type_ != ENEMYAIRCRAFT_INVALID))
   {
-    thisEnemy->damage_ = 1.0F;
-    thisEnemy = thisEnemy->get_next ();
+    current->damage_ = 1.0F;
+    current = current->get_next ();
   } // end WHILE
 }
 
 void
-Splot_EnemyFleet::addEnemy (Splot_EnemyAircraft* enemy_in)
+Splot_EnemyFleet::add (Splot_EnemyAircraft* enemy_in)
 {
   ACE_ASSERT (enemy_in);
 
@@ -627,8 +605,8 @@ Splot_EnemyFleet::addEnemy (Splot_EnemyAircraft* enemy_in)
                 ACE_TEXT ("over not found (was: %@), continuing\n"),
                 enemy_in->over_));
   } // end IF
-
-  inherited::add (enemy_in);
+  else
+    inherited::add (enemy_in);
 }
 
 //void

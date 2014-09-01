@@ -2,24 +2,11 @@
 
 #include "explosion.h"
 
-//#include <cstdlib>
 #include <string>
 
 #include "ace/Default_Constants.h"
 #include "ace/OS_Memory.h"
 
-//#ifdef HAVE_CONFIG_H
-//#include <chromium-bsu-config.h>
-//#endif
-//
-//#include "compatibility.h"
-//
-//#if defined(HAVE_APPLE_OPENGL_FRAMEWORK) || defined(HAVE_OPENGL_GL_H)
-//#include <OpenGL/gl.h>
-//#else
-//#include <GL/gl.h>
-//#endif
-//
 #include "common.h"
 #include "state.h"
 #include "player_aircraft.h"

@@ -1,11 +1,11 @@
 #ifndef AUDIOSDLMIXER_H
 #define AUDIOSDLMIXER_H
 
-#ifdef USE_SDLMIXER_AUDIO
-//#ifdef __cplusplus
-//extern "C" {
-//#endif
+#ifdef HAVE_CONFIG_H
+#include "splot-config.h"
+#endif
 
+#ifdef USE_SDLMIXER_AUDIO
 #include "SDL_mixer.h"
 
 #include "audio.h"

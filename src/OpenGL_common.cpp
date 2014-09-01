@@ -2,54 +2,24 @@
 
 #include "OpenGL_common.h"
 
-//#ifdef HAVE_CONFIG_H
-//#include "splot-config.h"
-//#endif
-
-//#include "gettext.h"
-//
-//#include "Splot_OpenGLCommon.h"
-//
-//#include <cstdio>
-//#include <cstdlib>
-//#include <cstring>
-//#include <cmath>
-//#include <sys/stat.h>
-//
-//#include "compatibility.h"
-//
-#if defined(HAVE_APPLE_OPENGL_FRAMEWORK) || (defined(HAVE_OPENGL_GL_H) && defined(HAVE_OPENGL_GLU_H))
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
-#include "GL/gl.h"
-#include "GL/glu.h"
+#ifdef HAVE_CONFIG_H
+#include "splot-config.h"
 #endif
 
 #include "ace/OS_Memory.h"
 #include "ace/Log_Msg.h"
 
-//#if IMAGE_GLPNG
-//#if defined(HAVE_APPLE_OPENGL_FRAMEWORK) || defined(HAVE_GLPNG_GLPNG_H)
-//#include <glpng/glpng.h>
-//#else
-//#include <GL/glpng.h>
-//#endif
-//#endif
-//
 #if defined (USE_GLC_TEXT)
 #include "TextGLC.h"
 #endif
 #if defined (USE_FTGL_TEXT)
 #include "text_FTGL.h"
 #endif
-//
+
 #include "configuration.h"
-//
 #include "state.h"
 #include "highscore.h"
 #include "background.h"
-//#include "EnemyFleet.h"
 #include "player_bullets.h"
 #include "enemy_bullets.h"
 #include "player_aircraft.h"
@@ -60,10 +30,6 @@
 #include "menu.h"
 #include "screen.h"
 #include "status_display.h"
-//#include "ScreenItemAdd.h"
-//
-//#include "GroundMetal.h"
-//#include "GroundSea.h"
 
 bool
 Splot_OpenGLCommon::init ()
@@ -125,12 +91,12 @@ Splot_OpenGLCommon::fini ()
 void
 Splot_OpenGLCommon::loadTextures ()
 {
-  const Configuration_t& configuration =
-    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
   try
   {
 #if defined (USE_GLC_TEXT) && defined (USE_FTGL_TEXT)
+    const Configuration_t& configuration =
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
     if (configuration.text_type == TEXT_GLC)
       ACE_NEW (state.text,
                TextGLC ());

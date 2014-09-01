@@ -88,24 +88,17 @@ Splot_Screen::put ()
         break;
       case GAMEELEMENT_ENEMY:
       {
-        Splot_EnemyAircraft* enemy_aircraft =
-          dynamic_cast<Splot_EnemyAircraft*> ((*iterator).game_element);
-        ACE_ASSERT (enemy_aircraft);
-        state.enemies->addEnemy (enemy_aircraft);
+        state.enemies->add ((Splot_EnemyAircraft*)(*iterator).game_element);
         break;
       }
       case GAMEELEMENT_PLAYER:
         ACE_ASSERT (!state.player);
-        state.player =
-          dynamic_cast<Splot_PlayerAircraft*> ((*iterator).game_element);
+        state.player = (Splot_PlayerAircraft*)(*iterator).game_element;
         ACE_ASSERT (state.player);
         break;
       case GAMEELEMENT_POWERUP:
       {
-        Splot_PowerUp* power_up =
-          dynamic_cast<Splot_PowerUp*> ((*iterator).game_element);
-        ACE_ASSERT (power_up);
-        state.power_ups->add (power_up);
+        state.power_ups->add ((Splot_PowerUp*)(*iterator).game_element);
         break;
       }
       default:
@@ -210,71 +203,78 @@ Splot_Screen::add (const EnemyWave_t& wave_in)
   int period = (int)(wave_in.period*(2.0-state.game_skill));
   if (jitter >= period)
     jitter = period - 1;
-
   int interval = 1;
   int iteration = 0;
   float position[3] = {wave_in.position[0],
                        wave_in.position[1],
                        wave_in.position[2]};
   Splot_EnemyAircraft* enemy_aircraft = NULL;
+  int num = 0;
   for (int i = wave_in.begin;
        i < wave_in.end;
        i++)
   {
     interval--;
-    if (interval < 1)
+    if (interval >= 1)
+      continue;
+
+    switch (wave_in.formation)
     {
-      switch (wave_in.formation)
-      {
-        case FORMATION_ARROW:
-          position[0] = wave_in.position[0] + wave_in.xJitter*iteration;
+      case FORMATION_ARROW:
+        position[0] = wave_in.position[0]+wave_in.xJitter*iteration;
+        enemy_aircraft = NULL;
+        ACE_NEW (enemy_aircraft,
+                 Splot_EnemyAircraft (wave_in.type,
+                                      position,
+                                      0.0));
+        Splot_Screen::add (i, enemy_aircraft);
+        num++;
+        if (iteration > 0)
+        {
+          position[0] = wave_in.position[0]-wave_in.xJitter*iteration;
           enemy_aircraft = NULL;
           ACE_NEW (enemy_aircraft,
                    Splot_EnemyAircraft (wave_in.type,
                                         position,
                                         0.0));
           Splot_Screen::add (i, enemy_aircraft);
-          if (iteration > 0)
-          {
-            position[0] = wave_in.position[0] - wave_in.xJitter*iteration;
-            enemy_aircraft = NULL;
-            ACE_NEW (enemy_aircraft,
-                     Splot_EnemyAircraft (wave_in.type,
-                                          position,
-                                          0.0));
-            Splot_Screen::add (i, enemy_aircraft);
-          } // end IF
-          interval = period + (int)(SRAND*jitter);
-          iteration++;
-          break;
-        case FORMATION_NONE:
-          position[0] = wave_in.position[0] + wave_in.xJitter*SRAND;
-          enemy_aircraft = NULL;
-          ACE_NEW (enemy_aircraft,
-                   Splot_EnemyAircraft (wave_in.type,
-                                        position,
-                                        0.0));
-          Splot_Screen::add (i, enemy_aircraft);
-          interval = period + (int)(SRAND*jitter);
-          break;
-        default:
-          //position[0] = 0.0;
-          //enemy_aircraft = NULL;
-          //ACE_NEW (enemy_aircraft,
-          //         Splot_EnemyAircraft (wave_in.type,
-          //                              position,
-          //                              0.0));
-          //Splot_Screen::add (i, enemy_aircraft);
-          //interval = 25;
+          num++;
+        } // end IF
+        interval = period+(int)(SRAND*jitter);
+        iteration++;
+        break;
+      case FORMATION_NONE:
+        position[0] = wave_in.position[0]+wave_in.xJitter*SRAND;
+        enemy_aircraft = NULL;
+        ACE_NEW (enemy_aircraft,
+                 Splot_EnemyAircraft (wave_in.type,
+                                      position,
+                                      0.0));
+        Splot_Screen::add (i, enemy_aircraft);
+        num++;
+        interval = period+(int)(SRAND*jitter);
+        break;
+      default:
+        //position[0] = 0.0;
+        //enemy_aircraft = NULL;
+        //ACE_NEW (enemy_aircraft,
+        //         Splot_EnemyAircraft (wave_in.type,
+        //                              position,
+        //                              0.0));
+        //Splot_Screen::add (i, enemy_aircraft);
+        //interval = 25;
 
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("unknown/invalid formation (was: %d), returning\n"),
-                      wave_in.formation));
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("unknown/invalid formation (was: %d), returning\n"),
+                    wave_in.formation));
 
-          return;
-      } // end SWITCH
-    } // end IF
+        return;
+    } // end SWITCH
   } // end FOR
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("formation: %d: added %d enemy aircraft(s)...\n"),
+              wave_in.formation, num));
 }
 
 Splot_EnemyAircraft*
@@ -312,7 +312,9 @@ Splot_Screen::loadLevel ()
   float r, d;
   int wave_duration = 500;
   int i = 600;
+#ifndef DEBUG_NO_ENEMIES
   Splot_Screen::addStraightWave (1, i, 0.4F);
+#endif
   while (i < num_iterations-1000)
   {
     if (i < 1500)
@@ -320,11 +322,12 @@ Splot_Screen::loadLevel ()
     else
       d = 1.0F;
     r = FRAND;
+#ifndef DEBUG_NO_ENEMIES
     if      (r < 0.15) Splot_Screen::addStraightArrowWave (i, wave_duration, d);
     else if (r < 0.25) Splot_Screen::addOmniArrowWave (i, wave_duration, d);
     else if (r > 0.60) Splot_Screen::addStraightWave (i, wave_duration, d);
     else               Splot_Screen::addOmniWave (i, wave_duration, d);
-
+#endif
     i += wave_duration;
     wave_duration = (int)(600.0*state.game_skill) + (int)(100*SRAND);
     i += 50 + (int)(50*FRAND);
@@ -338,7 +341,9 @@ Splot_Screen::loadLevel ()
   ray_wave.setFrequency (2000, 1000);
   ray_wave.setInOut (num_iterations/2, i-1000);
   //ray_wave.setInOut (100, i-1000);
+#ifndef DEBUG_NO_ENEMIES
   Splot_Screen::add (ray_wave);
+#endif
 
   //-- Boss
   EnemyWave_t boss_wave;
@@ -347,11 +352,15 @@ Splot_Screen::loadLevel ()
   boss_wave.setPos (0.0, 15.0);
   boss_wave.xJitter = 4.0;
   boss_wave.setFrequency (5000, 0);
+#ifndef DEBUG_NO_ENEMIES
   Splot_Screen::add (boss_wave);
+#endif
 
   //-- Ammunition and PowerUps
+#ifndef DEBUG_NO_POWERUPS
   Splot_Screen::addAmmunition (0, num_iterations + 9000);
   Splot_Screen::addPowerUps (0, num_iterations + 9000);
+#endif
 }
 
 void
@@ -800,9 +809,9 @@ Splot_Screen::addAmmunition (int o, int duration, int a, int b, int c)
 //  int ammoPause01 = 1;
 //  int ammoPause02 = 1;
 //#else
-  int ammoPause00 = a + (int)(FRAND*200);
-  int ammoPause01 = b + (int)(FRAND*200);
-  int ammoPause02 = c + (int)(FRAND*500);
+  int ammoPause00 = a+(int)(FRAND*200);
+  int ammoPause01 = b+(int)(FRAND*200);
+  int ammoPause02 = c+(int)(FRAND*500);
 //#endif
   float skill = 2.0F-state.game_skill;
   float position[3] = {0.0, 9.0, 25.0};

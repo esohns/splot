@@ -1,10 +1,12 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#include "ace/OS.h"
+
 class Splot_Main
 {
  public:
-  Splot_Main (int = 0, char** = NULL);
+  Splot_Main (int = 0, ACE_TCHAR** = NULL);
   virtual ~Splot_Main ();
 
   virtual bool run () = 0;

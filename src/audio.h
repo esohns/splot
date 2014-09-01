@@ -1,9 +1,9 @@
 #ifndef AUDIO_H
 #define AUDIO_H
 
-//#ifdef HAVE_CONFIG_H
-//#include <chromium-bsu-config.h>
-//#endif
+#ifdef HAVE_CONFIG_H
+#include "splot-config.h"
+#endif
 
 #include "ace/OS.h"
 

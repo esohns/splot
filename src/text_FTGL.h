@@ -1,6 +1,10 @@
 #ifndef TEXTFTGL_H
 #define TEXTFTGL_H
 
+#ifdef HAVE_CONFIG_H
+#include "splot-config.h"
+#endif
+
 #ifdef USE_FTGL_TEXT
 #include "FTGL/ftgl.h"
 

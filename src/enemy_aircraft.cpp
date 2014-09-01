@@ -36,8 +36,23 @@
 
 unsigned int Splot_EnemyAircraft::count = 0;
 
-Splot_EnemyAircraft::Splot_EnemyAircraft()
+Splot_EnemyAircraft::Splot_EnemyAircraft ()
  : inherited ()
+// , size_ ()
+ , damage_ (0.0)
+ , baseDamage_ (0.0)
+ , collisionMove_ (0.0)
+// , secondaryMove_ ()
+ , preFire_ (0.0)
+ , over_ (NULL)
+// , shootVec_ ()
+ , shootPause_ (0)
+ , shootInterval_ (0)
+ , shootSwap_ (0)
+ , randomMoveX_ (0.0)
+// , lastMove_ ()
+ , speedAdjustment_ (0.0)
+ , target_ (NULL)
  , type_ (ENEMYAIRCRAFT_INVALID)
 {
   inherited::type_ = GAMEELEMENT_ENEMY;
@@ -51,8 +66,22 @@ Splot_EnemyAircraft::Splot_EnemyAircraft()
 Splot_EnemyAircraft::Splot_EnemyAircraft (EnemyAircraftType_t type_in,
                                           const float (&position_in)[3],
                                           float randFact)
- : inherited (),
-   type_ (type_in)
+ : inherited ()
+ , damage_ (0.0)
+ , baseDamage_ (0.0)
+ , collisionMove_ (0.0)
+// , secondaryMove_ ()
+ , preFire_ (0.0)
+ , over_ (NULL)
+// , shootVec_ ()
+ , shootPause_ (0)
+ , shootInterval_ (0)
+ , shootSwap_ (0)
+ , randomMoveX_ (0.0)
+// , lastMove_ ()
+ , speedAdjustment_ (0.0)
+ , target_ (NULL)
+ , type_ (type_in)
 {
   inherited::type_ = GAMEELEMENT_ENEMY;
 

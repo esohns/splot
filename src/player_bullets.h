@@ -4,7 +4,10 @@
 #ifdef HAVE_CONFIG_H
 #include "splot-config.h"
 #endif
-#if defined(HAVE_APPLE_OPENGL_FRAMEWORK) || defined(HAVE_OPENGL_GL_H)
+
+#ifdef USE_SDL
+#include "SDL_opengl.h"
+#elif defined (HAVE_APPLE_OPENGL_FRAMEWORK) || defined (HAVE_OPENGL_GL_H)
 #include <OpenGL/gl.h>
 #else
 #include "GL/gl.h"

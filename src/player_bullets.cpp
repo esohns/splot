@@ -32,7 +32,6 @@
 #include "state.h"
 #include "explosion.h"
 #include "enemy_fleet.h"
-//#include "EnemyAircraft.h"
 #include "image.h"
 
 // init statics
@@ -78,7 +77,6 @@ Splot_PlayerBullets::loadTextures ()
   std::string path_base = ACE_TEXT_ALWAYS_CHAR (SPLOT_IMAGE_DATA_DIR);
   path_base += ACE_DIRECTORY_SEPARATOR_STR;
   std::string format_string = ACE_TEXT_ALWAYS_CHAR ("%sheroAmmo%02d.png");
-  int result = -1;
   for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
   {
     if (ACE_OS::snprintf (filename,
@@ -151,12 +149,12 @@ Splot_PlayerBullets::add (int type_in,
       return;
   } // end SWITCH
 
-  const Configuration_t& configuration =
-    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
-  if (configuration.debug)
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("adding bullet (type/position): %d / [%f,%f,%f]\n"),
-                type_in, position_in[0], position_in[1], position_in[2]));
+//  const Configuration_t& configuration =
+//    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
+//  if (configuration.debug)
+//    ACE_DEBUG ((LM_DEBUG,
+//                ACE_TEXT ("adding bullet (type/position): %d / [%f,%f,%f]\n"),
+//                type_in, position_in[0], position_in[1], position_in[2]));
 
   Bullet_t bullet;
   bullet.damage = bullet_damage[type_in];
@@ -226,7 +224,7 @@ Splot_PlayerBullets::checkForHits (Splot_EnemyFleet* fleet_in)
   float	min_ship_y = 100.0;
   fleet_in->toFirst ();
   Splot_EnemyAircraft* enemy = NULL; fleet_in->getShip ();
-  while (enemy = fleet_in->getShip ())
+  while ((enemy = fleet_in->getShip ()))
     if ((enemy->position_[1]-3.0F) < min_ship_y)
       min_ship_y = enemy->position_[1]-3.0F;
 
@@ -244,7 +242,7 @@ Splot_PlayerBullets::checkForHits (Splot_EnemyFleet* fleet_in)
         continue;
 
       fleet_in->toFirst ();
-      while (enemy = fleet_in->getShip ())
+      while ((enemy = fleet_in->getShip ()))
       {
         if (!enemy->checkHit (*iterator))
           continue;

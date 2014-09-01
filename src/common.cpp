@@ -24,14 +24,15 @@ alterPathForPlatform (char* filename_in)
       *walker = ':';
     walker++;
   } // end IF
-#endif
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#elif defined (ACE_WIN32) || defined (ACE_WIN64)
   while (*walker)
   {
     if (*walker == '/')
       *walker = '\\';
     walker++;
   } // end IF
+#else
+  ACE_UNUSED_ARG (walker);
 #endif
 
   return filename_in;
@@ -72,7 +73,7 @@ dataLoc (const std::string& filename_in, bool doCheck_in)
   {
     ACE_OS::sprintf (buffer,
                      ACE_TEXT_ALWAYS_CHAR ("%s%s%s"),
-                     PKGDATADIR, ACE_DIRECTORY_SEPARATOR_STR, filename_in);
+                     PKGDATADIR, ACE_DIRECTORY_SEPARATOR_STR, filename_in.c_str ());
 
     goto check;
   } // end IF

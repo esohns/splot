@@ -8,8 +8,7 @@
 //
 //#include "Splot_BackgroundMetal.h"
 //
-//#include <cmath>
-//
+#include <cmath>
 
 #include <string>
 

@@ -4,25 +4,12 @@
 
 #ifdef USE_SDL
 
-//#ifdef HAVE_CONFIG_H
-//#include "splot-config.h"
-//#endif
-//
-//#include "gettext.h"
-//
-//
-//#include <cstdlib>
-//#include <cmath>
-//
-
 #include <string>
 
 #ifdef USE_SDL_IMAGE
 #include "SDL_image.h"
 #endif
-//
-//#include "compatibility.h"
-//
+
 #if defined(HAVE_APPLE_OPENGL_FRAMEWORK) || (defined(HAVE_OPENGL_GL_H) && defined(HAVE_OPENGL_GLU_H))
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
@@ -34,13 +21,9 @@
 #include "ace/OS.h"
 #include "ace/Log_Msg.h"
 
-//#include "Global.h"
-//
 #include "common.h"
 #include "configuration.h"
 #include "state.h"
-//#include "HeroAircraft.h"
-//#include "Audio.h"
 #include "OpenGL_common.h"
 
 Splot_MainSDL::Splot_MainSDL (int argc_in, char** argv_in)
@@ -262,10 +245,10 @@ Splot_MainSDL::run ()
           float tmp = 50.0F/state.fps;
           tmp = 0.8F*target_adj + 0.2F*tmp;
           target_adj = floor (100.0F*(tmp + 0.005F)) / 100.0F;
-          if (configuration.debug)
-            ACE_DEBUG ((LM_INFO,
-                        ACE_TEXT ("speed calibration: fps: %3.2f, adj: %f, tmp: %f ...\n"),
-                        state.fps, target_adj, tmp));
+//          if (configuration.debug)
+//            ACE_DEBUG ((LM_INFO,
+//                        ACE_TEXT ("speed calibration: fps: %3.2f, adj: %f, tmp: %f ...\n"),
+//                        state.fps, target_adj, tmp));
         } // end IF
       } // end IF
       else if (configuration.auto_speed &&

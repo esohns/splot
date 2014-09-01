@@ -25,7 +25,7 @@ struct EnemyWave_t
    //, position ()
    , xJitter (8.0)
   { position [0] = 0.0; position[1] = 10.0; position[2] = 25.0; }
-  void setInOut (int b, int e) { begin = b; end = e; if (e <= b) end = b + 1; }
+  __attribute__((noinline)) void setInOut (int b, int e) { begin = b; end = e; if (e <= b) end = b + 1; }
   void setPos (float x, float y) { position[0] = x; position[1] = y; }
   void setFrequency (int p, int j = 0) { period = p; jitter = j; }
 
@@ -50,8 +50,7 @@ class Splot_Enemies
   void drawGL () { fleet_.drawGL (); };
   void clear () { fleet_.clear (); };
 
-  void addEnemy (Splot_EnemyAircraft* aircraft_in) { fleet_.addEnemy (aircraft_in); };
-  //void killEnemy (Splot_EnemyAircraft* aircraft_in) { fleet_.killEnemy (aircraft_in); };
+  void add (Splot_EnemyAircraft* aircraft_in) { fleet_.add (aircraft_in); };
   void destroyAll () { fleet_.destroyAll (); };
 
   void update () { fleet_.update (); };

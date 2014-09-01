@@ -2,25 +2,6 @@
 
 #include "enemy_bullets.h"
 
-//#ifdef HAVE_CONFIG_H
-//#include "splot-config.h"
-//#endif
-
-//#include "Splot_EnemyBullets.h"
-//
-//#include <cstdio>
-//#include <cstdlib>
-//#include <cmath>
-//
-//#include "compatibility.h"
-//
-//#if defined(HAVE_APPLE_OPENGL_FRAMEWORK) || defined(HAVE_OPENGL_GL_H)
-//#include <OpenGL/gl.h>
-//#else
-//#include <GL/gl.h>
-//#endif
-//
-
 #include <string>
 
 #include "ace/OS.h"
@@ -30,8 +11,6 @@
 #include "state.h"
 #include "configuration.h"
 #include "explosion.h"
-//#include "EnemyFleet.h"
-//#include "EnemyAircraft.h"
 #include "image.h"
 #include "player_aircraft.h"
 
@@ -97,7 +76,7 @@ Splot_EnemyBullets::loadTextures ()
   for (int i = 0; i < NUM_ENEMY_AMMO_TYPES; i++)
   {
     filename = path_base;
-    ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("EnemyAmmo%02d.png"), i);
+    ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("enemyAmmo%02d.png"), i);
     filename += buffer;
     texBullet_[i] = Splot_Image::load (dataLoc (filename.c_str ()));
     if (!texBullet_[i])
@@ -186,7 +165,7 @@ Splot_EnemyBullets::update ()
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
 
-  std::vector<BulletsConstIterator_t> finished_bullets;
+  std::vector<BulletsIterator_t> finished_bullets;
   for (int i = 0; i < NUM_ENEMY_AMMO_TYPES; i++)
   {
     finished_bullets.clear ();
@@ -205,7 +184,7 @@ Splot_EnemyBullets::update ()
       } // end ELSE
     } // end FOR
 
-    for (std::vector<BulletsConstIterator_t>::reverse_iterator iterator = finished_bullets.rbegin ();
+    for (std::vector<BulletsIterator_t>::reverse_iterator iterator = finished_bullets.rbegin ();
          iterator != finished_bullets.rend ();
          iterator++)
       bullets_[i].erase (*iterator);
@@ -225,12 +204,12 @@ Splot_EnemyBullets::checkForHits (Splot_PlayerAircraft* aircraft_in)
   Explosion_t* explosion;
 
   //-- Go through all the ammunition and check for hits
-  std::vector<BulletsConstIterator_t> finished_bullets;
+  std::vector<BulletsIterator_t> finished_bullets;
   for (int i = 0; i < NUM_ENEMY_AMMO_TYPES; i++)
   {
     finished_bullets.clear ();
 
-    for (BulletsConstIterator_t iterator = bullets_[i].begin ();
+    for (BulletsIterator_t iterator = bullets_[i].begin ();
          iterator != bullets_[i].end ();
          iterator++)
     {
@@ -259,7 +238,7 @@ Splot_EnemyBullets::checkForHits (Splot_PlayerAircraft* aircraft_in)
       finished_bullets.push_back (iterator);
     } // end FOR
 
-    for (std::vector<BulletsConstIterator_t>::reverse_iterator iterator = finished_bullets.rbegin ();
+    for (std::vector<BulletsIterator_t>::reverse_iterator iterator = finished_bullets.rbegin ();
          iterator != finished_bullets.rend ();
          iterator++)
       bullets_[i].erase (*iterator);

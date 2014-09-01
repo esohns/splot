@@ -3,6 +3,7 @@
 #include "audio.h"
 
 #include <string>
+#include <sstream>
 
 #include "ace/Default_Constants.h"
 #include "ace/OS.h"
@@ -365,9 +366,9 @@ Splot_Audio::setMusicVolume (float value_in)
   volume << desiredVolume;
 
   // set the desired volume
-  string command = ACE_TEXT_ALWAYS_CHAR ("amixer set CD ");
+  std::string command = ACE_TEXT_ALWAYS_CHAR ("amixer set CD ");
   command += volume.str ();
-  command += "% unmute";
+  command += ACE_TEXT_ALWAYS_CHAR ("% unmute");
   int status = ACE_OS::system (command.c_str ());
   if (status == -1 || !(WIFEXITED (status) && WEXITSTATUS (status) == 0))
     ACE_DEBUG ((LM_ERROR,

@@ -6,29 +6,32 @@
 #include "splot-config.h"
 #endif
 
-#if defined (USE_SDL_IMAGE)
-#include "SDL.h"
-#include "SDL_opengl.h"
-#include "SDL_image.h"
-//#if defined(HAVE_APPLE_OPENGL_FRAMEWORK) || defined(HAVE_OPENGL_GLU_H)
+//#if defined (HAVE_APPLE_OPENGL_FRAMEWORK) || defined (HAVE_OPENGL_GLU_H)
 //#include <OpenGL/glu.h>
 //#else
-//#include <GL/glu.h>
-#elif defined (USE_GLPNG_IMAGE)
+//#include "GL/glu.h"
+//#elif defined (USE_GLPNG_IMAGE)
 //#if defined(HAVE_APPLE_OPENGL_FRAMEWORK) || defined(HAVE_OPENGL_GL_H)
 //#include <OpenGL/gl.h>
 //#else
 //#include <GL/gl.h>
 //#endif
-#if defined(HAVE_APPLE_OPENGL_FRAMEWORK) || defined(HAVE_GLPNG_GLPNG_H)
-#include <glpng/glpng.h>
-#else
-#include <GL/glpng.h>
-#endif
-#endif
+//#if defined(HAVE_APPLE_OPENGL_FRAMEWORK) || defined(HAVE_GLPNG_GLPNG_H)
+//#include <glpng/glpng.h>
+//#else
+//#include <GL/glpng.h>
+//#endif
+//#endif
 
 #include "ace/OS.h"
 #include "ace/Log_Msg.h"
+
+#if defined (USE_SDL)
+#include "SDL.h"
+#endif
+#if defined (USE_SDL_IMAGE)
+#include "SDL_image.h"
+#endif
 
 GLuint
 Splot_Image::load (const std::string& filename_in,
@@ -38,6 +41,8 @@ Splot_Image::load (const std::string& filename_in,
                    GLint minfilter_in,
                    GLint magfilter_in)
 {
+  GLuint texture_id = 0;
+
 #if defined (USE_SDL_IMAGE)
   SDL_Surface* image = IMG_Load (filename_in.c_str ());
   if (!image)
@@ -50,7 +55,6 @@ Splot_Image::load (const std::string& filename_in,
     return 0;
   } // end IF
 
-  GLuint texture_id = 0;
   glGenTextures (1, &texture_id);
   glBindTexture (GL_TEXTURE_2D, texture_id);
 

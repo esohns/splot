@@ -44,7 +44,7 @@ struct Configuration_t
 
   bool   audio_enabled;
   bool   swap_stereo;
-  bool   use_playList;
+  bool   use_playlist;
   bool   use_cdrom;
   int    cdrom_device;
   float  vol_sound;

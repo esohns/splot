@@ -18,7 +18,7 @@
 #define SPLOT_ICON_CAPTION                  PACKAGE
 
 #define SPLOT_DATA_DIR_ENV_SYMBOL           "SPLOT_DATA"
-#define SPLOT_FONT_FILE                     "Gothic Uralic, Bold.ttf"
+#define SPLOT_FONT_FILE                     "gothub__.ttf"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define SPLOT_HOME_ENV_SYMBOL               "USERPROFILE"
 #else
@@ -45,7 +45,11 @@
 #define CONFIGURATION_DEFAULT_TEX_BORDER     true
 #define CONFIGURATION_DEFAULT_SHOW_FPS       true
 #define CONFIGURATION_DEFAULT_VIEW_GAMMA     1.1F
+#ifdef USE_FTGL_TEXT
+#define CONFIGURATION_DEFAULT_TEXT_TYPE      TEXT_FTGL
+#else
 #define CONFIGURATION_DEFAULT_TEXT_TYPE      TEXT_GLC
+#endif
 
 #define CONFIGURATION_DEFAULT_AUTO_SPEED     false
 #define CONFIGURATION_DEFAULT_MOVEMENT_SPEED 0.03F
@@ -54,9 +58,13 @@
 #define CONFIGURATION_DEFAULT_SWAP_STEREO    false
 #define CONFIGURATION_DEFAULT_USE_PLAYLIST   false
 #define CONFIGURATION_DEFAULT_USE_CDROM      false
-#define CONFIGURATION_DEFAULT_VOL_SOUND      0.9F
+#define CONFIGURATION_DEFAULT_VOL_SOUND      0.5F
 #define CONFIGURATION_DEFAULT_VOL_MUSIC      0.5
+#ifdef USE_SDLMIXER_AUDIO
+#define CONFIGURATION_DEFAULT_AUDIO_TYPE     AUDIO_SDL_MIXER
+#else
 #define CONFIGURATION_DEFAULT_AUDIO_TYPE     AUDIO_OPENAL
+#endif
 
 #define CONFIGURATION_DEFAULT_DEBUG          false
 
@@ -170,5 +178,8 @@
 #define AUDIO_CHUNKSIZE                      512
 
 #define NUM_HELP_MESSAGE_LINES               7
+
+#define DEBUG_NO_ENEMIES                     1
+#define DEBUG_NO_POWERUPS                    1
 
 #endif // DEFINES_H

@@ -1,12 +1,14 @@
 #ifndef MAINSDL_H
 #define MAINSDL_H
 
+#ifdef HAVE_CONFIG_H
+#include "splot-config.h"
+#endif
+
 #ifdef USE_SDL
 #include "SDL.h"
 
 #include "main.h"
-
-//class Global;
 
 class Splot_MainSDL
  : public Splot_Main
