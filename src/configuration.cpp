@@ -4,6 +4,7 @@
 
 #include <sstream>
 
+#include "ace/OS.h"
 #include "ace/Get_Opt.h"
 #include "ace/Configuration.h"
 #include "ace/Configuration_Import_Export.h"
@@ -51,14 +52,9 @@ Splot_Configuration::Splot_Configuration ()
   configuration_.debug = CONFIGURATION_DEFAULT_DEBUG;
 
   configuration_.skill_base = CONFIGURATION_DEFAULT_SKILL_BASE;
-
-  //if (!load (Splot_Configuration::getFileName ()))
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Splot_Configuration::load (\"%s\"), continuing\n"),
-  //              ACE_TEXT (Splot_Configuration::getFileName ().c_str())));
 }
 
-Splot_Configuration::~Splot_Configuration()
+Splot_Configuration::~Splot_Configuration ()
 {
   if (!save ())
     ACE_DEBUG ((LM_ERROR,
@@ -326,9 +322,9 @@ usage:
   if (ini_file.empty ()) ini_file = Splot_Configuration::getFileName ();
   ACE_stat stat;
   int result = ACE_OS::stat (ACE_TEXT (ini_file.c_str ()), &stat);
-  if ((result == -1)                         ||
-      !S_ISREG (stat.st_mode)                || // regular file ?
-      ((stat.st_mode & S_IRUSR) != S_IRUSR))    // readable ?
+  if ((result == -1)                        ||
+			((stat.st_mode & S_IFMT) != S_IFREG)  || // regular file ?
+      ((stat.st_mode & S_IRUSR) != S_IRUSR))   // readable ?
     ini_file.clear ();
   if (!ini_file.empty ())
     if (!load (ini_file))
@@ -365,75 +361,6 @@ Splot_Configuration::getFileName ()
 
   return configuration_filename;
 }
-
-//std::string
-//Splot_Configuration::getOldFileName ()
-//{
-//  char configuration_filename[PATH_MAX];
-//
-//  char home_dir[PATH_MAX];
-//  const char* home_dir_p = ACE_OS::getenv ("HOME");
-//  if (!home_dir_p)
-//    ACE_OS::getcwd (home_dir, sizeof (home_dir));
-//  else
-//    ACE_OS::strcpy (home_dir, home_dir_p);
-//
-//  sprintf (configuration_filename,
-//           ACE_TEXT_ALWAYS_CHAR ("%s/.splot"CONFIG_EXT),
-//           home_dir);
-//  alterPathForPlatform (configuration_filename);
-//
-//  return configuration_filename;
-//}
-
-//void
-//Splot_Configuration::readValues (FILE* file)
-//{
-//	char configStrings[32][64];
-//	int numLines;
-//	int tmp;
-//	int i;
-//#ifdef HAVE_LOCALE_H
-//	char* locale = setlocale(LC_NUMERIC,"C");
-//#endif
-//	i = numLines = 0;
-//	while( fgets(configStrings[i], 64, file) )
-//		i++;
-//	numLines = i;
-//	for(i = 0; i < numLines; i++)
-//	{
-//		if(strncmp(configStrings[i], "screenSi", 8) == 0) { int screenSize; sscanf(configStrings[i], "screenSize %d\n", &screenSize); setScreenSize(screenSize); }
-//		if(strncmp(configStrings[i], "screenWi", 8) == 0) { sscanf(configStrings[i], "screenWidth %d\n",   &m_screenW); }
-//		if(strncmp(configStrings[i], "screenHe", 8) == 0) { sscanf(configStrings[i], "screenHeight %d\n",  &m_screenH); }
-//		if(strncmp(configStrings[i], "mouseSpe", 8) == 0) { sscanf(configStrings[i], "mouseSpeed %f\n",    &m_movementSpeed); }
-//		if(strncmp(configStrings[i], "movement", 8) == 0) { sscanf(configStrings[i], "movementSpeed %f\n", &m_movementSpeed); }
-//		if(strncmp(configStrings[i], "gameSkil", 8) == 0) { sscanf(configStrings[i], "gameSkillBase %f\n", &m_gameSkillBase); }
-//		if(strncmp(configStrings[i], "gfxLevel", 8) == 0) { sscanf(configStrings[i], "gfxLevel %d\n",      &m_gfxLevel);   }
-//		if(strncmp(configStrings[i], "volSound", 8) == 0) { sscanf(configStrings[i], "volSound %f\n",      &m_volSound);   }
-//		if(strncmp(configStrings[i], "volMusic", 8) == 0) { sscanf(configStrings[i], "volMusic %f\n",      &m_volMusic);   }
-//		if(strncmp(configStrings[i], "full_scr", 8) == 0) { sscanf(configStrings[i], "full_screen %d\n",  &tmp);	m_full_screen = (bool)tmp; }
-//		if(strncmp(configStrings[i], "true_col", 8) == 0) { sscanf(configStrings[i], "true_color %d\n",   &tmp);	m_true_color  = (bool)tmp; }
-//		if(strncmp(configStrings[i], "swap_ste", 8) == 0) { sscanf(configStrings[i], "swap_stereo %d\n",  &tmp);	m_swap_stereo = (bool)tmp;  }
-//		if(strncmp(configStrings[i], "auto_spe", 8) == 0) { sscanf(configStrings[i], "auto_speed %d\n",   &tmp);	m_auto_speed  = (bool)tmp;  }
-//		if(strncmp(configStrings[i], "show_fps", 8) == 0) { sscanf(configStrings[i], "show_fps %d\n",     &tmp);	m_show_fps    = (bool)tmp;  }
-//		if(strncmp(configStrings[i], "use_play", 8) == 0) { sscanf(configStrings[i], "use_playList %d\n", &tmp);	m_use_playList= (bool)tmp;  }
-//#ifdef WITH_SDL_CDROM
-//		if(strncmp(configStrings[i], "use_cdro", 8) == 0) { sscanf(configStrings[i], "use_cdrom %d\n",    &tmp);	m_use_cdrom   = (bool)tmp;  }
-//#endif // WITH_SDL_CDROM
-//		if(strncmp(configStrings[i], "debug",    5) == 0) { sscanf(configStrings[i], "debug %d\n",        &tmp);	m_debug       = (bool)tmp;  }
-//		if(strncmp(configStrings[i], "audioTyp", 8) == 0) { sscanf(configStrings[i], "audioType %d\n",    &tmp);	m_audioType = (AudioType)tmp; }
-//		if(strncmp(configStrings[i], "textType", 8) == 0) { sscanf(configStrings[i], "textType %d\n",    &tmp);	m_textType = (TextType)tmp; }
-//		if(strncmp(configStrings[i], "maxLevel", 8) == 0) { sscanf(configStrings[i], "maxLevel %d\n",      &m_maxLevel);  }
-//		if(strncmp(configStrings[i], "viewGamm", 8) == 0) { sscanf(configStrings[i], "viewGamma %f\n",     &m_viewGamma); }
-//#ifdef WITH_SDL_CDROM
-//		if(strncmp(configStrings[i], "cdromCou", 8) == 0) { sscanf(configStrings[i], "cdromCount %d\n",    &m_cdromCount); }
-//		if(strncmp(configStrings[i], "cdromDev", 8) == 0) { sscanf(configStrings[i], "cdromDevice %d\n",   &m_cdromDevice); }
-//#endif // WITH_SDL_CDROM
-//	}
-//#ifdef HAVE_LOCALE_H
-//	setlocale(LC_NUMERIC,locale);
-//#endif
-//}
 
 bool
 Splot_Configuration::load (const std::string& filename_in)
@@ -630,6 +557,14 @@ Splot_Configuration::load (const std::string& filename_in)
         converter >> std::boolalpha >> configuration_.use_cdrom;
       } // end IF
     } // end IF
+    else if (value_name == ACE_TEXT ("skill"))
+    {
+      int tmp = -1;
+      converter.str (value.c_str ());
+      converter >> std::hex >> tmp;
+      configuration_.skill_base = (float)tmp / (float)10;
+      //      configuration_.vol_sound = (float)::atof (value.c_str ());
+    } // end IF
     else if (value_name == ACE_TEXT ("vol_sound"))
     {
       int tmp = -1;
@@ -663,10 +598,6 @@ Splot_Configuration::load (const std::string& filename_in)
       converter >> std::hex >> tmp;
       configuration_.audio_type = (AudioType_t)tmp;
 //      configuration_.audio_type = (AudioType_t)::atoi (value.c_str ());
-    } // end IF
-    else if (value_name == ACE_TEXT ("skill_base"))
-    {
-      configuration_.skill_base = (float)::atof (value.c_str ());
     } // end IF
     else
     {
@@ -735,7 +666,7 @@ Splot_Configuration::load (const std::string& filename_in)
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("imported \"%s\"...\n"),
-              ACE_TEXT (filename_in.c_str())));
+              ACE_TEXT (filename_in.c_str ())));
 
   return true;
 }
@@ -932,8 +863,20 @@ Splot_Configuration::save ()
 
     return false;
   } // end IF
+  value_name = ACE_TEXT_ALWAYS_CHAR ("skill");
+  u_int factor = 10;
+  if (configuration_heap.set_integer_value (section_key,
+                                            ACE_TEXT (value_name.c_str ()),
+                                            (u_int)(configuration_.skill_base*factor)))
+  {
+    ACE_ERROR ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Configuration_Heap::set_integer_value (\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (value_name.c_str ())));
+
+    return false;
+  } // end IF
   value_name = ACE_TEXT_ALWAYS_CHAR ("vol_sound");
-  u_int factor = 1;
+  factor = 1;
 #ifdef USE_SDLMIXER_AUDIO
   factor = MIX_MAX_VOLUME;
 #else
@@ -964,17 +907,6 @@ Splot_Configuration::save ()
   if (configuration_heap.set_integer_value (section_key,
                                             ACE_TEXT (value_name.c_str ()),
                                             (u_int)configuration_.audio_type))
-  {
-    ACE_ERROR ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Configuration_Heap::set_integer_value (\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (value_name.c_str ())));
-
-    return false;
-  } // end IF
-  value_name = ACE_TEXT_ALWAYS_CHAR ("skill_base");
-  if (configuration_heap.set_integer_value (section_key,
-                                            ACE_TEXT (value_name.c_str ()),
-                                            (u_int)configuration_.skill_base))
   {
     ACE_ERROR ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Configuration_Heap::set_integer_value (\"%s\"): \"%m\", aborting\n"),

@@ -5,12 +5,12 @@
   <PropertyGroup />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Program Files %28x86%29\GnuWin32\include;C:\Program Files %28x86%29\GnuWin32\include\freetype2;D:\projects\ftgl-2.1.3~rc5\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\projects\freetype-2.5.3\include;C:\Program Files %28x86%29\GnuWin32\include;C:\Program Files %28x86%29\GnuWin32\include\freetype2;D:\projects\ftgl-2.1.3~rc5\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>USE_FTGL_TEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>D:\projects\ftgl-2.1.3~rc5\msvc\Build;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ftgl_D.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\projects\freetype-2.5.3\objs\win32\vc2010;D:\projects\ftgl-2.1.3~rc5\msvc\Build;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>freetype253_D.lib;ftgl_D.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup />

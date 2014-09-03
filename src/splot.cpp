@@ -36,7 +36,7 @@
 #include "common.h"
 
 void
-do_printVersion(const std::string& programName_in)
+do_printVersion (const std::string& programName_in)
 {
   // step1: program version
   //   std::cout << programName_in << ACE_TEXT(" : ") << VERSION << std::endl;
@@ -51,8 +51,8 @@ do_printVersion(const std::string& programName_in)
 
   // step2: SDL version
   SDL_version sdl_version;
-  ACE_OS::memset(&sdl_version, 0, sizeof(sdl_version));
-  SDL_VERSION(&sdl_version);
+  ACE_OS::memset (&sdl_version, 0, sizeof (sdl_version));
+  SDL_VERSION (&sdl_version);
   std::ostringstream version_number;
   version_number << sdl_version.major;
   version_number << ACE_TEXT_ALWAYS_CHAR (".");
@@ -170,7 +170,7 @@ ACE_TMAIN (int argc_in,
 
     // *PORTABILITY*: on Windows, need to fini ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    if (ACE::fini() == -1)
+    if (ACE::fini () == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
@@ -194,7 +194,7 @@ ACE_TMAIN (int argc_in,
 #endif
 
   const Configuration_t& configuration =
-    SPLOT_CONFIGURATION_SINGLETON::instance()->get();
+    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
   if (configuration.debug)
     if (ACE_OS::atexit (Splot_EnemyAircraft::printNumAllocated,
                         NULL))
@@ -211,9 +211,9 @@ ACE_TMAIN (int argc_in,
 #else
 #error "USE_SDL or USE_GLUT must be defined"
 #endif
-  if (!SPLOT_STATE_SINGLETON::instance()->initialize (toolkit,
-                                                      argc_in,
-                                                      argv_in))
+  if (!SPLOT_STATE_SINGLETON::instance ()->initialize (toolkit,
+                                                       argc_in,
+                                                       argv_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Splot_State::initialize (%d), aborting\n"),

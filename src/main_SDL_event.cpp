@@ -60,28 +60,28 @@ Splot_MainSDL::process (SDL_Event* event_in)
 			break;
 	}
 #endif
-  bool shown, mouse, input, gain = false;
+  bool iconified_restored, mouse_focus, input_focus, gained = false;
   switch (event_in->type) 
   {
 #if SDL_VERSION_ATLEAST (2,0,0)
     case SDL_WINDOWEVENT:
       switch (event->window.event) {
-        case SDL_WINDOWEVENT_RESTORED: shown = true; gain = true; break;
-        case SDL_WINDOWEVENT_MINIMIZED: shown = true; gain = false; break;
-        case SDL_WINDOWEVENT_ENTER: mouse = true; gain = true; break;
-        case SDL_WINDOWEVENT_LEAVE: mouse = true; gain = false; break;
-        case SDL_WINDOWEVENT_FOCUS_GAINED: input = true; gain = true; break;
-        case SDL_WINDOWEVENT_FOCUS_LOST: input = true; gain = false; break;
+        case SDL_WINDOWEVENT_RESTORED: iconified_restored = true; gained = true; break;
+        case SDL_WINDOWEVENT_MINIMIZED: iconified_restored = true; gained = false; break;
+        case SDL_WINDOWEVENT_ENTER: mouse_focus = true; gained = true; break;
+        case SDL_WINDOWEVENT_LEAVE: mouse_focus = true; gained = false; break;
+        case SDL_WINDOWEVENT_FOCUS_GAINED: input_focus = true; gained = true; break;
+        case SDL_WINDOWEVENT_FOCUS_LOST: input_focus = true; gained = false; break;
       }
-      activation(shown, mouse, input, gain);
+      activation (iconified_restored, mouse_focus, input_focus, gained);
       break;
 #else
     case SDL_ACTIVEEVENT:
-      shown = event_in->active.state & SDL_APPACTIVE ? true : false;
-      mouse = event_in->active.state & SDL_APPMOUSEFOCUS ? true : false;
-      input = event_in->active.state & SDL_APPINPUTFOCUS ? true : false;
-      gain = event_in->active.gain ? true : false;
-      activation (shown, mouse, input, gain);
+      iconified_restored = event_in->active.state & SDL_APPACTIVE ? true : false;
+      mouse_focus = event_in->active.state & SDL_APPMOUSEFOCUS ? true : false;
+      input_focus = event_in->active.state & SDL_APPINPUTFOCUS ? true : false;
+      gained = event_in->active.gain ? true : false;
+      activation (iconified_restored, mouse_focus, input_focus, gained);
       break;
 #endif
     case SDL_KEYDOWN:
@@ -300,46 +300,23 @@ Splot_MainSDL::process (SDL_Event* event_in)
 //}
 
 void
-Splot_MainSDL::activation (bool shown_in,
-                           bool mouse_in,
-                           bool input_in,
-                           bool gain_in)
+Splot_MainSDL::activation (bool iconifiedRestored_in,
+                           bool mouseFocus_in,
+                           bool inputFocus_in,
+                           bool gained_in)
 {
-  //Global *game = Global::getInstance();
-  const Configuration_t& configuration =
-    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
-  if (configuration.debug)
-    ACE_DEBUG ((LM_INFO,
-                ACE_TEXT ("app %s\n"),
-                (gain_in ? ACE_TEXT ("gained") : ACE_TEXT ("lost"))));
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-  bool grab_mouse =((state.game_mode == GAMEMODE_GAME) &&
-                    !state.game_pause                  &&
-                    gain_in);
-  if (shown_in)
+  bool grab_mouse = ((state.game_mode == GAMEMODE_GAME) &&
+                     !state.game_pause                  &&
+                     gained_in);
+
+  if (mouseFocus_in && gained_in) // (re-)gained mouse focus
   {
-    grabMouse (grab_mouse, grab_mouse);
-    if (configuration.debug)
-      ACE_DEBUG ((LM_INFO,
-                  ACE_TEXT ("app active\n")));
-  } // end IF
-  else if (mouse_in)
-  {
-    if (configuration.debug)
-      ACE_DEBUG ((LM_INFO,
-                  ACE_TEXT ("mouse active\n")));
     Uint8 button_state = SDL_GetMouseState (&last_[0], &last_[1]);
     ACE_UNUSED_ARG (button_state);
   } // end IF
-  else if (input_in)
-  {
-    grabMouse (grab_mouse, grab_mouse);
-    ACE_DEBUG ((LM_INFO,
-                ACE_TEXT ("input active\n")));
-  } // end IF
-  if (configuration.debug)
-    ACE_DEBUG ((LM_INFO,
-                ACE_TEXT ("focus\n")));
+
+  grabMouse (grab_mouse, false);
 }
 
 void
@@ -362,7 +339,6 @@ Splot_MainSDL::keyDown (SDL_Event* event_in)
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
   switch (event_in->key.keysym.sym)
   {
-    case SDL_QUIT:
     case SDLK_q:
       state.game_quit = true;
       break;
@@ -377,15 +353,9 @@ Splot_MainSDL::keyDown (SDL_Event* event_in)
       break;
     case SDLK_ESCAPE:
       if (state.game_mode == GAMEMODE_MENU)
-      {
-        state.game_mode = GAMEMODE_GAME;
-        state.audio->setMusicMode (SOUND_MUSIC_GAME);
-        grabMouse (!state.game_pause);
-      } // end IF
+        state.game_quit = true;
       else
       {
-        if (state.game_mode != GAMEMODE_GAME)
-          SPLOT_STATE_SINGLETON::instance ()->newGame ();
         state.game_mode = GAMEMODE_MENU;
         state.menu->startMenu ();
         state.audio->setMusicMode (SOUND_MUSIC_MENU);
@@ -398,18 +368,18 @@ Splot_MainSDL::keyDown (SDL_Event* event_in)
         case GAMEMODE_GAME:
           keyDownGame (event_in);
           break;
+        case GAMEMODE_GAME_OVER:
+          state.game_mode = GAMEMODE_GAME;
+          SPLOT_STATE_SINGLETON::instance ()->newGame ();
+          grabMouse (true);
+          state.audio->setMusicMode (SOUND_MUSIC_GAME);
+          break;
         case GAMEMODE_LEVEL_COMPLETE:
           SPLOT_STATE_SINGLETON::instance ()->gotoNextLevel ();
           state.game_mode = GAMEMODE_GAME;
           state.audio->setMusicMode (SOUND_MUSIC_GAME);
           break;
-        case GAMEMODE_GAME_OVER:
-          state.game_mode = GAMEMODE_GAME;
-          SPLOT_STATE_SINGLETON::instance ()->newGame ();
-          state.toolkit->grabMouse (true);
-          state.audio->setMusicMode (SOUND_MUSIC_GAME);
-          break;
-        default:
+        case GAMEMODE_MENU:
           Key_t key;
           switch (event_in->key.keysym.sym)
           {
@@ -438,6 +408,11 @@ Splot_MainSDL::keyDown (SDL_Event* event_in)
           } // end SWITCH
           state.menu->keyHit (key);
           break;
+        default:
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown game mode (was: %d), continuing\n"),
+                      state.game_mode));
+          break;
       } // end SWITCH
       break;
   } // end SWITCH
@@ -447,6 +422,7 @@ void
 Splot_MainSDL::keyDownGame (SDL_Event* event_in)
 {
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
+  bool move_event = false;
   switch (event_in->key.keysym.sym)
   {
     case SDLK_KP_PLUS:
@@ -467,36 +443,36 @@ Splot_MainSDL::keyDownGame (SDL_Event* event_in)
       state.audio->nextMusicIndex ();
       break;
     case SDLK_KP7:
-      key_speed_[0] -= 5.0;
-      key_speed_[1] -= 5.0;
+      key_speed_[0] -= 4.0;
+      key_speed_[1] -= 4.0;
       break;
     case SDLK_KP9:
-      key_speed_[0] += 5.0;
-      key_speed_[1] -= 5.0;
+      key_speed_[0] += 4.0;
+      key_speed_[1] -= 4.0;
       break;
     case SDLK_KP3:
-      key_speed_[0] += 5.0;
-      key_speed_[1] += 5.0;
+      key_speed_[0] += 4.0;
+      key_speed_[1] += 4.0;
       break;
     case SDLK_KP1:
-      key_speed_[0] -= 5.0;
-      key_speed_[1] += 5.0;
+      key_speed_[0] -= 4.0;
+      key_speed_[1] += 4.0;
       break;
     case SDLK_KP4:
     case SDLK_LEFT:
-      key_speed_[0] -= 5.0;
+      key_speed_[0] -= 4.0;
       break;
     case SDLK_KP6:
     case SDLK_RIGHT:
-      key_speed_[0] += 5.0;
+      key_speed_[0] += 4.0;
       break;
     case SDLK_KP8:
     case SDLK_UP:
-      key_speed_[1] -= 5.0;
+      key_speed_[1] -= 4.0;
       break;
     case SDLK_KP2:
     case SDLK_DOWN:
-      key_speed_[1] += 5.0;
+      key_speed_[1] += 4.0;
       break;
     case SDLK_SPACE:
       state.player->fireGun (true);
@@ -513,6 +489,9 @@ Splot_MainSDL::keyDownGame (SDL_Event* event_in)
                   state.game_frame));
       break;
   } // end SWITCH
+
+  //if (move_event)
+  //  keyMove ();
 }
 
 void
@@ -554,18 +533,18 @@ Splot_MainSDL::keyMove ()
 #define KP8 SDLK_KP8
 #define KP9 SDLK_KP9
 #endif
-  if (keystate[LEFT]  || keystate[KP4]) key_speed_[0] -= 2.0F+abs (key_speed_[0])*0.4F;
-  if (keystate[RIGHT] || keystate[KP6]) key_speed_[0] += 2.0F+abs (key_speed_[0])*0.4F;
-  if (keystate[UP]    || keystate[KP8]) key_speed_[1] -= 2.0F+abs (key_speed_[1])*0.4F;
-  if (keystate[DOWN]  || keystate[KP2]) key_speed_[1] += 2.0F+abs (key_speed_[1])*0.4F;
-  if (keystate[KP7]) {key_speed_[0] -= 2.0F+abs (key_speed_[0])*0.4F; key_speed_[1] -= 2.0F+abs (key_speed_[1])*0.4F;}
-  if (keystate[KP9]) {key_speed_[0] += 2.0F+abs (key_speed_[0])*0.4F; key_speed_[1] -= 2.0F+abs (key_speed_[1])*0.4F;}
-  if (keystate[KP3]) {key_speed_[0] += 2.0F+abs (key_speed_[0])*0.4F; key_speed_[1] += 2.0F+abs (key_speed_[1])*0.4F;}
-  if (keystate[KP1]) {key_speed_[0] -= 2.0F+abs (key_speed_[0])*0.4F; key_speed_[1] += 2.0F+abs (key_speed_[1])*0.4F;}
+  if (keystate[LEFT]  || keystate[KP4]) key_speed_[0] -= 2.0F+abs (key_speed_[0])*0.3F;
+  if (keystate[RIGHT] || keystate[KP6]) key_speed_[0] += 2.0F+abs (key_speed_[0])*0.3F;
+  if (keystate[UP]    || keystate[KP8]) key_speed_[1] -= 2.0F+abs (key_speed_[1])*0.3F;
+  if (keystate[DOWN]  || keystate[KP2]) key_speed_[1] += 2.0F+abs (key_speed_[1])*0.3F;
+  if (keystate[KP7]) {key_speed_[0] -= 2.0F+abs (key_speed_[0])*0.3F; key_speed_[1] -= 2.0F+abs (key_speed_[1])*0.3F;}
+  if (keystate[KP9]) {key_speed_[0] += 2.0F+abs (key_speed_[0])*0.3F; key_speed_[1] -= 2.0F+abs (key_speed_[1])*0.3F;}
+  if (keystate[KP3]) {key_speed_[0] += 2.0F+abs (key_speed_[0])*0.3F; key_speed_[1] += 2.0F+abs (key_speed_[1])*0.3F;}
+  if (keystate[KP1]) {key_speed_[0] -= 2.0F+abs (key_speed_[0])*0.3F; key_speed_[1] += 2.0F+abs (key_speed_[1])*0.3F;}
   //float s = (1.0-game->speedAdj)+(game->speedAdj*0.7);
-  float s = 0.7F;
-  key_speed_[0] *= s;
-  key_speed_[1] *= s;
+  //float s = 0.7F;
+  key_speed_[0] *= 0.6F;
+  key_speed_[1] *= 0.6F;
   state.player->moveEvent ((int)key_speed_[0], (int)key_speed_[1]);
 }
 
@@ -575,14 +554,14 @@ Splot_MainSDL::mouseMotion (SDL_Event* event_in)
   if (!mouseToggle_)
     return; // nothing to do
 
-  if (event_in->motion.x == mid_[0] &&
-      event_in->motion.y == mid_[1])
-  {
-    last_[0] = event_in->motion.x;
-    last_[1] = event_in->motion.y;
+  //if (event_in->motion.x == mid_[0] &&
+  //    event_in->motion.y == mid_[1])
+  //{
+  //  last_[0] = event_in->motion.x;
+  //  last_[1] = event_in->motion.y;
 
-    return;
-  } // end IF
+  //  return;
+  //} // end IF
 
   int xDiff, yDiff;
   xDiff = event_in->motion.x-last_[0];
@@ -591,11 +570,11 @@ Splot_MainSDL::mouseMotion (SDL_Event* event_in)
   if (xDiff || yDiff)
   {
     state.player->moveEvent (xDiff, yDiff);
-#if SDL_VERSION_ATLEAST(2,0,0)
-    SDL_WarpMouseInWindow (window_, mid_[0], mid_[1]);
-#else
-    SDL_WarpMouse (mid_[0], mid_[1]);
-#endif
+//#if SDL_VERSION_ATLEAST (2,0,0)
+//    SDL_WarpMouseInWindow (window_, mid_[0], mid_[1]);
+//#else
+//    SDL_WarpMouse (mid_[0], mid_[1]);
+//#endif
   } // end IF
 
   last_[0] = event_in->motion.x;
@@ -675,22 +654,22 @@ Splot_MainSDL::mouseButtonUp (SDL_Event* event_in)
 void
 Splot_MainSDL::grabMouse (bool status_in, bool warpmouse_in)
 {
+  mouseToggle_ = status_in;
+//  int status_before = SDL_ShowCursor ((int)!status_in); // toggle ?
+//  ACE_UNUSED_ARG (status_before);
+
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
-  if (configuration.debug)
-    ACE_DEBUG ((LM_INFO,
-                ACE_TEXT ("grabMouse(%d)\n"),
-                (int)status_in));
-
-  mouseToggle_ = status_in;
-  int status_before = SDL_ShowCursor ((int)!status_in); // toggle ?
-  ACE_UNUSED_ARG (status_before);
+  mid_[0] = configuration.screen_width / 2;
+  mid_[1] = configuration.screen_height / 2;
 
   if (!warpmouse_in)
     return;
 
-  mid_[0] = configuration.screen_width/2;
-  mid_[1] = configuration.screen_height/2;
+  //State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
+  //int x, y;
+  //Uint8 button_state = SDL_GetMouseState (&x, &y);
+  //ACE_UNUSED_ARG (button_state);
 #if SDL_VERSION_ATLEAST (2,0,0)
   SDL_WarpMouseInWindow(window_, mid_[0], mid_[1]);
 #else

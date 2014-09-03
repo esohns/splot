@@ -25,7 +25,7 @@
 #define SPLOT_HOME_ENV_SYMBOL               "HOME"
 #endif
 
-#define SPLOT_HIGHSCORE_HEADER_LINE         "# splot high scores file: skill rank score date time(UTC) name (do not remove this comment line)\n"
+#define SPLOT_HIGHSCORE_HEADER_LINE         "# splot high scores file: skill rank score date time(UTC) name (do not remove this comment line)"
 #define SPLOT_HIGHSCORE_DEFAULT_NAME        "nobody"
 #define SPLOT_HIGHSCORE_ENV_SYMBOL          "SPLOT_SCORE"
 

@@ -22,3 +22,8 @@
 Debug
 ipch
 *.sdf
+
+# Directories
+build
+autom4te.cache
+ipch

@@ -2,21 +2,15 @@
 
 #include "highscore.h"
 
+#include <sstream>
+
 #include "ace/OS.h"
 #include "ace/Log_Msg.h"
 
 //#include "gettext.h"
 #include "common.h"
 #include "defines.h"
-//#include "HeroAircraft.h"
-//#include <cstdio>
-//#include <cstdlib>
-//#include <cstring>
-//#include <ctime>
-//
-//#ifdef HAVE_LOCALE_H
-//#include <locale.h>
-//#endif
+#include "configuration.h"
 
 Splot_HighScore::Splot_HighScore (const std::string& filename_in)
  : initialized_ (false)
@@ -60,12 +54,15 @@ Splot_HighScore::Splot_HighScore (const std::string& filename_in)
       highScoreDate_[i][j] = 0;
     } // end FOR
 
-  initialized_ = load (filename_in);
+  if (!filename_in.empty ())
+    initialized_ = load (filename_in);
 }
 
-Splot_HighScore::~Splot_HighScore()
+Splot_HighScore::~Splot_HighScore ()
 {
-  if (initialized_) ;
+  if (!save ())
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to save highscore table, continuing\n")));
 }
 
 float
@@ -137,35 +134,25 @@ Splot_HighScore::getFileName ()
   return highscore_filename;
 }
 
-std::string
-Splot_HighScore::getOldFileName ()
-{
-  char highscore_filename[PATH_MAX];
-
-  char home_dir[PATH_MAX];
-  const char *home_dir_p = ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR ("HOME"));
-  if (!home_dir_p)
-    ACE_OS::getcwd (home_dir, PATH_MAX);
-  else
-    ACE_OS::strcpy(home_dir, home_dir_p);
-  ACE_OS::sprintf (highscore_filename,
-                   ACE_TEXT_ALWAYS_CHAR ("%s/.chromium-score")CONFIG_EXT,
-                   home_dir);
-  alterPathForPlatform (highscore_filename);
-
-  return highscore_filename;
-}
-
 bool
 Splot_HighScore::save ()
 {
+  std::string filename = getFileName ();
+  if (filename.empty ())
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid highscore filename, aborting\n")));
+
+    return false;
+  } // end IF
+
   FILE* file = NULL;
-  file = ACE_OS::fopen (getFileName ().c_str (), ACE_TEXT_ALWAYS_CHAR ("w"));
+  file = ACE_OS::fopen (filename.c_str (), ACE_TEXT_ALWAYS_CHAR ("w"));
   if (!file)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to fopen (\"%s\", \"w\"): \"%m\", aborting\n"),
-                ACE_TEXT (getFileName ().c_str ())));
+                ACE_TEXT ("failed to fopen(\"%s\", \"w\"): \"%m\", aborting\n"),
+                ACE_TEXT (filename.c_str ())));
 
     return false;
   } // end IF
@@ -176,58 +163,87 @@ Splot_HighScore::save ()
   if (ACE_OS::fprintf (file,
                        ACE_TEXT_ALWAYS_CHAR ("%s"),
                        ACE_TEXT_ALWAYS_CHAR (SPLOT_HIGHSCORE_HEADER_LINE)) !=
-      ((int)ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (SPLOT_HIGHSCORE_HEADER_LINE))+1))
+      ((int)ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (SPLOT_HIGHSCORE_HEADER_LINE))))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to fprintf (\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (getFileName ().c_str ())));
+                ACE_TEXT ("failed to fprintf(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (filename.c_str ())));
 
     // clean up
     if (ACE_OS::fclose (file))
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to fclose (\"%s\"): \"%m\", continuing\n"),
-                  ACE_TEXT (getFileName ().c_str ())));
+                  ACE_TEXT ("failed to fclose(\"%s\"): \"%m\", continuing\n"),
+                  ACE_TEXT (filename.c_str ())));
 
     return false;
   } // end IF
-  struct tm* time = NULL;
-  for (int i = 0; i < 10; i++)
+  struct tm time;
+  ACE_OS::memset (&time, 0, sizeof (time));
+  for (int i = 0; i < MAX_LEVEL; i++)
     for (int j = 0; j < HI_SCORE_HIST; j++)
     {
-      time = ACE_OS::gmtime (&highScoreDate_[i][j]);
-      if (!time)
+      if (ACE_OS::fprintf (file,
+                          ACE_TEXT_ALWAYS_CHAR ("\n")) < 0)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to gmtime (%d): \"%m\", aborting\n"),
-                    highScoreDate_[i][j]));
+                    ACE_TEXT ("failed to fprintf(\"%s\"): \"%m\", aborting\n"),
+                    ACE_TEXT (filename.c_str ())));
 
         // clean up
-        if (fclose (file))
+        if (ACE_OS::fclose (file))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to fclose (\"%s\"): \"%m\", continuing\n"),
-                      ACE_TEXT (getFileName ().c_str ())));
+                      ACE_TEXT ("failed to fclose(\"%s\"): \"%m\", continuing\n"),
+                      ACE_TEXT (filename.c_str ())));
 
         return false;
       } // end IF
 
-      ACE_OS::fprintf (file, 
-                       ACE_TEXT_ALWAYS_CHAR ("%d %d %f %04d-%02d-%02d %02d:%02d:%02d %s\n"),
-                       i, j, 
-                       highScore_[i][j],
-                       1900 + time->tm_year,
-                       1 + time->tm_mon,
-                       time->tm_mday,
-                       time->tm_hour,
-                       time->tm_min,
-                       time->tm_sec,
-                       highScoreName_[i][j]);
+      if (ACE_OS::gmtime_r (&highScoreDate_[i][j], &time) == NULL)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to gmtime_r(%:): \"%m\", aborting\n"),
+                    highScoreDate_[i][j]));
+
+        // clean up
+        if (ACE_OS::fclose (file))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to fclose(\"%s\"): \"%m\", continuing\n"),
+                      ACE_TEXT (filename.c_str ())));
+
+        return false;
+      } // end IF
+
+      if (ACE_OS::fprintf (file,
+                           ACE_TEXT_ALWAYS_CHAR ("%d %d %f %04d-%02d-%02d %02d:%02d:%02d %s"),
+                           i, j,
+                           highScore_[i][j],
+                           1900+time.tm_year,
+                           1+time.tm_mon,
+                           time.tm_mday,
+                           time.tm_hour,
+                           time.tm_min,
+                           time.tm_sec,
+                           highScoreName_[i][j]) < 0)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to fprintf(\"%s\"): \"%m\", aborting\n"),
+                    ACE_TEXT (filename.c_str ())));
+
+        // clean up
+        if (ACE_OS::fclose (file))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to fclose(\"%s\"): \"%m\", continuing\n"),
+                      ACE_TEXT (filename.c_str ())));
+
+        return false;
+      } // end IF
     } // end FOR
 
   if (ACE_OS::fclose (file))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to fclose (\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (getFileName ().c_str ())));
+                ACE_TEXT ("failed to fclose(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (filename.c_str ())));
 
     return false;
   } // end IF
@@ -235,6 +251,13 @@ Splot_HighScore::save ()
 #ifdef HAVE_LOCALE_H
   setlocale (LC_NUMERIC, locale);
 #endif
+
+  const Configuration_t& configuration =
+    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
+  if (configuration.debug)
+    ACE_DEBUG ((LM_INFO,
+                ACE_TEXT ("saved highscore file: \"%s\"\n"),
+                ACE_TEXT (filename.c_str ())));
 
   return true;
 }
@@ -303,7 +326,14 @@ Splot_HighScore::load (const std::string& filename_in)
   char* locale = setlocale (LC_NUMERIC, ACE_TEXT_ALWAYS_CHAR ("C"));
 #endif
   char* tz = ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR ("TZ"));
-  if (ACE_OS::setenv (ACE_TEXT_ALWAYS_CHAR ("TZ"), ACE_TEXT_ALWAYS_CHAR (""), 1))
+  int result = -1;
+#if defined _MSC_VER
+  std::string tz_environment = ACE_TEXT_ALWAYS_CHAR ("TZ=");
+  result = ACE_OS::putenv (tz_environment.c_str ());
+#else
+  result = ACE_OS::setenv (ACE_TEXT_ALWAYS_CHAR("TZ"), ACE_TEXT_ALWAYS_CHAR(""), 1);
+#endif
+  if (result)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to setenv (\"TZ\"): \"%m\", aborting\n")));
@@ -319,10 +349,10 @@ Splot_HighScore::load (const std::string& filename_in)
   ACE_OS::tzset ();
 
   // discard the comment line
-  if (::fscanf (file, ACE_TEXT_ALWAYS_CHAR ("%*[^\n]")) == EOF)
+  if (::fscanf (file, ACE_TEXT_ALWAYS_CHAR ("%*[^\n]\n")) == EOF)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT("invalid score file format (\"%s\"), aborting\n"),
+                ACE_TEXT ("invalid score file format (\"%s\"), aborting\n"),
                 ACE_TEXT (filename_in.c_str ())));
 
     // clean up
@@ -332,7 +362,14 @@ Splot_HighScore::load (const std::string& filename_in)
                   ACE_TEXT (filename_in.c_str ())));
     if (tz)
     {
-      if (ACE_OS::setenv (ACE_TEXT_ALWAYS_CHAR ("TZ"), tz, 1))
+#if defined _MSC_VER
+      tz_environment = ACE_TEXT_ALWAYS_CHAR ("TZ=");
+      tz_environment += tz;
+      result = ACE_OS::putenv (tz_environment.c_str ());
+#else
+      result = ACE_OS::setenv (ACE_TEXT_ALWAYS_CHAR ("TZ"), tz, 1);
+#endif
+      if (result)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to setenv (\"TZ\", \"%s\"): \"%m\", continuing\n"),
                     tz));
@@ -345,17 +382,67 @@ Splot_HighScore::load (const std::string& filename_in)
     return false;
   } // end IF
 
+  std::ostringstream converter;
+  converter << MAX_PLAYER_NAME_LENGTH;
+  std::string format_string = ACE_TEXT_ALWAYS_CHAR ("%d %d %f %d-%d-%d %d:%d:%d %");
+  format_string += converter.str ();
+  format_string += ACE_TEXT_ALWAYS_CHAR ("s%*s");
   char name[MAX_PLAYER_NAME_LENGTH + 1];
   struct tm time;
-  int i, j;
-  double score;
+  int i, j, line = 1;
+  float score;
   int fields;
+  char buffer[BUFSIZ];
   do
   {
-    i = j = -1;
     ACE_OS::memset (&time, 0, sizeof (time));
-    fields = ::fscanf (file,
-                       ACE_TEXT_ALWAYS_CHAR ("%d %d %lf %d-%d-%d %d:%d:%d %100s%*[^\n]"), // *TODO*
+    ACE_OS::memset (&name, 0, sizeof (name));
+    i = j = -1;
+    line++;
+    score = 0.0;
+    fields = -1;
+
+    ACE_OS::memset (&buffer, 0, sizeof (buffer));
+    if (ACE_OS::fgets (buffer, sizeof (buffer), file) == NULL)
+    {
+      if (!::feof (file))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid score file format (\"%s\", line: %d), aborting\n"),
+                    ACE_TEXT (filename_in.c_str ()), line));
+
+        // clean up
+        if (ACE_OS::fclose (file))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to fclose (\"%s\"): \"%m\", continuing\n"),
+                      ACE_TEXT (filename_in.c_str ())));
+        if (tz)
+        {
+  #if defined _MSC_VER
+          tz_environment = ACE_TEXT_ALWAYS_CHAR ("TZ=");
+          tz_environment += tz;
+          result = ACE_OS::putenv (tz_environment.c_str ());
+  #else
+          result = ACE_OS::setenv (ACE_TEXT_ALWAYS_CHAR ("TZ"), tz, 1);
+  #endif
+          if (result)
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to setenv (\"TZ\", \"%s\"): \"%m\", continuing\n"),
+                        tz));
+        } // end IF
+        else
+          if (ACE_OS::unsetenv (ACE_TEXT_ALWAYS_CHAR ("TZ")))
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to unsetenv (\"TZ\"): \"%m\", continuing\n")));
+
+        return false;
+      } // end IF
+
+      break; // done
+    } // end IF
+
+    fields = ::sscanf (buffer,
+                       format_string.c_str (),
                        &i, &j,
                        &score,
                        &time.tm_year,
@@ -365,13 +452,13 @@ Splot_HighScore::load (const std::string& filename_in)
                        &time.tm_min,
                        &time.tm_sec,
                        name);
-    if (((fields != 10) && (fields != EOF)) ||
-        (i < 0 || i > MAX_LEVEL)            ||
+    if ((fields < 10)                ||
+        (i < 0 || i > MAX_LEVEL)     ||
         (j < 0 || j > HI_SCORE_HIST))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid score file format (\"%s\"), aborting\n"),
-                  ACE_TEXT (filename_in.c_str ())));
+                  ACE_TEXT ("invalid score file format (\"%s\", line: %d), aborting\n"),
+                  ACE_TEXT (filename_in.c_str ()), line));
 
       // clean up
       if (ACE_OS::fclose (file))
@@ -380,7 +467,14 @@ Splot_HighScore::load (const std::string& filename_in)
                     ACE_TEXT(filename_in.c_str ())));
       if (tz)
       {
-        if (ACE_OS::setenv (ACE_TEXT_ALWAYS_CHAR ("TZ"), tz, 1))
+#if defined _MSC_VER
+        tz_environment = ACE_TEXT_ALWAYS_CHAR ("TZ=");
+        tz_environment += tz;
+        result = ACE_OS::putenv (tz_environment.c_str ());
+#else
+        result = ACE_OS::setenv (ACE_TEXT_ALWAYS_CHAR ("TZ"), tz, 1);
+#endif
+        if (result)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to setenv (\"TZ\", \"%s\"): \"%m\", continuing\n"),
                       tz));
@@ -397,9 +491,9 @@ Splot_HighScore::load (const std::string& filename_in)
     time.tm_year -= 1900;
     time.tm_mon--;
     highScoreDate_[i][j] = ACE_OS::mktime (&time);
-    ACE_OS::strncpy(highScoreName_[i][j], name, MAX_PLAYER_NAME_LENGTH);
+    ACE_OS::strncpy (highScoreName_[i][j], name, MAX_PLAYER_NAME_LENGTH);
     highScoreName_[i][j][ACE_OS::strlen (name)] = '\0';
-  } while (fields != EOF);
+  } while (true);
 
   if (ACE_OS::fclose (file))
   {
@@ -408,7 +502,14 @@ Splot_HighScore::load (const std::string& filename_in)
                 ACE_TEXT(filename_in.c_str ())));
     if (tz)
     {
-      if (ACE_OS::setenv (ACE_TEXT_ALWAYS_CHAR ("TZ"), tz, 1))
+#if defined _MSC_VER
+      tz_environment = ACE_TEXT_ALWAYS_CHAR ("TZ=");
+      tz_environment += tz;
+      result = ACE_OS::putenv (tz_environment.c_str ());
+#else
+      result = ACE_OS::setenv (ACE_TEXT_ALWAYS_CHAR ("TZ"), tz, 1);
+#endif
+      if (result)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to setenv (\"TZ\", \"%s\"): \"%m\", continuing\n"),
                     tz));
@@ -427,7 +528,14 @@ Splot_HighScore::load (const std::string& filename_in)
 #endif
   if (tz)
   {
-    if (ACE_OS::setenv (ACE_TEXT_ALWAYS_CHAR ("TZ"), tz, 1))
+#if defined _MSC_VER
+    tz_environment = ACE_TEXT_ALWAYS_CHAR ("TZ=");
+    tz_environment += tz;
+    result = ACE_OS::putenv (tz_environment.c_str ());
+#else
+    result = ACE_OS::setenv (ACE_TEXT_ALWAYS_CHAR ("TZ"), tz, 1);
+#endif
+    if (result)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to setenv (\"TZ\", \"%s\"): \"%m\", aborting\n"),
@@ -437,14 +545,29 @@ Splot_HighScore::load (const std::string& filename_in)
     } // end IF
   } // end IF
   else
-    if (ACE_OS::unsetenv (ACE_TEXT_ALWAYS_CHAR ("TZ")))
+  {
+#if defined _MSC_VER
+    tz_environment = ACE_TEXT_ALWAYS_CHAR ("TZ=");
+    result = ACE_OS::putenv (tz_environment.c_str ());
+#else
+    result = ACE_OS::unsetenv (ACE_TEXT_ALWAYS_CHAR ("TZ"));
+#endif
+    if (result)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to unsetenv (\"TZ\"): \"%m\", aborting\n")));
 
       return false;
     } // end IF
+  } // end ELSE
   ACE_OS::tzset ();
+
+  const Configuration_t& configuration =
+    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
+  if (configuration.debug)
+    ACE_DEBUG ((LM_INFO,
+                ACE_TEXT ("loaded highscore file: \"%s\"\n"),
+                ACE_TEXT (filename_in.c_str ())));
 
   return true;
 }

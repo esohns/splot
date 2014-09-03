@@ -69,12 +69,23 @@ Splot_MainSDL::Splot_MainSDL (int argc_in, char** argv_in)
 
   if (SDL_Init (SDL_init_options) < 0)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to SDL_Init (%u): \"%s\", continuing\n"),
+                ACE_TEXT ("failed to SDL_Init(%u): \"%s\", continuing\n"),
                 SDL_init_options,
                 ACE_TEXT (SDL_GetError ())));
   else if (configuration.debug)
     ACE_DEBUG ((LM_INFO,
                 ACE_TEXT ("initialized SDL\n")));
+
+  // input repeat/delay
+  int repeat_delay, repeat_interval;
+  //SDL_GetKeyRepeat (&repeat_delay, &repeat_interval);
+  repeat_delay = SDL_DEFAULT_REPEAT_INTERVAL;
+  repeat_interval = SDL_DEFAULT_REPEAT_INTERVAL;
+  if (SDL_EnableKeyRepeat (repeat_delay, repeat_interval))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to SDL_EnableKeyRepeat(%d, %d): \"%s\", continuing\n"),
+                repeat_delay, repeat_interval,
+                ACE_TEXT (SDL_GetError ())));
 
 #ifdef WITH_SDL_JOYSTICK
   int nj = SDL_NumJoysticks ();
@@ -120,7 +131,7 @@ Splot_MainSDL::Splot_MainSDL (int argc_in, char** argv_in)
                 ACE_TEXT ("Renderer   : %s\n")
                 ACE_TEXT ("Version    : %s\n"),
                 glGetString (GL_VENDOR), glGetString (GL_RENDERER), glGetString (GL_VERSION)));
-    printExtensions (stderr,  (const char*)glGetString (GL_EXTENSIONS));
+    //printExtensions (stderr,  (const char*)glGetString (GL_EXTENSIONS));
     ACE_DEBUG ((LM_INFO,
                 ACE_TEXT ("------------------------------------------------------------\n")));
   } // end IF
@@ -153,9 +164,6 @@ Splot_MainSDL::Splot_MainSDL (int argc_in, char** argv_in)
   SDL_WM_SetCaption (ACE_TEXT_ALWAYS_CHAR (SPLOT_WINDOW_TITLE),
                      ACE_TEXT_ALWAYS_CHAR (SPLOT_ICON_CAPTION));
 #endif // !(SDL_VERSION_ATLEAST (2,0,0))
-
-  //-- Create game
-  SPLOT_STATE_SINGLETON::instance ()->createGame ();
 }
 
 Splot_MainSDL::~Splot_MainSDL ()
@@ -166,6 +174,9 @@ Splot_MainSDL::~Splot_MainSDL ()
 bool
 Splot_MainSDL::run ()
 {
+  //-- Create game
+  SPLOT_STATE_SINGLETON::instance ()->initGame ();
+
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
@@ -214,7 +225,7 @@ Splot_MainSDL::run ()
       done = this->process (&event);
       if (!done) break;
     } // end WHILE
-    this->joystickMove ();
+    //this->joystickMove ();
     this->keyMove ();
     //++frames;
 
@@ -279,7 +290,7 @@ Splot_MainSDL::run ()
   } // end WHILE
 
   //-- Delete game objects
-  SPLOT_STATE_SINGLETON::instance ()->deleteGame ();
+  SPLOT_STATE_SINGLETON::instance ()->finiGame ();
 
   if (adjCount_ > 20)
     ACE_DEBUG ((LM_DEBUG,

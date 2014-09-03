@@ -2,37 +2,14 @@
 
 #include "enemy_aircraft.h"
 
-//#ifdef HAVE_CONFIG_H
-//#include <chromium-bsu-config.h>
-//#endif
-
 #include "ace/OS.h"
 #include "ace/Log_Msg.h"
 
 //#include "gettext.h"
-//
-//#include "Splot_EnemyAircraft.h"
-//
-//#include <cstdio>
-//#include <cstdlib>
-//#include <cmath>
-//
+
 #include "configuration.h"
-//
-//#include "define.h"
-//#include "Ammo.h"
 #include "state.h"
-//#include "EnemyAmmo.h"
 #include "player_aircraft.h"
-//#include "ScreenItemAdd.h"
-//
-//#include "Splot_EnemyAircraft_Straight.h"
-//#include "Splot_EnemyAircraft_Omni.h"
-//#include "Splot_EnemyAircraft_RayGun.h"
-//#include "Splot_EnemyAircraft_Tank.h"
-//#include "Splot_EnemyAircraft_Gnat.h"
-//#include "Splot_EnemyAircraft_Boss00.h"
-//#include "Splot_EnemyAircraft_Boss01.h"
 
 unsigned int Splot_EnemyAircraft::count = 0;
 

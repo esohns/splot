@@ -43,8 +43,8 @@ class Splot_MainSDL
   void joystickButtonDown (SDL_Event*);
   void joystickButtonUp (SDL_Event*);
 
-  void saveEvent (SDL_Event*);
-  SDL_Event* getEvent (FILE*);
+  //void saveEvent (SDL_Event*);
+  //SDL_Event* getEvent (FILE*);
 
  private:
 #if SDL_VERSION_ATLEAST (2,0,0)

@@ -227,9 +227,9 @@ Splot_State::newGame ()
     state_.background_game = state_.background_menu;
   } // end IF
   state_.background = state_.background_game;
-  state_.background->setVariation (state_.game_level - 1);
+  state_.background->setVariation (state_.game_level-1);
 
-  state_.audio->setMusicIndex (state_.game_level - 1);
+  state_.audio->setMusicIndex (state_.game_level-1);
 
   if (state_.event_file)
     if (fclose (state_.event_file))
@@ -305,7 +305,7 @@ Splot_State::gotoNextLevel ()
 }
 
 void
-Splot_State::createGame ()
+Splot_State::initGame ()
 {
   const Configuration_t& configuration =
    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
@@ -357,7 +357,7 @@ Splot_State::createGame ()
 
   state_.background_game = state_.background_menu = state_.background;
 
-  newGame ();
+  //newGame ();
 
   state_.audio->setMusicMode (SOUND_MUSIC_MENU);
 
@@ -367,7 +367,7 @@ Splot_State::createGame ()
 }
 
 void
-Splot_State::deleteGame ()
+Splot_State::finiGame ()
 {
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();

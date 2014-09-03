@@ -89,29 +89,62 @@ Splot_StatusDisplay::loadTextures ()
 
   std::string path_base = ACE_TEXT_ALWAYS_CHAR (SPLOT_IMAGE_DATA_DIR);
   path_base += ACE_DIRECTORY_SEPARATOR_STR;
-  std::string filename = path_base + ACE_TEXT_ALWAYS_CHAR ("statBar.png");
-  texStat_         = Splot_Image::load (dataLoc (filename), IMG_NOMIPMAPS, IMG_BLEND1, GL_REPEAT, GL_NEAREST, GL_NEAREST);
-  filename = path_base + ACE_TEXT_ALWAYS_CHAR ("shields.png");
-  texShld_         = Splot_Image::load (dataLoc (filename), IMG_SIMPLEMIPMAPS, IMG_BLEND1, clamp, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-  filename = path_base + ACE_TEXT_ALWAYS_CHAR ("stat-top.png");
-  texTop_          = Splot_Image::load (dataLoc (filename), IMG_NOMIPMAPS, IMG_BLEND1, clamp, GL_LINEAR, GL_NEAREST);
-  filename = path_base + ACE_TEXT_ALWAYS_CHAR ("heroSuper.png");
-  texPlayerSuper_  = Splot_Image::load (dataLoc (filename), IMG_NOMIPMAPS, IMG_ALPHA, clamp, GL_LINEAR, GL_LINEAR);
-  filename = path_base + ACE_TEXT_ALWAYS_CHAR ("heroShields.png");
-  texPlayerShield_ = Splot_Image::load (dataLoc (filename), IMG_NOMIPMAPS, IMG_BLEND2, clamp, GL_LINEAR, GL_LINEAR);
+  std::string filename = dataLoc (path_base + ACE_TEXT_ALWAYS_CHAR ("statBar.png"));
+  texStat_         = Splot_Image::load (filename, IMG_NOMIPMAPS, IMG_BLEND1, GL_REPEAT, GL_NEAREST, GL_NEAREST);
+  if (!texStat_)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Splot_Image::load(\"%s\"), continuing\n"),
+                ACE_TEXT (filename.c_str ())));
+  filename = dataLoc (path_base + ACE_TEXT_ALWAYS_CHAR ("shields.png"));
+  texShld_         = Splot_Image::load (filename, IMG_SIMPLEMIPMAPS, IMG_BLEND1, clamp, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+  if (!texShld_)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Splot_Image::load(\"%s\"), continuing\n"),
+                ACE_TEXT (filename.c_str ())));
+  filename = dataLoc (path_base + ACE_TEXT_ALWAYS_CHAR ("stat-top.png"));
+  texTop_          = Splot_Image::load (filename, IMG_NOMIPMAPS, IMG_BLEND1, clamp, GL_LINEAR, GL_NEAREST);
+  if (!texTop_)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Splot_Image::load(\"%s\"), continuing\n"),
+                ACE_TEXT (filename.c_str ())));
+  filename = dataLoc (path_base + ACE_TEXT_ALWAYS_CHAR ("heroSuper.png"));
+  texPlayerSuper_  = Splot_Image::load (filename, IMG_NOMIPMAPS, IMG_ALPHA, clamp, GL_LINEAR, GL_LINEAR);
+  if (!texPlayerSuper_)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Splot_Image::load(\"%s\"), continuing\n"),
+                ACE_TEXT (filename.c_str ())));
+  filename = dataLoc (path_base + ACE_TEXT_ALWAYS_CHAR ("heroShields.png"));
+  texPlayerShield_ = Splot_Image::load (filename, IMG_NOMIPMAPS, IMG_BLEND2, clamp, GL_LINEAR, GL_LINEAR);
+  if (!texPlayerShield_)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Splot_Image::load(\"%s\"), continuing\n"),
+                ACE_TEXT (filename.c_str ())));
   char buffer[PATH_MAX];
   for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
   {
     ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("heroAmmoFlash%02d.png"), i);
-    filename = path_base + buffer;
-    texPlayerAmmoFlash_[i] = Splot_Image::load (dataLoc (filename), IMG_NOMIPMAPS, IMG_ALPHA, clamp, GL_LINEAR, GL_LINEAR);
+    filename = dataLoc (path_base + buffer);
+    texPlayerAmmoFlash_[i] = Splot_Image::load (filename, IMG_NOMIPMAPS, IMG_ALPHA, clamp, GL_LINEAR, GL_LINEAR);
+    if (!texPlayerAmmoFlash_[i])
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Splot_Image::load(\"%s\"), continuing\n"),
+                  ACE_TEXT (filename.c_str ())));
   } // end FOR
-  filename = path_base + ACE_TEXT_ALWAYS_CHAR ("useFocus.png");
-  texUseFocus_ = Splot_Image::load (dataLoc (filename), IMG_NOMIPMAPS, IMG_ALPHA, clamp, GL_LINEAR, GL_LINEAR);
+  filename = dataLoc (path_base + ACE_TEXT_ALWAYS_CHAR ("useFocus.png"));
+  texUseFocus_ = Splot_Image::load (filename, IMG_NOMIPMAPS, IMG_ALPHA, clamp, GL_LINEAR, GL_LINEAR);
+  if (!texUseFocus_)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Splot_Image::load(\"%s\"), continuing\n"),
+                ACE_TEXT (filename.c_str ())));
   for (int i = 0; i < MAX_PLAYER_ITEMS; i++)
   {
     ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("useItem%02d.png"), i);
-    texUseItem_[i] = Splot_Image::load (dataLoc (filename), IMG_NOMIPMAPS, IMG_ALPHA, clamp, GL_LINEAR, GL_LINEAR);
+    filename = dataLoc (path_base + buffer);
+    texUseItem_[i] = Splot_Image::load (filename, IMG_NOMIPMAPS, IMG_ALPHA, clamp, GL_LINEAR, GL_LINEAR);
+    if (!texUseItem_[i])
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Splot_Image::load(\"%s\"), continuing\n"),
+                  ACE_TEXT (filename.c_str ())));
   } // end FOR
 }
 

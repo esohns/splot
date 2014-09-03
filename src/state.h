@@ -25,8 +25,8 @@ class Splot_State
   State_t& get () { return state_; };
   GameState_t& gameState () { return game_state_; };
 
-  void createGame ();
-  void deleteGame ();
+  void initGame ();
+  void finiGame ();
   void newGame ();
   void gotoNextLevel ();
 

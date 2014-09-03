@@ -10,6 +10,79 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\audio.cpp" />
+    <ClCompile Include="..\..\src\audio_SDLmixer.cpp" />
+    <ClCompile Include="..\..\src\background.cpp" />
+    <ClCompile Include="..\..\src\background_metal.cpp" />
+    <ClCompile Include="..\..\src\background_metal_segment.cpp" />
+    <ClCompile Include="..\..\src\background_segment.cpp" />
+    <ClCompile Include="..\..\src\common.cpp" />
+    <ClCompile Include="..\..\src\configuration.cpp" />
+    <ClCompile Include="..\..\src\enemies.cpp" />
+    <ClCompile Include="..\..\src\enemy_aircraft.cpp" />
+    <ClCompile Include="..\..\src\enemy_bullets.cpp" />
+    <ClCompile Include="..\..\src\enemy_fleet.cpp" />
+    <ClCompile Include="..\..\src\explosion.cpp" />
+    <ClCompile Include="..\..\src\game_element.cpp" />
+    <ClCompile Include="..\..\src\highscore.cpp" />
+    <ClCompile Include="..\..\src\image.cpp" />
+    <ClCompile Include="..\..\src\main.cpp" />
+    <ClCompile Include="..\..\src\main_SDL.cpp" />
+    <ClCompile Include="..\..\src\main_SDL_event.cpp" />
+    <ClCompile Include="..\..\src\menu.cpp" />
+    <ClCompile Include="..\..\src\OpenGL_common.cpp" />
+    <ClCompile Include="..\..\src\player_aircraft.cpp" />
+    <ClCompile Include="..\..\src\player_bullets.cpp" />
+    <ClCompile Include="..\..\src\powerup.cpp" />
+    <ClCompile Include="..\..\src\screen.cpp" />
+    <ClCompile Include="..\..\src\splot.cpp" />
+    <ClCompile Include="..\..\src\state.cpp" />
+    <ClCompile Include="..\..\src\status_display.cpp" />
+    <ClCompile Include="..\..\src\stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\src\text.cpp" />
+    <ClCompile Include="..\..\src\textGeometryBSU.cpp" />
+    <ClCompile Include="..\..\src\textGeometryChromium.cpp" />
+    <ClCompile Include="..\..\src\text_FTGL.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\audio.h" />
+    <ClInclude Include="..\..\src\audio_SDLmixer.h" />
+    <ClInclude Include="..\..\src\background.h" />
+    <ClInclude Include="..\..\src\background_metal.h" />
+    <ClInclude Include="..\..\src\background_metal_segment.h" />
+    <ClInclude Include="..\..\src\background_segment.h" />
+    <ClInclude Include="..\..\src\common.h" />
+    <ClInclude Include="..\..\src\configuration.h" />
+    <ClInclude Include="..\..\src\defines.h" />
+    <ClInclude Include="..\..\src\enemies.h" />
+    <ClInclude Include="..\..\src\enemy_aircraft.h" />
+    <ClInclude Include="..\..\src\enemy_bullets.h" />
+    <ClInclude Include="..\..\src\enemy_fleet.h" />
+    <ClInclude Include="..\..\src\explosion.h" />
+    <ClInclude Include="..\..\src\game_element.h" />
+    <ClInclude Include="..\..\src\gettext.h" />
+    <ClInclude Include="..\..\src\highscore.h" />
+    <ClInclude Include="..\..\src\image.h" />
+    <ClInclude Include="..\..\src\main.h" />
+    <ClInclude Include="..\..\src\main_SDL.h" />
+    <ClInclude Include="..\..\src\menu.h" />
+    <ClInclude Include="..\..\src\OpenGL_common.h" />
+    <ClInclude Include="..\..\src\player_aircraft.h" />
+    <ClInclude Include="..\..\src\player_bullets.h" />
+    <ClInclude Include="..\..\src\powerup.h" />
+    <ClInclude Include="..\..\src\screen.h" />
+    <ClInclude Include="..\..\src\state.h" />
+    <ClInclude Include="..\..\src\status_display.h" />
+    <ClInclude Include="..\..\src\stdafx.h" />
+    <ClInclude Include="..\..\src\targetver.h" />
+    <ClInclude Include="..\..\src\text.h" />
+    <ClInclude Include="..\..\src\textGeometry.h" />
+    <ClInclude Include="..\..\src\text_FTGL.h" />
+    <ClInclude Include="..\..\src\types.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D98EB260-BDA7-40EA-983F-CF8CF67E7A41}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -83,81 +156,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="..\src\audio.h" />
-    <ClInclude Include="..\src\audio_SDLmixer.h" />
-    <ClInclude Include="..\src\background.h" />
-    <ClInclude Include="..\src\background_metal.h" />
-    <ClInclude Include="..\src\background_metal_segment.h" />
-    <ClInclude Include="..\src\background_segment.h" />
-    <ClInclude Include="..\src\common.h" />
-    <ClInclude Include="..\src\configuration.h" />
-    <ClInclude Include="..\src\defines.h" />
-    <ClInclude Include="..\src\enemies.h" />
-    <ClInclude Include="..\src\enemy_aircraft.h" />
-    <ClInclude Include="..\src\enemy_bullets.h" />
-    <ClInclude Include="..\src\enemy_fleet.h" />
-    <ClInclude Include="..\src\explosion.h" />
-    <ClInclude Include="..\src\game_element.h" />
-    <ClInclude Include="..\src\highscore.h" />
-    <ClInclude Include="..\src\image.h" />
-    <ClInclude Include="..\src\main.h" />
-    <ClInclude Include="..\src\main_SDL.h" />
-    <ClInclude Include="..\src\menu.h" />
-    <ClInclude Include="..\src\OpenGL_common.h" />
-    <ClInclude Include="..\src\player_aircraft.h" />
-    <ClInclude Include="..\src\player_bullets.h" />
-    <ClInclude Include="..\src\powerup.h" />
-    <ClInclude Include="..\src\screen.h" />
-    <ClInclude Include="..\src\state.h" />
-    <ClInclude Include="..\src\status_display.h" />
-    <ClInclude Include="..\src\stdafx.h" />
-    <ClInclude Include="..\src\targetver.h" />
-    <ClInclude Include="..\src\text.h" />
-    <ClInclude Include="..\src\textGeometry.h" />
-    <ClInclude Include="..\src\text_FTGL.h" />
-    <ClInclude Include="..\src\types.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\src\audio.cpp" />
-    <ClCompile Include="..\src\audio_SDLmixer.cpp" />
-    <ClCompile Include="..\src\background.cpp" />
-    <ClCompile Include="..\src\background_metal.cpp" />
-    <ClCompile Include="..\src\background_metal_segment.cpp" />
-    <ClCompile Include="..\src\background_segment.cpp" />
-    <ClCompile Include="..\src\common.cpp" />
-    <ClCompile Include="..\src\configuration.cpp" />
-    <ClCompile Include="..\src\enemies.cpp" />
-    <ClCompile Include="..\src\enemy_aircraft.cpp" />
-    <ClCompile Include="..\src\enemy_bullets.cpp" />
-    <ClCompile Include="..\src\enemy_fleet.cpp" />
-    <ClCompile Include="..\src\explosion.cpp" />
-    <ClCompile Include="..\src\game_element.cpp" />
-    <ClCompile Include="..\src\highscore.cpp" />
-    <ClCompile Include="..\src\image.cpp" />
-    <ClCompile Include="..\src\main.cpp" />
-    <ClCompile Include="..\src\main_SDL.cpp" />
-    <ClCompile Include="..\src\main_SDL_event.cpp" />
-    <ClCompile Include="..\src\menu.cpp" />
-    <ClCompile Include="..\src\OpenGL_common.cpp" />
-    <ClCompile Include="..\src\player_aircraft.cpp" />
-    <ClCompile Include="..\src\player_bullets.cpp" />
-    <ClCompile Include="..\src\powerup.cpp" />
-    <ClCompile Include="..\src\screen.cpp" />
-    <ClCompile Include="..\src\splot.cpp" />
-    <ClCompile Include="..\src\state.cpp" />
-    <ClCompile Include="..\src\status_display.cpp" />
-    <ClCompile Include="..\src\stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\src\text.cpp" />
-    <ClCompile Include="..\src\textGeometryBSU.cpp" />
-    <ClCompile Include="..\src\textGeometryChromium.cpp" />
-    <ClCompile Include="..\src\text_FTGL.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\README.md" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

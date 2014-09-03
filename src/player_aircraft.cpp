@@ -121,6 +121,9 @@ Splot_PlayerAircraft::reset ()
   secondaryMove_[0] = secondaryMove_[1] = 0.0;
 
   GameState_t& game_state = SPLOT_STATE_SINGLETON::instance ()->gameState ();
+  game_state.damage = PLAYER_DEFAULT_DAMAGE;
+  game_state.shields = PLAYER_DEFAULT_SHIELDS;
+  game_state.current_item_index = 0;
   for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
   {
     game_state.gun_pause[i] = -1;
@@ -130,6 +133,8 @@ Splot_PlayerAircraft::reset ()
     gunFlash0_[i] = 0.0;
     gunFlash1_[i] = 0.0;
   } // end FOR
+  game_state.gun_trigger = false;
+  game_state.gun_swap = false;
 }
 
 void
@@ -264,46 +269,47 @@ Splot_PlayerAircraft::useItem ()
     return;
 
   if (!game_state.use_item_armed)
-    game_state.use_item_armed = 1.0F;
-  else
   {
-    game_state.use_item_armed = 0.0F;
+    game_state.use_item_armed = 1.0F;
+    return;
+  } // end IF
 
-    float v[3] = { 0.0F, 0.7F, 0.0F };
-    Splot_PowerUp* pwrUp = NULL;
-    switch (game_state.current_item_index)
-    {
-      case 0: // self destruct
-        for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
+  game_state.use_item_armed = 0.0F;
+
+  float direction[3] = {0.0F, 0.0F, 0.0F};
+  Splot_PowerUp* power_up = NULL;
+  switch (game_state.current_item_index)
+  {
+    case 0: // self destruct
+      for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
+      {
+        //eject all ammo - return remaining ammo to game->powerUps
+        if (game_state.ammo_stock[i] > 1.0)
         {
-          //eject all ammo - return remaining ammo to game->powerUps
-          if (game_state.ammo_stock[i] > 1.0)
-          {
-            v[0] = SRAND*0.15F;
-            v[1] = 0.1F+(FRAND*0.1F);
-            ACE_NEW (pwrUp,
-                     Splot_PowerUp ((PowerUpType_t)(i+(int)POWERUP_AMMO_0),
-                                    inherited::position_,
-                                    v,
-                                    (game_state.ammo_stock[i]/AMMO_REFILL)));
-            state.power_ups->add (pwrUp);
-          } // end IF
-        } // end FOR
-        game_state.damage = 0.0;
-        game_state.shields = 0.0;
-        game_state.ships--;
-        startDeath ();
-        break;
-      case 1: // double fire
-        break;
-      default:
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid item index (was: %d), returning\n"),
-                    game_state.current_item_index));
+          direction[0] = SRAND*0.15F;
+          direction[1] = 0.1F+(FRAND*0.1F);
+          ACE_NEW (power_up,
+                   Splot_PowerUp ((PowerUpType_t)(i+(int)POWERUP_AMMO_0),
+                                  inherited::position_,
+                                  direction,
+                                  (game_state.ammo_stock[i]/AMMO_REFILL)));
+          state.power_ups->add (power_up);
+        } // end IF
+      } // end FOR
+      game_state.damage = 0.0;
+      game_state.shields = 0.0;
+      game_state.ships--;
+      startDeath ();
+      break;
+    case 1: // double fire
+      break;
+    default:
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid item index (was: %d), returning\n"),
+                  game_state.current_item_index));
 
-        return;
-    } // end SWITCH
-  } // end ELSE
+      return;
+  } // end SWITCH
 }
 
 void
@@ -609,15 +615,18 @@ Splot_PlayerAircraft::checkForCollisions (Splot_EnemyFleet* fleet_in)
       diffX = -enemy->position_[0];
       diffY = -15.0F-enemy->position_[1];
       dist = sqrt (diffX*diffX + diffY*diffY);
-      if ((dist < game_state.super_bomb_exploding*0.1F &&
+      if ((dist < (game_state.super_bomb_exploding*0.1F) &&
            enemy->type () < ENEMYAIRCRAFT_BOSS_0) ||
           (enemy->position_[1] < -11.0F))
         enemy->damage_ += SUPER_BOMB_DAMAGE;
 
-      if (game_state.super_bomb_exploding > 300)
-        game_state.super_bomb_exploding = 0;
+      //if (game_state.super_bomb_exploding > 300)
+      //  game_state.super_bomb_exploding = 0;
     } // end IF
   } // end WHILE
+
+  if (game_state.super_bomb_exploding > 300)
+    game_state.super_bomb_exploding = 0;
 
   if (game_state.super_bomb_exploding)
     game_state.super_bomb_exploding += 2;

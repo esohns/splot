@@ -31,6 +31,17 @@ Splot_AudioSDLMixer::~Splot_AudioSDLMixer ()
 void
 Splot_AudioSDLMixer::init ()
 {
+  Uint32 SDL_init_flags = SDL_WasInit (0);
+  if (!(SDL_init_flags & SDL_INIT_AUDIO))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("SDL audio not initialized, returning\n")));
+
+    SPLOT_CONFIGURATION_SINGLETON::instance()->setAudio(false);
+
+    return;
+  } // end IF
+
   if (Mix_OpenAudio (AUDIO_FREQUENCY,
                      AUDIO_SDL_FORMAT,
                      AUDIO_CHANNELS,
