@@ -2,6 +2,7 @@
 
 #include "highscore.h"
 
+#include <iostream>
 #include <sstream>
 
 #include "ace/OS.h"
@@ -659,22 +660,44 @@ Splot_HighScore::check (int skill_in, float score_in)
 void
 Splot_HighScore::print (int skill_in)
 {
-  struct tm* tm_p = NULL;
-  fprintf (stderr, ACE_TEXT_ALWAYS_CHAR ("%s"),
-           ACE_TEXT ("high scores:\n"));
+  std::cout << ACE_TEXT ("high scores:\n");
+  struct tm time_struct;
+  char buffer[BUFSIZ];
+  int width, max_width = 0;
   for (int i = 0; i < HI_SCORE_HIST; i++)
   {
-    tm_p = ACE_OS::localtime (&highScoreDate_[skill_in][i]);
-    if (!tm_p)
+    width = ACE_OS::strlen (highScoreName_[skill_in][i]);
+    if (width > max_width)
+      max_width = width;
+  } // end FOR
+  std::string format_string;
+  std::ostringstream converter;
+  format_string = ACE_TEXT_ALWAYS_CHAR ("%02d/%02d/%04d %");
+  converter << max_width;
+  format_string += converter.str ();
+  format_string += ACE_TEXT_ALWAYS_CHAR ("s %d\n");
+  for (int i = 0; i < HI_SCORE_HIST; i++)
+  {
+    if (ACE_OS::localtime_r (&highScoreDate_[skill_in][i], &time_struct) != &time_struct)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to localtime (%d), continuing\n"),
+                  ACE_TEXT ("failed to localtime_r (%d): \"%m\", continuing\n"),
                   highScoreDate_[skill_in][i]));
 
       continue;
     } // end IF
-    fprintf (stderr, ACE_TEXT_ALWAYS_CHAR ("%02d/%02d/%04d %16s %d\n"),
-             1 + tm_p->tm_mon, tm_p->tm_mday, 1900 + tm_p->tm_year,
-             highScoreName_[skill_in][i], (int)(highScore_[skill_in][i]));
+
+    ACE_OS::memset (&buffer, 0, sizeof (buffer));
+    if (ACE_OS::sprintf (buffer, format_string.c_str (),
+                         time_struct.tm_mday, 1+time_struct.tm_mon, 1900+time_struct.tm_year,
+                         highScoreName_[skill_in][i], (int)(highScore_[skill_in][i])) < 0)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to sprintf (): \"%m\", continuing\n")));
+
+      continue;
+    } // end IF
+
+    std::cout << buffer;
   } // end FOR
 }

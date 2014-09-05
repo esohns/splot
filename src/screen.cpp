@@ -2,20 +2,12 @@
 
 #include "screen.h"
 
-//#ifdef HAVE_CONFIG_H
-//#include "splot-config.h"
-//#endif
-
-//#include "gettext.h"
-
-//#include <cstdio>
-//#include <cstdlib>
-
 #include "ace/Assert.h"
 #include "ace/OS_Memory.h"
+#include "ace/Numeric_Limits.h"
 
-//#include "define.h"
 #include "state.h"
+#include "configuration.h"
 #include "game_element.h"
 #include "enemy_aircraft.h"
 #include "enemies.h"
@@ -81,7 +73,7 @@ Splot_Screen::put ()
        iterator != state.screen_elements.end ();
        iterator++)
   {
-    switch ((*iterator).game_element->type ())
+    switch ((*iterator).game_element->type_)
     {
       case GAMEELEMENT_BULLET:
       case GAMEELEMENT_BONUS:
@@ -105,12 +97,20 @@ Splot_Screen::put ()
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown element type (was: %d), continuing\n"),
-                    (*iterator).game_element->type ()));
+                    (*iterator).game_element->type_));
 
         continue;
       }
     } // end SWITCH
   } // end FOR
+  state.screen_elements.clear ();
+
+  //const Configuration_t& configuration =
+  //  SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
+  //if (configuration.debug)
+  //{
+  //  state.power_ups->dump ();
+  //} // end IF
 }
 
 void
@@ -357,10 +357,8 @@ Splot_Screen::loadLevel ()
 #endif
 
   //-- Ammunition and PowerUps
-#ifndef DEBUG_NO_POWERUPS
-  Splot_Screen::addAmmunition (0, num_iterations + 9000);
-  Splot_Screen::addPowerUps (0, num_iterations + 9000);
-#endif
+  Splot_Screen::addPowerUps (POWERUPCATEGORY_AMMUNITION,    0, num_iterations+9000);
+  Splot_Screen::addPowerUps (POWERUPCATEGORY_REPAIR_SHIELD, 0, num_iterations+9000);
 }
 
 void
@@ -475,8 +473,8 @@ Splot_Screen::loadLevel2 ()
   Splot_Screen::add (boss_wave);
 
   //-- Ammunition and PowerUps
-  Splot_Screen::addAmmunition (0, num_iterations + 9000);
-  Splot_Screen::addPowerUps (0, num_iterations + 9000);
+  Splot_Screen::addPowerUps (POWERUPCATEGORY_AMMUNITION,    0, num_iterations+9000);
+  Splot_Screen::addPowerUps (POWERUPCATEGORY_REPAIR_SHIELD, 0, num_iterations+9000);
 }
 
 void
@@ -548,11 +546,11 @@ Splot_Screen::loadLevel3 ()
   Splot_Screen::add (gnat_wave);
 
   //-- give some extra power ups...
-  Splot_Screen::addAmmunition (0, 2000, 500, 700, 0);
-  Splot_Screen::addAmmunition (10000, 2000, 500, 700, 0);
-  Splot_Screen::addPowerUps (3000, 2000, 2500, 2500, 0);
-  Splot_Screen::addPowerUps (9500, 2000, 2500, 2500, 0);
-  Splot_Screen::addPowerUps (num_iterations, 2000, 2500, 2500, 1);
+  Splot_Screen::addPowerUps (POWERUPCATEGORY_AMMUNITION, 0, 2000, 500, 700, 0);
+  Splot_Screen::addPowerUps (POWERUPCATEGORY_AMMUNITION, 10000, 2000, 500, 700, 0);
+  Splot_Screen::addPowerUps (POWERUPCATEGORY_REPAIR_SHIELD, 3000, 2000, 2500, 2500, 0);
+  Splot_Screen::addPowerUps (POWERUPCATEGORY_REPAIR_SHIELD, 9500, 2000, 2500, 2500, 0);
+  Splot_Screen::addPowerUps (POWERUPCATEGORY_REPAIR_SHIELD, num_iterations, 2000, 2500, 2500, 1);
 
   //-- Boss
   EnemyWave_t boss_wave;
@@ -572,8 +570,8 @@ Splot_Screen::loadLevel3 ()
   Splot_Screen::add (tank_wave);
 
   //-- Ammunition and PowerUps
-  Splot_Screen::addAmmunition (0, num_iterations + 9000);
-  Splot_Screen::addPowerUps (0, num_iterations + 9000);
+  Splot_Screen::addPowerUps (POWERUPCATEGORY_AMMUNITION,    0, num_iterations+9000);
+  Splot_Screen::addPowerUps (POWERUPCATEGORY_REPAIR_SHIELD, 0, num_iterations+9000);
 }
 
 void
@@ -643,8 +641,8 @@ Splot_Screen::loadLevel4 ()
   Splot_Screen::add (boss_wave);
 
   //-- Ammunition and PowerUps
-  Splot_Screen::addAmmunition (0, num_iterations + 9000);
-  Splot_Screen::addPowerUps (0, num_iterations + 9000);
+  Splot_Screen::addPowerUps (POWERUPCATEGORY_AMMUNITION,    0, num_iterations+9000);
+  Splot_Screen::addPowerUps (POWERUPCATEGORY_REPAIR_SHIELD, 0, num_iterations+9000);
 }
 
 void
@@ -799,102 +797,214 @@ Splot_Screen::addGnatWave (int o, int duration, float density, bool mixed)
 }
 
 void
-Splot_Screen::addAmmunition (int o, int duration, int a, int b, int c)
+Splot_Screen::addPowerUps (PowerUpCategory_t category_in,
+                           int o_in,
+                           int duration_in,
+                           int delay_a_in,
+                           int delay_b_in,
+                           int delay_c_in)
 {
+  int pause[3];
+  if ((((category_in == POWERUPCATEGORY_REPAIR_SHIELD) ||
+        (category_in == POWERUPCATEGORY_SPECIAL)) && DEBUG_NO_POWERUPS) ||
+      ((category_in == POWERUPCATEGORY_SPECIAL) && DEBUG_NO_AMMUNITION))
+  {
+    pause[0] = ACE_Numeric_Limits<int>::max ();
+    pause[1] = ACE_Numeric_Limits<int>::max ();
+    pause[2] = ACE_Numeric_Limits<int>::max ();
+  } // end IF
+  else
+    ACE_OS::memset (&pause, 0, sizeof (pause));
+  int delay_a = delay_a_in;
+  int delay_b = delay_b_in;
+  int delay_c = delay_c_in;
+  float position[3] = {0.0, 0.0, 0.0};
+  float translation_vector[3] = {0.0, 0.0, 0.0};
+  switch (category_in)
+  {
+    case POWERUPCATEGORY_AMMUNITION:
+    {
+      if (delay_b == 0)
+        delay_b = 100;
+      if (delay_c == 0)
+        delay_c = 1000;
+      pause[0] = delay_a+(int)(FRAND*200);
+      pause[1] = delay_b+(int)(FRAND*200);
+      pause[2] = delay_c+(int)(FRAND*500);
+
+      position[1] = 9.0;
+      position[2] = 25.0;
+      break;
+    }
+    case POWERUPCATEGORY_REPAIR_SHIELD:
+    {
+      if (delay_a == 0)
+        delay_a = 300;
+      if (delay_b == 0)
+        delay_b = 1200;
+      if (delay_c == 0)
+        delay_c = 1000;
+      pause[0] = delay_a+(int)(FRAND*500);
+      pause[1] = delay_b+(int)(FRAND*500);
+      pause[2] = delay_c+(int)(FRAND*1500);
+
+      position[1] = 9.0;
+      position[2] = 25.0;
+      break;
+    }
+    case POWERUPCATEGORY_SPECIAL:
+    {
+      // *TODO*
+      pause[0] = ACE_Numeric_Limits<int>::max ();
+      pause[1] = ACE_Numeric_Limits<int>::max ();
+      pause[2] = ACE_Numeric_Limits<int>::max ();
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown category (was: %d), returning\n"),
+                  category_in));
+      return;
+    }
+  } // end SWITCH
+
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-
-  //-- Ammunition
-//#if 0
-//  int ammoPause00 = 1;
-//  int ammoPause01 = 1;
-//  int ammoPause02 = 1;
-//#else
-  int ammoPause00 = a+(int)(FRAND*200);
-  int ammoPause01 = b+(int)(FRAND*200);
-  int ammoPause02 = c+(int)(FRAND*500);
-//#endif
-  float skill = 2.0F-state.game_skill;
-  float position[3] = {0.0, 9.0, 25.0};
-  float velocity[3] = {0.0, 0.0, 0.0};
   Splot_PowerUp* power_up = NULL;
-
-  for (int i = o; i < o+duration; i++)
+  int count = 0;
+  for (int i = o_in; i < o_in+duration_in; i++)
   {
-    ammoPause00--;
-    ammoPause01--;
-    ammoPause02--;
-    position[0] = 8.0F*SRAND;
+    for (int j = 0; j < 3; j++)
+      pause[j]--;
+
     power_up = NULL;
-    if (ammoPause00 < 1)
+    switch (category_in)
     {
-      ammoPause00 = (int)(skill*2000+(int)(SRAND*500));
-      ACE_NEW_NORETURN (power_up,
-                        Splot_PowerUp (POWERUP_AMMO_0, position, velocity));
-      Splot_Screen::add (i, power_up);
-    } // end IF
-    else if (ammoPause01 < 1)
-    {
-      ammoPause01 = (int)(skill*2500+(int)(SRAND*1000));
-      ACE_NEW_NORETURN (power_up,
-                        Splot_PowerUp (POWERUP_AMMO_1, position, velocity));
-      Splot_Screen::add (i, power_up);
-    } // end ELSE
-    else if (ammoPause02 < 1)
-    {
-      ammoPause02 = (int)(skill*skill*4000+(int)(SRAND*1000));
-      ACE_NEW_NORETURN (power_up,
-                        Splot_PowerUp (POWERUP_AMMO_2, position, velocity));
-      Splot_Screen::add (i, power_up);
-    } // end ELSE
-  } // end FOR
-}
+      case POWERUPCATEGORY_AMMUNITION:
+      {
+        position[0] = 8.0F*SRAND;
+        if (pause[0] < 1)
+        {
+          pause[0] = (int)((2.0F-state.game_skill)*2000+(int)(SRAND*500));
+          ACE_NEW_NORETURN (power_up,
+                            Splot_PowerUp (POWERUP_AMMUNITION_0, position, translation_vector));
+          if (!power_up)
+          {
+            ACE_DEBUG ((LM_CRITICAL,
+                        ACE_TEXT ("failed to allocate memory, continuing\n")));
 
-void
-Splot_Screen::addPowerUps (int o, int duration, int a, int b, int c)
-{
-  //-- PowerUps
-//#if 0
-//  int		pwrPause00 = 1;
-//  int		pwrPause01 = 1;
-//  int		pwrPause02 = 1;
-//#else
-  int pwrPause00 = a+(int)(FRAND*500);
-  int pwrPause01 = b+(int)(FRAND*500);
-  int pwrPause02 = c+(int)(FRAND*1500);
-//#endif
-  float position[3] = {0.0, 9.0, 25.0};
-  float velocity[3] = {0.0, 0.0, 0.0};
-  Splot_PowerUp* power_up = NULL;
-  for (int i = o; i < o+duration; i++)
-  {
-    pwrPause00--;
-    pwrPause01--;
-    pwrPause02--;
-    position[0] = 8.0F*SRAND;
-    if (pwrPause00 < 1)
-    {
-      pwrPause00 = 2500+(int)(SRAND*700);
-      power_up = NULL;
-      ACE_NEW (power_up,
-               Splot_PowerUp (POWERUP_SHIELD, position, velocity));
-      Splot_Screen::add (i, power_up);
-    } // end IF
-    else if (pwrPause01 < 1)
-    {
-      pwrPause01 = 4000+(int)(SRAND*900);
-      power_up = NULL;
-      ACE_NEW (power_up,
-               Splot_PowerUp (POWERUP_REPAIR, position, velocity));
-      Splot_Screen::add (i, power_up);
-    } // end ELSE
-    else if (pwrPause02 < 1)
-    {
-      pwrPause02 = 5000+(int)(SRAND*3000);
-      //			pwrPause02 = 500;
-      power_up = NULL;
-      ACE_NEW (power_up,
-               Splot_PowerUp (POWERUP_SHIELD_SUPER, position, velocity));
-      Splot_Screen::add (i, power_up);
-    } // end ELSE
+            break;
+          } // end IF
+          Splot_Screen::add (i, power_up);
+          position[0] = 8.0F*SRAND;
+          count++;
+        } // end IF
+        if (pause[1] < 1)
+        {
+          pause[1] = (int)((2.0F-state.game_skill)*2500+(int)(SRAND*1000));
+          ACE_NEW_NORETURN (power_up,
+                            Splot_PowerUp (POWERUP_AMMUNITION_1, position, translation_vector));
+          if (!power_up)
+          {
+            ACE_DEBUG ((LM_CRITICAL,
+                        ACE_TEXT ("failed to allocate memory, continuing\n")));
+
+            break;
+          } // end IF
+          Splot_Screen::add (i, power_up);
+          position[0] = 8.0F*SRAND;
+          count++;
+        } // end IF
+        if (pause[2] < 1)
+        {
+          pause[2] = (int)((2.0F-state.game_skill)*4000+(int)(SRAND*1000));
+          ACE_NEW_NORETURN (power_up,
+                            Splot_PowerUp (POWERUP_AMMUNITION_2, position, translation_vector));
+          if (!power_up)
+          {
+            ACE_DEBUG ((LM_CRITICAL,
+                        ACE_TEXT ("failed to allocate memory, continuing\n")));
+
+            break;
+          } // end IF
+          Splot_Screen::add (i, power_up);
+          count++;
+        } // end IF
+        break;
+      }
+      case POWERUPCATEGORY_REPAIR_SHIELD:
+      {
+        position[0] = 8.0F*SRAND;
+        if (pause[0] < 1)
+        {
+          pause[0] = 2500+(int)(SRAND*700);
+          ACE_NEW_NORETURN (power_up,
+                            Splot_PowerUp (POWERUP_SHIELD, position, translation_vector));
+          if (!power_up)
+          {
+            ACE_DEBUG ((LM_CRITICAL,
+                        ACE_TEXT ("failed to allocate memory, continuing\n")));
+
+            break;
+          } // end IF
+          Splot_Screen::add (i, power_up);
+          position[0] = 8.0F*SRAND;
+          count++;
+        } // end IF
+        if (pause[1] < 1)
+        {
+          pause[1] = 4000+(int)(SRAND*900);
+          ACE_NEW_NORETURN (power_up,
+                            Splot_PowerUp (POWERUP_REPAIR, position, translation_vector));
+          if (!power_up)
+          {
+            ACE_DEBUG ((LM_CRITICAL,
+                        ACE_TEXT ("failed to allocate memory, continuing\n")));
+
+            break;
+          } // end IF
+          Splot_Screen::add (i, power_up);
+          position[0] = 8.0F*SRAND;
+          count++;
+        } // end IF
+        if (pause[2] < 1)
+        {
+          pause[2] = 5000+(int)(SRAND*3000);
+          ACE_NEW_NORETURN (power_up,
+                            Splot_PowerUp (POWERUP_SHIELD_SUPER, position, translation_vector));
+          if (!power_up)
+          {
+            ACE_DEBUG ((LM_CRITICAL,
+                        ACE_TEXT ("failed to allocate memory, continuing\n")));
+
+            break;
+          } // end IF
+          Splot_Screen::add (i, power_up);
+          count++;
+        } // end IF
+        break;
+      }
+      case POWERUPCATEGORY_SPECIAL:
+      {
+        // *TODO*
+        //count++;
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown category (was: %d), returning\n"),
+                    category_in));
+        return;
+      }
+    } // end SWITCH
   } // end FOR
+
+  const Configuration_t& configuration =
+    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
+  if (configuration.debug)
+    ACE_DEBUG ((LM_INFO,
+                ACE_TEXT ("added %d power-up(s) (category: %d)\n"),
+                count,
+                category_in));
 }

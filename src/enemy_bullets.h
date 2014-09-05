@@ -26,9 +26,9 @@ class Splot_EnemyBullets
 
   static void initialize ();
 
-  void add (int,         // type
-            float p[3],  // position
-            float v[3]); // velocity
+  void add (int,                 // type
+            const float (&)[3],  // position
+            const float (&)[3]); // translation vector
   void update ();
 
   void checkForHits (Splot_PlayerAircraft*);

@@ -229,9 +229,9 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 
-  const State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-  if (configuration.debug)
-    state.highscore->print (SPLOT_CONFIGURATION_SINGLETON::instance ()->intSkill ());
+  //const State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
+  //if (configuration.debug)
+  //  state.highscore->print (SPLOT_CONFIGURATION_SINGLETON::instance ()->intSkill ());
 
   // step4: run game
   SPLOT_STATE_SINGLETON::instance ()->run ();

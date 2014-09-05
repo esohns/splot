@@ -633,14 +633,14 @@ Splot_EnemyAircraft::move ()
   {
     case ENEMYAIRCRAFT_STRAIGHT:
       inherited::position_[1] +=
-        (state.speed_adj*(inherited::velocity_[1]*state.game_skill));
+        (state.speed_adj*(inherited::translationVector_[1]*state.game_skill));
       break;
     case ENEMYAIRCRAFT_OMNI:
       lastMove_[0] = (0.9F*lastMove_[0])+(0.1F*(0.01F*diff[0]));
       inherited::position_[0] +=
         (state.speed_adj*(randomMoveX_*lastMove_[0]));
       inherited::position_[1] +=
-        (state.speed_adj*(inherited::velocity_[1]*state.game_skill));
+        (state.speed_adj*(inherited::translationVector_[1]*state.game_skill));
       break;
     case ENEMYAIRCRAFT_RAYGUN:
       if ((tmpd = fabs (diff[0])) < 3.0)
@@ -652,19 +652,19 @@ Splot_EnemyAircraft::move ()
       inherited::position_[0] +=
         state.speed_adj*(randomMoveX_*lastMove_[0]*(state.game_skill+0.1F)+tmps);
       inherited::position_[1] +=
-        state.speed_adj*(lastMove_[1]+inherited::velocity_[1]*(state.game_skill+0.1F));
+        state.speed_adj*(lastMove_[1]+inherited::translationVector_[1]*(state.game_skill+0.1F));
       break;
     case ENEMYAIRCRAFT_TANK:
       if (fabs (diff[0]) > 8.0)
         v1 = 0.04F;
       else
         v1 = 0.04F*(fabs (diff[0])/8.0F); 
-      inherited::velocity_[1] = (0.99F*inherited::velocity_[1]+0.01F*v1);
+      inherited::translationVector_[1] = (0.99F*inherited::translationVector_[1]+0.01F*v1);
 
       if (inherited::position_[1] < -3.0)
-        inherited::velocity_[1] = -0.1F;
+        inherited::translationVector_[1] = -0.1F;
       else if (inherited::position_[1] < 0.0)
-        inherited::velocity_[1] *= 0.99F;
+        inherited::translationVector_[1] *= 0.99F;
 
       if (inherited::position_[0] < 0.0)
         inherited::position_[0] =
@@ -678,7 +678,7 @@ Splot_EnemyAircraft::move ()
           inherited::position_[1] += state.speed_adj*0.05F;
           break;
         default:
-          inherited::position_[1] -= state.speed_adj*inherited::velocity_[1];
+          inherited::position_[1] -= state.speed_adj*inherited::translationVector_[1];
           break;
       } // end SWITCH
       break;
@@ -723,10 +723,10 @@ Splot_EnemyAircraft::move ()
 
       tmp = randX*0.2F;
       if ((inherited::age_/8)%2)
-        v0 = (inherited::velocity_[0]*(0.85F-tmp))+((0.2F+tmp)*(randX-0.2F)*x);
+        v0 = (inherited::translationVector_[0]*(0.85F-tmp))+((0.2F+tmp)*(randX-0.2F)*x);
       else
-        v0 = inherited::velocity_[0];
-      v1 = (inherited::velocity_[1]*(0.85F-tmp))+((0.2F+tmp)*(randX-0.2F)*y);
+        v0 = inherited::translationVector_[0];
+      v1 = (inherited::translationVector_[1]*(0.85F-tmp))+((0.2F+tmp)*(randX-0.2F)*y);
 
       if (inherited::age_ < 50)
       {
@@ -735,17 +735,17 @@ Splot_EnemyAircraft::move ()
           amt = (inherited::age_-20)/30.0F;
         else
           amt = 0.0;
-        inherited::velocity_[0] = (1.0F-amt)*inherited::velocity_[0]+(amt*v0);
-        inherited::velocity_[1] = (1.0F-amt)*inherited::velocity_[1]+(amt*v1);
+        inherited::translationVector_[0] = (1.0F-amt)*inherited::translationVector_[0]+(amt*v0);
+        inherited::translationVector_[1] = (1.0F-amt)*inherited::translationVector_[1]+(amt*v1);
       } // end IF
       else
       {
-        inherited::velocity_[0] = v0;
-        inherited::velocity_[1] = v1;
+        inherited::translationVector_[0] = v0;
+        inherited::translationVector_[1] = v1;
       } // end ELSE
 
-      inherited::position_[0] += state.speed_adj*inherited::velocity_[0];
-      inherited::position_[1] += state.speed_adj*inherited::velocity_[1];
+      inherited::position_[0] += state.speed_adj*inherited::translationVector_[0];
+      inherited::position_[1] += state.speed_adj*inherited::translationVector_[1];
 
       if (inherited::position_[1] < -10.0)
         inherited::position_[1] = -10.0;
@@ -758,7 +758,7 @@ Splot_EnemyAircraft::move ()
       lastMove_[0] = (0.98F*lastMove_[0])+(0.0005F*state.game_skill*diff[0]);
       lastMove_[1] = (0.90F*lastMove_[1])+(0.001F *state.game_skill*diff[1]);
       inherited::position_[0] += state.speed_adj*lastMove_[0];
-      inherited::position_[1] += state.speed_adj*(lastMove_[1] + inherited::velocity_[1]);
+      inherited::position_[1] += state.speed_adj*(lastMove_[1]+inherited::translationVector_[1]);
       break;
     case ENEMYAIRCRAFT_BOSS_1:
       if (((inherited::age_+25)/512)%2)
@@ -781,7 +781,7 @@ Splot_EnemyAircraft::move ()
       } // end ELSE
       inherited::position_[0] += state.speed_adj*lastMove_[0];
       inherited::position_[1] +=
-        state.speed_adj*(lastMove_[1]+inherited::velocity_[1]);
+        state.speed_adj*(lastMove_[1]+inherited::translationVector_[1]);
       break;
     default:
       ACE_DEBUG ((LM_ERROR,

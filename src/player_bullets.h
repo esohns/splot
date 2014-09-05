@@ -26,8 +26,8 @@ class Splot_PlayerBullets
 
   static void initialize ();
 
-  void add (int,         // type
-            float p[3]); // position
+  void add (int,                 // type
+            const float (&)[3]); // position
   //void killBullet (const bullet_t&);
   void checkForHits (Splot_EnemyFleet*);
 

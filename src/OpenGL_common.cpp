@@ -79,6 +79,9 @@ Splot_OpenGLCommon::init ()
 
   Splot_OpenGLCommon::loadTextures ();
 
+  Splot_PlayerBullets::initialize ();
+  Splot_EnemyBullets::initialize ();
+
   return true;
 }
 

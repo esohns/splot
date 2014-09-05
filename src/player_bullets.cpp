@@ -132,15 +132,15 @@ Splot_PlayerBullets::clear ()
 
 void
 Splot_PlayerBullets::add (int type_in,
-                          float position_in[3])
+                          const float (&position_in)[3])
 {
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-  float v[3] = {0.0, 0.0, 0.0};
+  float translation_vector[3] = {0.0, 0.0, 0.0};
   switch (type_in)
   {
-    case 0: v[1] = 0.5F*state.speed_adj; break;
-    case 1: v[1] = 0.2F*state.speed_adj; break;
-    case 2: v[1] = 0.3F*state.speed_adj; break;
+    case 0: translation_vector[1] = 0.5F*state.speed_adj; break;
+    case 1: translation_vector[1] = 0.2F*state.speed_adj; break;
+    case 2: translation_vector[1] = 0.3F*state.speed_adj; break;
     default:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unkown bullet type (was: %d), returning\n"),
@@ -161,8 +161,8 @@ Splot_PlayerBullets::add (int type_in,
   //bullet.position = position_in;
   ACE_OS::memcpy (&(bullet.position), &position_in, sizeof (position_in));
   //bullet.translation_step = v;
-  ACE_OS::memcpy (&(bullet.translation_step), &v, sizeof (v));
-  bullets_[type_in].push_back(bullet);
+  ACE_OS::memcpy (&(bullet.translation_vector), &translation_vector, sizeof (translation_vector));
+  bullets_[type_in].push_back (bullet);
   Bullet_t::count++;
 }
 
@@ -179,7 +179,7 @@ Splot_PlayerBullets::print (int type_in)
                 ACE_TEXT ("#%d\t(type/position/step): %d / [%f,%f,%f] / [%f,%f,%f]\n"),
                 i + 1, type_in,
                 (*iterator).position[0], (*iterator).position[1], (*iterator).position[2],
-                (*iterator).translation_step[0], (*iterator).translation_step[1], (*iterator).translation_step[2]));
+                (*iterator).translation_vector[0], (*iterator).translation_vector[1], (*iterator).translation_vector[2]));
 }
 
 void
@@ -201,9 +201,9 @@ Splot_PlayerBullets::update ()
       else
       {
         Bullet_t& current = *iterator;
-        current.position[0] += current.translation_step[0];
-        current.position[1] += current.translation_step[1];
-        current.position[2] += current.translation_step[2];
+        current.position[0] += current.translation_vector[0];
+        current.position[1] += current.translation_vector[1];
+        current.position[2] += current.translation_vector[2];
       } // end ELSE
     } // end FOR
 

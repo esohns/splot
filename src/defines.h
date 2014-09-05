@@ -121,7 +121,7 @@
 #define IRAND (Splot_State::randomI[(++Splot_State::random_index)%256])
 #endif
 
-#define AMMO_REFILL                          150
+#define AMMUNITION_REFILL                    150
 #define HERO_Z                               25.0F
 
 #define MIN_SCREEN_SIZE                      0 // 320x200
@@ -171,6 +171,7 @@
 #define NUM_EXPLO                            2
 #define NUM_EXPLO_POP                        6
 #define MAX_MUSIC                            32
+#define MAX_MIXING_CHANNELS                  16
 
 #define AUDIO_FREQUENCY                      22050
 #define AUDIO_SDL_FORMAT                     AUDIO_S16
@@ -180,6 +181,10 @@
 #define NUM_HELP_MESSAGE_LINES               7
 
 #define DEBUG_NO_ENEMIES                     1
-#define DEBUG_NO_POWERUPS                    1
+#define DEBUG_NO_AMMUNITION                  0
+#define DEBUG_NO_POWERUPS                    0
+
+#define WOBBLE_0                             45
+#define WOBBLE_1                             75
 
 #endif // DEFINES_H

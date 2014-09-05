@@ -136,24 +136,24 @@ Splot_EnemyBullets::clear ()
 
 void
 Splot_EnemyBullets::add (int type_in,
-                         float position_in[3],
-                         float velocity_in[3])
+                         const float (&position_in)[3],
+                         const float (&translationStep_in)[3])
 {
   if (type_in < 0 ||
       type_in >= NUM_ENEMY_AMMO_TYPES)
     return;
 
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-  float v[3] = {velocity_in[0]*state.speed_adj,
-                velocity_in[1]*state.speed_adj,
-                velocity_in[2]*state.speed_adj};
+  float translation_vector[3] = {translationStep_in[0]*state.speed_adj,
+                                 translationStep_in[1]*state.speed_adj,
+                                 translationStep_in[2]*state.speed_adj};
 
   Bullet_t new_bullet;
   new_bullet.damage = Splot_EnemyBullets::bullet_damage[type_in];
   //new_bullet.position = position_in;
   ACE_OS::memcpy (&new_bullet.position, &position_in, sizeof (position_in));
   //new_bullet.translation_step = v;
-  ACE_OS::memcpy (&new_bullet.translation_step, &v, sizeof (v));
+  ACE_OS::memcpy (&new_bullet.translation_vector, &translation_vector, sizeof (translation_vector));
   bullets_[type_in].push_back (new_bullet);
 
   Bullet_t::count++;
@@ -178,9 +178,9 @@ Splot_EnemyBullets::update ()
       else
       {
         Bullet_t& current = *iterator;
-        current.position[0] += current.translation_step[0];
-        current.position[1] += current.translation_step[1];
-        current.position[2] += current.translation_step[2];
+        current.position[0] += current.translation_vector[0];
+        current.position[1] += current.translation_vector[1];
+        current.position[2] += current.translation_vector[2];
       } // end ELSE
     } // end FOR
 
@@ -220,17 +220,17 @@ Splot_EnemyBullets::checkForHits (Splot_PlayerAircraft* aircraft_in)
 
       //do damage
       //				hero->doDamage(ammoDamage[i]);
-      aircraft_in->ammoDamage ((*iterator).damage, (*iterator).translation_step);
+      aircraft_in->ammoDamage ((*iterator).damage, (*iterator).translation_vector);
       //add explosion
       explosion =
-        state.explosions->add ((ExplosionType_t)(EXPLOSION_ENEMY_AMMUNITION_0 + i), (*iterator).position);
+        state.explosions->add ((ExplosionType_t)(EXPLOSION_ENEMY_AMMUNITION_0+i), (*iterator).position);
       if (!explosion)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Splot_Explosions::add(%d), continuing\n"),
                     EXPLOSION_ENEMY_AMMUNITION_0 + i));
       if (i > 1)	// add second explosion for the bug guns...
         explosion =
-          state.explosions->add ((ExplosionType_t)(EXPLOSION_ENEMY_AMMUNITION_0 + i), (*iterator).position, -5);
+          state.explosions->add ((ExplosionType_t)(EXPLOSION_ENEMY_AMMUNITION_0+i), (*iterator).position, -5);
       else
         if (explosion)
           explosion->velocity[1] = -0.1F;

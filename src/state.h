@@ -19,7 +19,7 @@ class Splot_State
 
   bool initialize (GameToolkitType_t, // toolkit
                    int,               // argc
-                   char**);           // argv
+                   ACE_TCHAR**);      // argv
   void run ();
 
   State_t& get () { return state_; };
@@ -28,6 +28,7 @@ class Splot_State
   void initGame ();
   void finiGame ();
   void newGame ();
+  void resetGame (bool = false); // player only ?
   void gotoNextLevel ();
 
   static int   randomI[256];

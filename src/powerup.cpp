@@ -3,6 +3,7 @@
 #include "powerup.h"
 
 #include <cmath>
+#include <iostream>
 
 #include <string>
 
@@ -42,20 +43,20 @@ Splot_PowerUps::Splot_PowerUps ()
     tex_[i] = 0;
   } // end FOR
 
-  pwrUpColor_[POWERUP_AMMO_0][0] = 1.0F;
-  pwrUpColor_[POWERUP_AMMO_0][1] = 0.8F;
-  pwrUpColor_[POWERUP_AMMO_0][2] = 0.5F;
-  pwrUpColor_[POWERUP_AMMO_0][3] = 0.8F;
+  pwrUpColor_[POWERUP_AMMUNITION_0][0] = 1.0F;
+  pwrUpColor_[POWERUP_AMMUNITION_0][1] = 0.8F;
+  pwrUpColor_[POWERUP_AMMUNITION_0][2] = 0.5F;
+  pwrUpColor_[POWERUP_AMMUNITION_0][3] = 0.8F;
 
-  pwrUpColor_[POWERUP_AMMO_1][0] = 0.0F;
-  pwrUpColor_[POWERUP_AMMO_1][1] = 1.0F;
-  pwrUpColor_[POWERUP_AMMO_1][2] = 0.5F;
-  pwrUpColor_[POWERUP_AMMO_1][3] = 0.8F;
+  pwrUpColor_[POWERUP_AMMUNITION_1][0] = 0.0F;
+  pwrUpColor_[POWERUP_AMMUNITION_1][1] = 1.0F;
+  pwrUpColor_[POWERUP_AMMUNITION_1][2] = 0.5F;
+  pwrUpColor_[POWERUP_AMMUNITION_1][3] = 0.8F;
 
-  pwrUpColor_[POWERUP_AMMO_2][0] = 0.4F;
-  pwrUpColor_[POWERUP_AMMO_2][1] = 0.2F;
-  pwrUpColor_[POWERUP_AMMO_2][2] = 1.0F;
-  pwrUpColor_[POWERUP_AMMO_2][3] = 1.0F;
+  pwrUpColor_[POWERUP_AMMUNITION_2][0] = 0.4F;
+  pwrUpColor_[POWERUP_AMMUNITION_2][1] = 0.2F;
+  pwrUpColor_[POWERUP_AMMUNITION_2][2] = 1.0F;
+  pwrUpColor_[POWERUP_AMMUNITION_2][3] = 1.0F;
 
   pwrUpColor_[POWERUP_REPAIR][0] = 1.0F;
   pwrUpColor_[POWERUP_REPAIR][1] = 0.1F;
@@ -108,13 +109,13 @@ Splot_PowerUps::loadTextures ()
                 ACE_TEXT ("failed to Splot_Image::load (\"%s\"), continuing\n"),
                 ACE_TEXT (filename.c_str ())));
   filename = path_base + ACE_TEXT_ALWAYS_CHAR ("powerUpAmmo.png");
-  tex_[POWERUP_AMMO_0] = Splot_Image::load (dataLoc (filename.c_str ()));
-  if (!tex_[POWERUP_AMMO_0])
+  tex_[POWERUP_AMMUNITION_0] = Splot_Image::load (dataLoc (filename.c_str ()));
+  if (!tex_[POWERUP_AMMUNITION_0])
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Splot_Image::load (\"%s\"), continuing\n"),
                 ACE_TEXT (filename.c_str ())));
-  tex_[POWERUP_AMMO_1] = tex_[POWERUP_AMMO_0];
-  tex_[POWERUP_AMMO_2] = tex_[POWERUP_AMMO_0];
+  tex_[POWERUP_AMMUNITION_1] = tex_[POWERUP_AMMUNITION_0];
+  tex_[POWERUP_AMMUNITION_2] = tex_[POWERUP_AMMUNITION_0];
   filename = path_base + ACE_TEXT_ALWAYS_CHAR ("powerUpShield.png");
   tex_[POWERUP_SHIELD] = Splot_Image::load (dataLoc (filename.c_str ()));
   if (!tex_[POWERUP_SHIELD])
@@ -136,18 +137,13 @@ Splot_PowerUps::deleteTextures ()
 void
 Splot_PowerUps::clear ()
 {
-  Splot_PowerUp* current;
-  do
+  Splot_PowerUp* current = inherited::remove ();
+  while (current)
   {
-    current = NULL;
-    if (inherited::size_ > 1)
-      current = inherited::remove ();
-    else
-      break;
-
-    ACE_ASSERT (current);
     Splot_Screen::remove (current);
-  } while (true);
+    inherited::size_--;
+    current = inherited::remove ();
+  } // end WHILE
 
   currentPwrUp_ = NULL;
 }
@@ -166,7 +162,7 @@ Splot_PowerUps::remove (Splot_PowerUp* powerUp_in)
 {
   ACE_ASSERT (powerUp_in);
 
-  Splot_PowerUp* prev = inherited::free_list_;
+  Splot_PowerUp* prev = NULL;
   Splot_PowerUp* current = inherited::free_list_;
   while (current)
   {
@@ -176,10 +172,9 @@ Splot_PowerUps::remove (Splot_PowerUp* powerUp_in)
     prev = current;
     current = current->get_next ();
   } // end WHILE
-  if (current == powerUp_in)
+  if (current)
     currentPwrUp_ = prev;
-
-  if (!current)
+  else
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("element not found (was: %@), returning\n"),
@@ -187,10 +182,12 @@ Splot_PowerUps::remove (Splot_PowerUp* powerUp_in)
 
     return;
   } // end IF
-  prev->set_next (current->get_next ());
-  inherited::size_--;
+
+  if (prev)
+    prev->set_next (current->get_next ());
 
   Splot_Screen::remove (powerUp_in);
+  inherited::size_--;
 
 //  const Configuration_t& configuration =
 //   SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
@@ -209,22 +206,24 @@ Splot_PowerUps::update ()
    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
 
   Splot_PowerUp* current = inherited::free_list_;
-  Splot_PowerUp* delUp = NULL;
+  Splot_PowerUp* expired = NULL;
   float s = 0.0, score = 0.0F;
   float b = configuration.screen_bound[0]-1.0F;
   while (current)
   {
     current->age_++;
     current->position_[1] += (speed_*state.speed_adj);
-    if (current->velocity_[0] || current->velocity_[1])
+    if (current->translationVector_[0] || current->translationVector_[1])
     {
       s = (1.0F-state.speed_adj)+(state.speed_adj*0.982F);
-      current->velocity_[0] *= s;
-      current->velocity_[1] *= s;
-      current->position_[0] += current->velocity_[0];
-      current->position_[1] += current->velocity_[1];
-      if (current->velocity_[0] < 0.01) current->velocity_[0] = 0.0;
-      if (current->velocity_[1] < 0.01) current->velocity_[1] = 0.0;
+      current->translationVector_[0] *= s;
+      current->translationVector_[1] *= s;
+      current->position_[0] += current->translationVector_[0];
+      current->position_[1] += current->translationVector_[1];
+      if (current->translationVector_[0] < 0.01)
+        current->translationVector_[0] = 0.0;
+      if (current->translationVector_[1] < 0.01)
+        current->translationVector_[1] = 0.0;
     } // end IF
     if (current->position_[0] < -b)
       current->position_[0] = -b;
@@ -250,9 +249,9 @@ Splot_PowerUps::update ()
             score += SCORE_POWERUP_AMMUNITION;
             break;
         } // end SWITCH
-      delUp = current;
+      expired = current;
       current = current->get_next ();
-      remove (delUp);
+      remove (expired);
     } // end IF
     else
       current = current->get_next ();
@@ -314,6 +313,34 @@ Splot_PowerUps::drawGL ()
   glBlendFunc (GL_SRC_ALPHA, GL_ONE);
 }
 
+void
+Splot_PowerUps::dump ()
+{
+  std::cerr << ACE_TEXT_ALWAYS_CHAR ("power-ups: ") << inherited::size_ << std::endl;
+  Splot_PowerUp* current = inherited::free_list_;
+  int i = 0;
+  while (current)
+  {
+    std::cerr << ACE_TEXT_ALWAYS_CHAR ("#")
+              << i
+              << ACE_TEXT_ALWAYS_CHAR (" @: ")
+              << current
+              << std::endl
+              << ACE_TEXT_ALWAYS_CHAR ("prev/next: ")
+              << current->prev_
+              << ACE_TEXT_ALWAYS_CHAR ("/")
+              << current->next_
+              << std::endl;
+    if (current->next_)
+      std::cerr << ACE_TEXT_ALWAYS_CHAR (" --> ") << std::endl;
+
+    i++;
+    current = current->get_next ();
+  } // end WHILE
+}
+
+/////////////////////////////////////////
+
 // init statics
 unsigned int Splot_PowerUp::count = 0;
 
@@ -330,7 +357,7 @@ Splot_PowerUp::Splot_PowerUp ()
 
 Splot_PowerUp::Splot_PowerUp (PowerUpType_t type_in,
                               const float (&position_in)[3],
-                              const float (&velocity_in)[3],
+                              const float (&translationVector_)[3],
                               float potency_in)
  : inherited ()
  , type_ (type_in)
@@ -340,7 +367,7 @@ Splot_PowerUp::Splot_PowerUp (PowerUpType_t type_in,
   //inherited::position_ = position_in;
   ACE_OS::memcpy (&(inherited::position_), &position_in, sizeof (position_in));
   //inherited::velocity_ = velocity_in;
-  ACE_OS::memcpy (&(inherited::velocity_), &velocity_in, sizeof (velocity_in));
+  ACE_OS::memcpy (&(inherited::translationVector_), &translationVector_, sizeof (translationVector_));
 
   potency_ = potency_in;
 

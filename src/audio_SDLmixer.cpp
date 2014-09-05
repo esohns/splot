@@ -98,13 +98,26 @@ Splot_AudioSDLMixer::init ()
 
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("*** audio capabilities (driver: \"%s\") ***\nfrequency:\t%d\nformat:\t%s\nchannels:\t%d\nCD:\t%s\n"),
-              ACE_TEXT (driver),
-              frequency,
-              ACE_TEXT (format_string.c_str ()),
-              channels,
-              (configuration.use_cdrom ? ACE_TEXT (SDL_CDName (configuration.cdrom_device)) : ACE_TEXT ("N/A"))));
+  if (configuration.debug)
+  {
+#if defined (_MSC_VER)
+    ACE_DEBUG ((LM_INFO,
+                ACE_TEXT ("*** audio capabilities (driver: \"%s\") ***\nfrequency:\t%d\nformat:\t\t%s\nchannels:\t%d\nCD:\t\t%s\n"),
+                ACE_TEXT (driver),
+                frequency,
+                ACE_TEXT (format_string.c_str ()),
+                ((channels == 2) ? ACE_TEXT ("stereo") : ACE_TEXT ("mono")),
+                (configuration.use_cdrom ? ACE_TEXT (SDL_CDName (configuration.cdrom_device)) : ACE_TEXT ("N/A"))));
+#else
+    ACE_DEBUG ((LM_INFO,
+                ACE_TEXT ("*** audio capabilities (driver: \"%s\") ***\nfrequency:\t%d\nformat:\t%s\nchannels:\t%d\nCD:\t%s\n"),
+                ACE_TEXT (driver),
+                frequency,
+                ACE_TEXT (format_string.c_str ()),
+                ((channels == 2) ? ACE_TEXT ("stereo") : ACE_TEXT ("mono")),
+                (configuration.use_cdrom ? ACE_TEXT (SDL_CDName (configuration.cdrom_device)) : ACE_TEXT ("N/A"))));
+#endif
+  } // end IF
 
 //  int total = Mix_GetNumChunkDecoders ();
 //  ACE_DEBUG ((LM_DEBUG,
@@ -147,6 +160,18 @@ Splot_AudioSDLMixer::init ()
     //SDL_FreeRW (rw_ops);
   } // end FOR
 
+  int def_num_channels = Mix_AllocateChannels (-1);
+  if (Mix_AllocateChannels (MAX_MIXING_CHANNELS) != MAX_MIXING_CHANNELS)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Mix_AllocateChannels(%d): \"%s\", continuing\n"),
+                MAX_MIXING_CHANNELS,
+                ACE_TEXT (Mix_GetError ())));
+  else
+    if (configuration.debug)
+      ACE_DEBUG ((LM_INFO,
+                  ACE_TEXT ("available mixing channels (default/current): %d/%d\n"),
+                  def_num_channels, MAX_MIXING_CHANNELS));
+
   if (Mix_ReserveChannels (1) != 1) // channel 0 is for music
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Mix_ReserveChannels(1): \"%s\", continuing\n"),
@@ -164,11 +189,20 @@ Splot_AudioSDLMixer::play (SoundType_t type_in,
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
   if (configuration.audio_enabled)
-    if (Mix_PlayChannel (-1, sounds_[type_in], 0) < 0)
+  {
+    int num_channel = Mix_PlayChannel (-1, sounds_[type_in], 0);
+    if (num_channel < 0)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Mix_PlayChannel(%d): \"%s\", continuing\n"),
                   type_in,
                   ACE_TEXT (Mix_GetError ())));
+    //else
+    //  if (configuration.debug)
+    //    ACE_DEBUG ((LM_INFO,
+    //                ACE_TEXT ("playing sound %d on channel %d...\n"),
+    //                type_in,
+    //                num_channel));
+  } // end IF
 }
 
 void

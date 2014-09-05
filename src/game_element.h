@@ -31,7 +31,6 @@ class Splot_GameElementBase
  protected:
   Splot_GameElementBase ();
 
- private:
   Splot_GameElement* prev_;
   Splot_GameElement* next_;
 };
@@ -45,21 +44,19 @@ class Splot_GameElement
   virtual void reset ()
   {
     ACE_OS::memset (&position_, 0, sizeof (position_));
-    ACE_OS::memset (&velocity_, 0, sizeof (velocity_));
+    ACE_OS::memset (&translationVector_, 0, sizeof (translationVector_));
     age_ = 0;
   }
-  GameElementType_t type () { return type_; }
 
-  float position_[3];
-  float velocity_[3];
-  int   age_;
+  GameElementType_t type_;
+  float             position_[3];
+  float             translationVector_[3];
+  int               age_;
 
   static unsigned int count;
 
  protected:
   Splot_GameElement ();
-
-  GameElementType_t type_;
 
  private:
   typedef Splot_GameElementBase inherited;

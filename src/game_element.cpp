@@ -37,12 +37,12 @@ unsigned int Splot_GameElement::count = 0;
 Splot_GameElement::Splot_GameElement ()
  : inherited ()
 // , position_ ()
-// , velocity_ ()
+// , translationVector_ ()
  , age_ (0)
  , type_ (GAMEELEMENT_INVALID)
 {
   ACE_OS::memset (&position_, 0, sizeof (position_));
-  ACE_OS::memset (&velocity_, 0, sizeof (velocity_));
+  ACE_OS::memset (&translationVector_, 0, sizeof (translationVector_));
 
   Splot_GameElement::count++;
 }

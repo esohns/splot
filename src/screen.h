@@ -5,6 +5,10 @@
 
 #include "enemy_aircraft.h"
 #include "enemies.h"
+#include "powerup.h"
+
+// forward declarations
+class Splot_GameElement;
 
 class Splot_Screen
 {
@@ -36,8 +40,12 @@ class Splot_Screen
   static void addOmniArrowWave (int o, int duration, float density = 1.0);
   static void addGnatWave (int o, int duration, float density = 1.0, bool mixed = true);
 
-  static void addAmmunition (int o, int duration, int a = 0, int b = 100, int c = 1000);
-  static void addPowerUps (int o, int duration, int a = 300, int b = 1200, int c = 1000);
+  static void addPowerUps (PowerUpCategory_t, // category
+                           int,               // origin (release time begin)
+                           int,               // duration (release time end)
+                           int = 0,           // initial delay (base) (type a)
+                           int = 0,           // initial delay (base) (type b)
+                           int = 0);          // initial delay (base) (type c)
 
   //static Splot_EnemyAircraft* deadPool[MAX_ENEMYAIRCRAFT_TYPES];
 

@@ -207,7 +207,7 @@ enum GameToolkitType_t
 struct Bullet_t
 {
   float position[3];
-  float translation_step[3];
+  float translation_vector[3];
   float damage;
 
   static unsigned int count;

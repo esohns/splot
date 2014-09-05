@@ -7,8 +7,7 @@
 #include "ace/OS.h"
 
 //#include "gettext.h"
-//
-//#include "extern.h"
+
 #include "highscore.h"
 #include "configuration.h"
 
@@ -134,7 +133,7 @@ Splot_State::initialize ()
 bool
 Splot_State::initialize (GameToolkitType_t toolkit_in,
                          int argc_in,
-                         char** argv_in)
+                         ACE_TCHAR** argv_in)
 {
   // step0: initialize randomness
   initializeRandomness ();
@@ -211,7 +210,7 @@ Splot_State::newGame ()
   state_.explosions->clear ();
   game_state_.score = 0;
   ACE_ASSERT (state_.player);
-  state_.player->newGame ();
+  state_.player->reset ();
   state_.player->setShips (STATE_DEFAULT_PLAYER_SHIPS);
 
   state_.game_pause = false;
@@ -243,26 +242,36 @@ Splot_State::newGame ()
   //	fprintf(stderr, "%f\n", Splot_State::scrollSpeed);
 
   ///////////////////////////////////////
-  game_state_.damage               = PLAYER_DEFAULT_DAMAGE;
-  game_state_.shields              = PLAYER_DEFAULT_SHIELDS;
+  resetGame ();
+}
 
-  game_state_.score                = 0;
-  game_state_.score_step           = SCORE_STEP;
-  game_state_.score_target         = SCORE_STEP;
+void
+Splot_State::resetGame (bool playerOnly_in)
+{
+  game_state_.damage = PLAYER_DEFAULT_DAMAGE;
+  game_state_.shields = PLAYER_DEFAULT_SHIELDS;
 
-  game_state_.death_stereo         = 0.0F;
+  game_state_.current_item_index = 0;
+  game_state_.use_item_armed = 0.0;
 
-  game_state_.ships                = STATE_DEFAULT_PLAYER_SHIPS;
+  ACE_OS::memset (game_state_.ammo_stock, 0, sizeof (game_state_.ammo_stock));
+  // ammoStock_[i] = AMMO_REFILL;
+
+  ACE_OS::memset (game_state_.gun_pause, 0, sizeof (game_state_.gun_pause));
+  game_state_.gun_swap = false;
+  game_state_.gun_trigger = false;
+
+  if (playerOnly_in)
+    return; // done
+
+  game_state_.score = 0;
+  game_state_.score_step = SCORE_STEP;
+  game_state_.score_target = SCORE_STEP;
+
+  game_state_.death_stereo = 0.0F;
+
+  game_state_.ships = STATE_DEFAULT_PLAYER_SHIPS;
   game_state_.super_bomb_exploding = 0;
-
-  ACE_OS::memset(game_state_.ammo_stock, 0, sizeof (game_state_.ammo_stock));
-
-  ACE_OS::memset(game_state_.gun_pause, 0, sizeof (game_state_.gun_pause));
-  game_state_.gun_swap             = false;
-  game_state_.gun_trigger          = false;
-
-  game_state_.current_item_index   = 0;
-  game_state_.use_item_armed       = 0.0;
 }
 
 void

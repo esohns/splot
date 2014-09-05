@@ -16,17 +16,25 @@
 #include "ace/Free_List.h"
 #include "ace/Synch.h"
 
+#include "defines.h"
 #include "game_element.h"
 
-#define WOBBLE_0 45
-#define WOBBLE_1 75
+enum PowerUpCategory_t
+{
+  POWERUPCATEGORY_INVALID = -1,
+  POWERUPCATEGORY_AMMUNITION = 0,
+  POWERUPCATEGORY_REPAIR_SHIELD,
+  POWERUPCATEGORY_SPECIAL,
+  ///////////////////////////////////////
+  POWERUPCATEGORY_MAX_TYPES
+};
 
 enum PowerUpType_t
 {
   POWERUP_INVALID = -1,
-  POWERUP_AMMO_0 = 0,
-  POWERUP_AMMO_1,
-  POWERUP_AMMO_2,
+  POWERUP_AMMUNITION_0 = 0,
+  POWERUP_AMMUNITION_1,
+  POWERUP_AMMUNITION_2,
   POWERUP_REPAIR,
   POWERUP_SHIELD,
   POWERUP_SHIELD_SUPER,
@@ -46,23 +54,20 @@ class Splot_PowerUp
   Splot_PowerUp (); // *WARNING*: do NOT use !
   Splot_PowerUp (PowerUpType_t, // type
                  const float (&)[3], // position
-                 const float (&)[3], // direction
+                 const float (&)[3], // translation vector
                  float = 1.0);       // potency
   virtual ~Splot_PowerUp ();
 
-//  virtual Splot_PowerUp* get_next() { return dynamic_cast<Splot_PowerUp*> (inherited::get_next ()); };
-  virtual Splot_PowerUp* get_next() { return (Splot_PowerUp*)inherited::get_next (); };
+//  virtual Splot_PowerUp* get_next () { return dynamic_cast<Splot_PowerUp*> (inherited::get_next ()); };
+  virtual Splot_PowerUp* get_next () { return (Splot_PowerUp*)inherited::get_next (); };
 
-  PowerUpType_t type () { return type_; }
-
-  float potency_;
+  PowerUpType_t type_;
+  float         potency_;
 
   static unsigned int count;
 
  private:
   typedef Splot_GameElement inherited;
-
-  PowerUpType_t type_;
 };
 
 class Splot_PowerUps
@@ -82,6 +87,8 @@ class Splot_PowerUps
 
   void loadTextures ();
   void deleteTextures ();
+
+  void dump ();
 
  private:
   typedef ACE_Locked_Free_List<Splot_PowerUp, ACE_SYNCH_NULL_MUTEX> inherited;

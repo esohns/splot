@@ -76,16 +76,16 @@ Splot_MainSDL::Splot_MainSDL (int argc_in, char** argv_in)
     ACE_DEBUG ((LM_INFO,
                 ACE_TEXT ("initialized SDL\n")));
 
-  // input repeat/delay
-  int repeat_delay, repeat_interval;
-  //SDL_GetKeyRepeat (&repeat_delay, &repeat_interval);
-  repeat_delay = SDL_DEFAULT_REPEAT_INTERVAL;
-  repeat_interval = SDL_DEFAULT_REPEAT_INTERVAL;
-  if (SDL_EnableKeyRepeat (repeat_delay, repeat_interval))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to SDL_EnableKeyRepeat(%d, %d): \"%s\", continuing\n"),
-                repeat_delay, repeat_interval,
-                ACE_TEXT (SDL_GetError ())));
+  //// input repeat/delay
+  //int repeat_delay, repeat_interval;
+  ////SDL_GetKeyRepeat (&repeat_delay, &repeat_interval);
+  //repeat_delay = SDL_DEFAULT_REPEAT_INTERVAL;
+  //repeat_interval = SDL_DEFAULT_REPEAT_INTERVAL;
+  //if (SDL_EnableKeyRepeat (repeat_delay, repeat_interval))
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to SDL_EnableKeyRepeat(%d,%d): \"%s\", continuing\n"),
+  //              repeat_delay, repeat_interval,
+  //              ACE_TEXT (SDL_GetError ())));
 
 #ifdef WITH_SDL_JOYSTICK
   int nj = SDL_NumJoysticks ();
@@ -232,7 +232,7 @@ Splot_MainSDL::run ()
     state.frame++;
     if (!(state.game_frame%10))
     {
-      now_time = SDL_GetTicks();
+      now_time = SDL_GetTicks ();
       if (last_time)
         state.fps = (10.0F/(now_time-last_time))*1000.0F;
       last_time = now_time;

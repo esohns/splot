@@ -52,7 +52,6 @@ class Splot_PlayerAircraft
   void update ();
   void drawGL ();
   void reset ();
-  void newGame ();
   void fullRepair ();
 
   inline bool isVisible() { return !dontShow_; }
