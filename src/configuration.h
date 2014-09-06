@@ -78,7 +78,7 @@ class Splot_Configuration
     if (configuration_.skill_base < SKILL_BASE_MIN)
       configuration_.skill_base = SKILL_BASE_MIN;
   }
-  int intSkill() { return (int)((configuration_.skill_base+0.05)*10.0); }
+  int intSkill () { return (int)((configuration_.skill_base+0.05)*10.0); }
 
  private:
   Configuration_t configuration_;

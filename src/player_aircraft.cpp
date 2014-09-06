@@ -612,8 +612,9 @@ Splot_PlayerAircraft::checkForCollisions (Splot_EnemyFleet* fleet_in)
 void
 Splot_PlayerAircraft::checkForPowerUps (Splot_PowerUps* powerUps_in)
 {
-  if (dontShow_)
-    return;
+  State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
+  if ((state.game_mode != GAMEMODE_GAME) || dontShow_)
+    return; // nothing to do
 
   GameState_t& game_state = SPLOT_STATE_SINGLETON::instance ()->gameState ();
   if (game_state.score > game_state.score_target)
@@ -622,21 +623,17 @@ Splot_PlayerAircraft::checkForPowerUps (Splot_PowerUps* powerUps_in)
     addShip (true);
   } // end IF
 
-  State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-  if (state.game_mode != GAMEMODE_GAME)
-    return;
-
   float dist, stock, score = 0.0F;
   ACE_ASSERT (powerUps_in);
   Splot_PowerUp* current = powerUps_in->getFirst ();
-  Splot_PowerUp* delUp = NULL;
-  float p0[3] = {10.4F,-8.3F, 25.0F };
-  float v0[3] = { 0.0F, 0.08F, 0.0F };
-  float clr[4] = { 1.0F, 1.0F, 1.0F, 1.0F };
+  Splot_PowerUp* expired = NULL;
+  float position[3] = {10.4F, -8.3F, 25.0F};
+  float translation_vector[3] = {0.0F, 0.08F, 0.0F};
+  float color[4] = {1.0F, 1.0F, 1.0F, 1.0F};
   while (current)
   {
-    dist = fabs (inherited::position_[0]-current->position_[0]) +
-           fabs (inherited::position_[1]-current->position_[1]);
+    dist = ::fabs (inherited::position_[0]-current->position_[0]) +
+           ::fabs (inherited::position_[1]-current->position_[1]);
     if (dist >= size_[1])
     {
       current = current->get_next ();
@@ -670,21 +667,21 @@ Splot_PlayerAircraft::checkForPowerUps (Splot_PowerUps* powerUps_in)
       case POWERUP_REPAIR:
         game_state.damage = PLAYER_DEFAULT_DAMAGE;
         state.status_display->damageAlpha_ = 5.0;
-        p0[0] = 10.4F;
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, 0);
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -1);
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -3);
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -4);
+        position[0] = 10.4F;
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, 0);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, -1);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, -3);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, -4);
         break;
       case POWERUP_SHIELD:
         if (game_state.shields < PLAYER_DEFAULT_SHIELDS)
           game_state.shields = PLAYER_DEFAULT_SHIELDS;
         state.status_display->shieldAlpha_ = 5.0;
-        p0[0] = -10.4F;
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, 0);
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -1);
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -3);
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -4);
+        position[0] = -10.4F;
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, 0);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, -1);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, -3);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, -4);
         break;
       case POWERUP_SHIELD_SUPER:
         state.tip_super_shield++;
@@ -694,24 +691,24 @@ Splot_PlayerAircraft::checkForPowerUps (Splot_PowerUps* powerUps_in)
         game_state.shields = PLAYER_DEFAULT_SHIELDS*2.0;
         state.status_display->damageAlpha_ = 5.0;
         state.status_display->shieldAlpha_ = 5.0;
-        p0[0] = -10.4F;
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, 0);
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -1);
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -3);
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -4);
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -10);
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -11);
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -13);
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -14);
-        p0[0] = 10.4F;
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, 0);
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -1);
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -3);
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -4);
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -10);
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -11);
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -13);
-        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, p0, v0, clr, -14);
+        position[0] = -10.4F;
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, 0);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, -1);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, -3);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, -4);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, -10);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, -11);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, -13);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, -14);
+        position[0] = 10.4F;
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, 0);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, -1);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, -3);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, -4);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, -10);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, -11);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, -13);
+        state.explosions->addEffect (EXPLOSION_EFFECT_ELECTRIC, position, translation_vector, color, -14);
         break;
       default:
         ACE_DEBUG ((LM_ERROR,
@@ -721,9 +718,9 @@ Splot_PlayerAircraft::checkForPowerUps (Splot_PowerUps* powerUps_in)
     } // end SWITCH
 
     state.explosions->add (EXPLOSION_POWER_BURST, current->position_);
-    delUp = current;
+    expired = current;
     current = current->get_next ();
-    powerUps_in->remove (delUp);
+    powerUps_in->remove (expired);
   } // end WHILE
   game_state.score += score;
 }

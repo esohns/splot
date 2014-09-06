@@ -59,7 +59,7 @@ class Splot_PowerUp
   virtual ~Splot_PowerUp ();
 
 //  virtual Splot_PowerUp* get_next () { return dynamic_cast<Splot_PowerUp*> (inherited::get_next ()); };
-  virtual Splot_PowerUp* get_next () { return (Splot_PowerUp*)inherited::get_next (); };
+  virtual Splot_PowerUp* get_next () { return (Splot_PowerUp*)inherited::next_; };
 
   PowerUpType_t type_;
   float         potency_;
@@ -77,8 +77,9 @@ class Splot_PowerUps
   Splot_PowerUps ();
   virtual ~Splot_PowerUps ();
 
+  static void initialize ();
+
   Splot_PowerUp* getFirst ();
-  //void addPowerUp (Splot_PowerUp*);
   void remove (Splot_PowerUp*);
 
   void update ();
@@ -93,17 +94,16 @@ class Splot_PowerUps
  private:
   typedef ACE_Locked_Free_List<Splot_PowerUp, ACE_SYNCH_NULL_MUTEX> inherited;
 
-  //Splot_PowerUp* pwrUpRoot_;
-  Splot_PowerUp* currentPwrUp_;
-  float pwrUpSize_[POWERUP_MAX_TYPES][2];
-  float pwrUpColor_[POWERUP_MAX_TYPES][4];
-
+  Splot_PowerUp* current_;
   GLuint tex_[POWERUP_MAX_TYPES];
   GLuint pwrTex_;
 
   float speed_;
   float wobble_0_[WOBBLE_0];
   float wobble_1_[WOBBLE_1];
+
+  static float size[POWERUP_MAX_TYPES][2];
+  static float color[POWERUP_MAX_TYPES][4];
 };
 
 #endif // POWERUP_H

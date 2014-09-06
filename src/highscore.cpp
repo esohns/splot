@@ -72,7 +72,7 @@ Splot_HighScore::getScore (int skill_in,
 {
   float return_value = -1.0;
 
-  if (skill_in > 0 && skill_in < 10)
+  if (skill_in > 0 && skill_in < MAX_LEVEL)
     if (index_in >= 0 && index_in < HI_SCORE_HIST)
       return_value = highScore_[skill_in][index_in];
 

@@ -126,14 +126,14 @@ Splot_MainSDL::Splot_MainSDL (int argc_in, char** argv_in)
   if (configuration.debug)
   {
     ACE_DEBUG ((LM_INFO,
-                ACE_TEXT ("-OpenGL-----------------------------------------------------\n")
-                ACE_TEXT ("Vendor     : %s\n")
-                ACE_TEXT ("Renderer   : %s\n")
-                ACE_TEXT ("Version    : %s\n"),
+                ACE_TEXT ("*** OpenGL capabilities ***\n")
+                ACE_TEXT ("vendor  : %s\n")
+                ACE_TEXT ("renderer: %s\n")
+                ACE_TEXT ("version : %s\n"),
                 glGetString (GL_VENDOR), glGetString (GL_RENDERER), glGetString (GL_VERSION)));
     //printExtensions (stderr,  (const char*)glGetString (GL_EXTENSIONS));
     ACE_DEBUG ((LM_INFO,
-                ACE_TEXT ("------------------------------------------------------------\n")));
+                ACE_TEXT ("***************************\n")));
   } // end IF
 
   //-- Set the window manager icon
@@ -353,10 +353,6 @@ Splot_MainSDL::checkErrors ()
 bool
 Splot_MainSDL::setVideoMode ()
 {
-  //Global	*game = Global::getInstance();
-  //Config	*config = Config::instance();
-  //int w;
-  //int h;
   Uint32 video_flags = 0;
 #if !(SDL_VERSION_ATLEAST (2,0,0))
   SDL_Surface* OpenGL_surface = NULL;
@@ -372,9 +368,6 @@ Splot_MainSDL::setVideoMode ()
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
   if (configuration.full_screen)
     video_flags |= SDL_FULLSCREEN;
-
-  //w = config->screenW();
-  //h = config->screenH();
 
   int rs, gs, bs, ds;
 #if !(SDL_VERSION_ATLEAST (2,0,0))

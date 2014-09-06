@@ -19,59 +19,62 @@
 #include "screen.h"
 #include "image.h"
 
+// init statics
+float Splot_PowerUps::size[POWERUP_MAX_TYPES][2];
+float Splot_PowerUps::color[POWERUP_MAX_TYPES][4];
+
+void
+Splot_PowerUps::initialize ()
+{
+  for (int i = 0; i < POWERUP_MAX_TYPES; i++)
+  {
+    Splot_PowerUps::size[i][0] = 0.6F;
+    Splot_PowerUps::size[i][1] = 0.6F;
+  } // end FOR
+
+  Splot_PowerUps::color[POWERUP_AMMUNITION_0][0] = 1.0F;
+  Splot_PowerUps::color[POWERUP_AMMUNITION_0][1] = 0.8F;
+  Splot_PowerUps::color[POWERUP_AMMUNITION_0][2] = 0.5F;
+  Splot_PowerUps::color[POWERUP_AMMUNITION_0][3] = 0.8F;
+
+  Splot_PowerUps::color[POWERUP_AMMUNITION_1][0] = 0.0F;
+  Splot_PowerUps::color[POWERUP_AMMUNITION_1][1] = 1.0F;
+  Splot_PowerUps::color[POWERUP_AMMUNITION_1][2] = 0.5F;
+  Splot_PowerUps::color[POWERUP_AMMUNITION_1][3] = 0.8F;
+
+  Splot_PowerUps::color[POWERUP_AMMUNITION_2][0] = 0.4F;
+  Splot_PowerUps::color[POWERUP_AMMUNITION_2][1] = 0.2F;
+  Splot_PowerUps::color[POWERUP_AMMUNITION_2][2] = 1.0F;
+  Splot_PowerUps::color[POWERUP_AMMUNITION_2][3] = 1.0F;
+
+  Splot_PowerUps::color[POWERUP_REPAIR][0] = 1.0F;
+  Splot_PowerUps::color[POWERUP_REPAIR][1] = 0.1F;
+  Splot_PowerUps::color[POWERUP_REPAIR][2] = 0.0F;
+  Splot_PowerUps::color[POWERUP_REPAIR][3] = 1.0F;
+
+  Splot_PowerUps::color[POWERUP_SHIELD][0] = 0.5F;
+  Splot_PowerUps::color[POWERUP_SHIELD][1] = 0.7F;
+  Splot_PowerUps::color[POWERUP_SHIELD][2] = 1.0F;
+  Splot_PowerUps::color[POWERUP_SHIELD][3] = 1.0F;
+
+  Splot_PowerUps::color[POWERUP_SHIELD_SUPER][0] = 1.0F;
+  Splot_PowerUps::color[POWERUP_SHIELD_SUPER][1] = 0.6F;
+  Splot_PowerUps::color[POWERUP_SHIELD_SUPER][2] = 0.0F;
+  Splot_PowerUps::color[POWERUP_SHIELD_SUPER][3] = 1.0F;
+}
+
 Splot_PowerUps::Splot_PowerUps ()
  : inherited (ACE_PURE_FREE_LIST,
               ACE_DEFAULT_FREE_LIST_PREALLOC,
               ACE_DEFAULT_FREE_LIST_LWM,
               ACE_DEFAULT_FREE_LIST_HWM,
               ACE_DEFAULT_FREE_LIST_INC)
- , currentPwrUp_ (NULL)
+ , current_ (NULL)
  , pwrTex_ (0)
  , speed_ (0.0F)
 {
-//  float p[3] = { 0.0, 0.0, 0.0 };
-//  float v[3] = { 0.0, 0.0, 0.0 };
-//  ACE_NEW (inherited::free_list_,
-//           Splot_PowerUp (POWERUP_INVALID,
-//                          p, v, 1.0));
-//  inherited::size_++;
-
   for (int i = 0; i < POWERUP_MAX_TYPES; i++)
-  {
-    pwrUpSize_[i][0] = 0.6F;
-    pwrUpSize_[i][1] = 0.6F;
     tex_[i] = 0;
-  } // end FOR
-
-  pwrUpColor_[POWERUP_AMMUNITION_0][0] = 1.0F;
-  pwrUpColor_[POWERUP_AMMUNITION_0][1] = 0.8F;
-  pwrUpColor_[POWERUP_AMMUNITION_0][2] = 0.5F;
-  pwrUpColor_[POWERUP_AMMUNITION_0][3] = 0.8F;
-
-  pwrUpColor_[POWERUP_AMMUNITION_1][0] = 0.0F;
-  pwrUpColor_[POWERUP_AMMUNITION_1][1] = 1.0F;
-  pwrUpColor_[POWERUP_AMMUNITION_1][2] = 0.5F;
-  pwrUpColor_[POWERUP_AMMUNITION_1][3] = 0.8F;
-
-  pwrUpColor_[POWERUP_AMMUNITION_2][0] = 0.4F;
-  pwrUpColor_[POWERUP_AMMUNITION_2][1] = 0.2F;
-  pwrUpColor_[POWERUP_AMMUNITION_2][2] = 1.0F;
-  pwrUpColor_[POWERUP_AMMUNITION_2][3] = 1.0F;
-
-  pwrUpColor_[POWERUP_REPAIR][0] = 1.0F;
-  pwrUpColor_[POWERUP_REPAIR][1] = 0.1F;
-  pwrUpColor_[POWERUP_REPAIR][2] = 0.0F;
-  pwrUpColor_[POWERUP_REPAIR][3] = 1.0F;
-
-  pwrUpColor_[POWERUP_SHIELD][0] = 0.5F;
-  pwrUpColor_[POWERUP_SHIELD][1] = 0.7F;
-  pwrUpColor_[POWERUP_SHIELD][2] = 1.0F;
-  pwrUpColor_[POWERUP_SHIELD][3] = 1.0F;
-
-  pwrUpColor_[POWERUP_SHIELD_SUPER][0] = 1.0F;
-  pwrUpColor_[POWERUP_SHIELD_SUPER][1] = 0.6F;
-  pwrUpColor_[POWERUP_SHIELD_SUPER][2] = 0.0F;
-  pwrUpColor_[POWERUP_SHIELD_SUPER][3] = 1.0F;
 
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
   speed_ = state.scroll_speed*0.8F;
@@ -141,20 +144,18 @@ Splot_PowerUps::clear ()
   while (current)
   {
     Splot_Screen::remove (current);
-    inherited::size_--;
     current = inherited::remove ();
   } // end WHILE
 
-  currentPwrUp_ = NULL;
+  current_ = NULL;
 }
 
 Splot_PowerUp*
 Splot_PowerUps::getFirst ()
 {
-  currentPwrUp_ = ((inherited::size_ > 1) ? inherited::free_list_
-                                          : NULL);
+  current_ = inherited::free_list_;
 
-  return currentPwrUp_;
+  return current_;
 }
 
 void
@@ -172,9 +173,7 @@ Splot_PowerUps::remove (Splot_PowerUp* powerUp_in)
     prev = current;
     current = current->get_next ();
   } // end WHILE
-  if (current)
-    currentPwrUp_ = prev;
-  else
+  if (!current)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("element not found (was: %@), returning\n"),
@@ -182,9 +181,11 @@ Splot_PowerUps::remove (Splot_PowerUp* powerUp_in)
 
     return;
   } // end IF
-
+  current_ = prev;
   if (prev)
     prev->set_next (current->get_next ());
+  else
+    inherited::remove (); // was head element, now empty
 
   Splot_Screen::remove (powerUp_in);
   inherited::size_--;
@@ -203,7 +204,7 @@ Splot_PowerUps::update ()
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
   GameState_t& game_state = SPLOT_STATE_SINGLETON::instance ()->gameState ();
   const Configuration_t& configuration =
-   SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
+    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
 
   Splot_PowerUp* current = inherited::free_list_;
   Splot_PowerUp* expired = NULL;
@@ -264,12 +265,11 @@ Splot_PowerUps::drawGL ()
 {
   float szp;
   Splot_PowerUp* current = inherited::free_list_;
-  while (current &&
-         (current->type_ != POWERUP_INVALID))
+  while (current)
   {
-    szp = pwrUpSize_[current->type_][0]*2.5F;
+    szp = Splot_PowerUps::size[current->type_][0]*2.5F;
 
-    glColor4fv (pwrUpColor_[current->type_]);
+    glColor4fv (Splot_PowerUps::color[current->type_]);
     glBindTexture (GL_TEXTURE_2D, pwrTex_);
     glPushMatrix ();
     glTranslatef (current->position_[0]+wobble_0_[current->age_%WOBBLE_0],
@@ -277,10 +277,10 @@ Splot_PowerUps::drawGL ()
                   current->position_[2]);
     glRotatef ((float)IRAND, 0.0, 0.0, 1.0);
     glBegin (GL_QUADS);
-    glTexCoord2f (0.0F, 0.0F); glVertex3f (-szp,  szp, 0.0F );
-    glTexCoord2f (0.0F, 1.0F); glVertex3f (-szp, -szp, 0.0F );
-    glTexCoord2f (1.0F, 1.0F); glVertex3f ( szp, -szp, 0.0F );
-    glTexCoord2f (1.0F, 0.0F); glVertex3f ( szp,  szp, 0.0F );
+    glTexCoord2f (0.0F, 0.0F); glVertex3f (-szp,  szp, 0.0F);
+    glTexCoord2f (0.0F, 1.0F); glVertex3f (-szp, -szp, 0.0F);
+    glTexCoord2f (1.0F, 1.0F); glVertex3f ( szp, -szp, 0.0F);
+    glTexCoord2f (1.0F, 0.0F); glVertex3f ( szp,  szp, 0.0F);
     glEnd ();
     glPopMatrix ();
 
@@ -290,22 +290,25 @@ Splot_PowerUps::drawGL ()
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   current = inherited::free_list_;
-  while (current &&
-         (current->type_ != POWERUP_INVALID))
+  while (current)
   {
     glColor4f (1.0F, 1.0F, 1.0F, 1.0F);
     glBindTexture (GL_TEXTURE_2D, tex_[current->type_]);
     glPushMatrix ();
-    glTranslatef(current->position_[0]+wobble_0_[current->age_%WOBBLE_0],
-                 current->position_[1]+wobble_1_[current->age_%WOBBLE_1],
-                 current->position_[2]);
+    glTranslatef (current->position_[0]+wobble_0_[current->age_%WOBBLE_0],
+                  current->position_[1]+wobble_1_[current->age_%WOBBLE_1],
+                  current->position_[2]);
     glBegin (GL_QUADS);
-    glTexCoord2f (0.0F, 0.0F); glVertex3f (-pwrUpSize_[current->type_][0], pwrUpSize_[current->type_][1], 0.0F);
-    glTexCoord2f (0.0F, 1.0F); glVertex3f (-pwrUpSize_[current->type_][0],-pwrUpSize_[current->type_][1], 0.0F);
-    glTexCoord2f (1.0F, 1.0F); glVertex3f ( pwrUpSize_[current->type_][0],-pwrUpSize_[current->type_][1], 0.0F);
-    glTexCoord2f (1.0F, 0.0F); glVertex3f ( pwrUpSize_[current->type_][0], pwrUpSize_[current->type_][1], 0.0F);
+    glTexCoord2f (0.0F, 0.0F);
+    glVertex3f (-Splot_PowerUps::size[current->type_][0],  Splot_PowerUps::size[current->type_][1], 0.0F);
+    glTexCoord2f (0.0F, 1.0F);
+    glVertex3f (-Splot_PowerUps::size[current->type_][0], -Splot_PowerUps::size[current->type_][1], 0.0F);
+    glTexCoord2f (1.0F, 1.0F);
+    glVertex3f ( Splot_PowerUps::size[current->type_][0], -Splot_PowerUps::size[current->type_][1], 0.0F);
+    glTexCoord2f (1.0F, 0.0F);
+    glVertex3f ( Splot_PowerUps::size[current->type_][0],  Splot_PowerUps::size[current->type_][1], 0.0F);
     glEnd ();
-    glPopMatrix();
+    glPopMatrix ();
 
     current = current->get_next ();
   } // end WHILE
@@ -325,6 +328,14 @@ Splot_PowerUps::dump ()
               << i
               << ACE_TEXT_ALWAYS_CHAR (" @: ")
               << current
+              << std::endl
+              << ACE_TEXT_ALWAYS_CHAR ("position: [")
+              << current->position_[0]
+              << ACE_TEXT_ALWAYS_CHAR (",")
+              << current->position_[1]
+              << ACE_TEXT_ALWAYS_CHAR (",")
+              << current->position_[2]
+              << ACE_TEXT_ALWAYS_CHAR ("]")
               << std::endl
               << ACE_TEXT_ALWAYS_CHAR ("prev/next: ")
               << current->prev_

@@ -81,6 +81,7 @@ Splot_OpenGLCommon::init ()
 
   Splot_PlayerBullets::initialize ();
   Splot_EnemyBullets::initialize ();
+  Splot_PowerUps::initialize ();
 
   return true;
 }
@@ -185,7 +186,6 @@ Splot_OpenGLCommon::drawGame ()
   {
     //-- Add items to scene
     Splot_Screen::put ();
-    //addItems();
 
     //-- Update scene
     state.enemies->update ();
@@ -291,24 +291,25 @@ Splot_OpenGLCommon::drawGameOver ()
   //-- Draw stats
   state.status_display->drawGL (state.player);
 
-  int skill = SPLOT_CONFIGURATION_SINGLETON::instance ()->intSkill ();
   float score = SPLOT_STATE_SINGLETON::instance ()->gameState ().score;
-  int rank = state.highscore->check (skill, score);
+  int rank = state.highscore->check (SPLOT_CONFIGURATION_SINGLETON::instance ()->intSkill (), score);
   char buffer[BUFSIZ];
+  ACE_OS::memset (&buffer, 0, sizeof (buffer));
+  float scale = 0.15F;
+  float pulse = (float)state.player_death;
   if (rank == 1)
-  {
     ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("new high score!\n\n%d"),
                      (int)score);
-    Splot_OpenGLCommon::drawText (buffer, (float)state.player_death, 0.15F);
-  } // end IF
   else if (rank > 1)
-  {
-    ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("n o t   b a d !\nrank : %d\n\n%d"),
+    ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("not bad!\nrank: %d\n%d"),
                      rank, (int)score);
-    Splot_OpenGLCommon::drawText (buffer, (float)state.player_death, 0.15F);
-  } // end ELSE
   else
-    Splot_OpenGLCommon::drawText (ACE_TEXT_ALWAYS_CHAR ("l o s e r"), (float)state.player_death, 0.25F);
+  {
+    scale = 0.10F;
+    ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("G A M E   O V E R\nmissed a rank by: %d\n%d"),
+                     (int)(state.highscore->getScore (SPLOT_CONFIGURATION_SINGLETON::instance ()->intSkill (), HI_SCORE_HIST-1)-score), (int)score);
+  } // end ELSE
+  Splot_OpenGLCommon::drawText (buffer, pulse, scale);
 }
 
 void
@@ -367,7 +368,7 @@ Splot_OpenGLCommon::drawLevelComplete ()
   //-- Draw stats
   state.status_display->drawGL (state.player);
 
-  char	buffer[BUFSIZ];
+  char buffer[BUFSIZ];
   ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("congratulations!\n \nl e v e l\n %d \nc o m p l e t e\n \n"),
                    state.game_level);
   //	if(game->hero->getScore() > game->hiScore[config->intSkill()][0])
@@ -389,7 +390,7 @@ Splot_OpenGLCommon::drawText (const char* string_in,
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
 
   //-- alpha
-  float tmp = 0.5F+0.5F*(sin (pulse_in*0.02F));
+  float tmp = 0.5F+0.5F*sin (pulse_in*0.02F);
   float aa, ca;
   aa = 0.7F-0.5F*tmp;
   if (pulse_in > -50.0)
@@ -400,13 +401,13 @@ Splot_OpenGLCommon::drawText (const char* string_in,
   height = 1.5F*state.text->LineHeight ();
 
   char buffer[BUFSIZ];
-  ::strncpy (buffer, string_in, sizeof (buffer));
+  ACE_OS::strncpy (buffer, string_in, sizeof (buffer));
   char* index[10] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
   index[0] = buffer;
   char* walker   = buffer;
   int lines = 1;
   char* newline = NULL;
-  while ((newline = ::strchr (walker, '\n')) != NULL)
+  while ((newline = ACE_OS::strchr (walker, '\n')) != NULL)
   {
     walker = newline+1;
     index[lines] = newline+1;
@@ -419,7 +420,7 @@ Splot_OpenGLCommon::drawText (const char* string_in,
   for (int l = 0; l < lines; l++)
   {
     y = min_y-height*(l+1);
-    if (index[l] && ::strlen (index[l]) <= 0)
+    if (index[l] && ACE_OS::strlen (index[l]) <= 0)
       continue;
 
     for (int i = 0; i < 6; i++)

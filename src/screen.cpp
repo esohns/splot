@@ -69,10 +69,14 @@ void
 Splot_Screen::put ()
 {
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
+  std::vector<ScreenElementsIterator_t> expired_elements;
   for (ScreenElementsIterator_t iterator = state.screen_elements.begin ();
        iterator != state.screen_elements.end ();
        iterator++)
   {
+    if ((*iterator).release_time > state.game_frame)
+      continue;
+
     switch ((*iterator).game_element->type_)
     {
       case GAMEELEMENT_BULLET:
@@ -102,15 +106,19 @@ Splot_Screen::put ()
         continue;
       }
     } // end SWITCH
+
+    expired_elements.push_back (iterator);
   } // end FOR
-  state.screen_elements.clear ();
+
+  for (std::vector<ScreenElementsIterator_t>::reverse_iterator iterator = expired_elements.rbegin ();
+       iterator != expired_elements.rend ();
+       iterator++)
+    state.screen_elements.erase (*iterator);
 
   //const Configuration_t& configuration =
   //  SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
   //if (configuration.debug)
-  //{
   //  state.power_ups->dump ();
-  //} // end IF
 }
 
 void
@@ -123,17 +131,10 @@ Splot_Screen::remove (Splot_GameElement* element_in)
        iterator++)
     if ((*iterator).game_element == element_in)
       break;
-  if (iterator == state.screen_elements.end ())
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("element not found (was: %@), returning\n"),
-                element_in));
 
-    return;
-  } // end IF
-
-  delete (*iterator).game_element;
-  state.screen_elements.erase (iterator);
+  delete element_in;
+  if (iterator != state.screen_elements.end ())
+    state.screen_elements.erase (iterator);
 
   //switch (del->itemType())
   //{
