@@ -2,6 +2,7 @@
 
 #include "enemy_fleet.h"
 
+#include <iostream>
 #include <string>
 
 #include "ace/Default_Constants.h"
@@ -28,12 +29,6 @@ Splot_EnemyFleet::Splot_EnemyFleet ()
               ACE_DEFAULT_FREE_LIST_INC)
  , currentShip_ (NULL)
 {
-//  float p[3] = { 0.0, 0.0, 0.0 };
-//  ACE_NEW (inherited::free_list_,
-//           Splot_EnemyAircraft (ENEMYAIRCRAFT_STRAIGHT,
-//                                p));
-//  inherited::size_++;
-
   loadTextures ();
 }
 
@@ -182,7 +177,7 @@ Splot_EnemyFleet::drawGL ()
           glPushMatrix ();
           glTranslatef (current->position_[0],
                         current->position_[1]-0.63F,
-                        current->position_[2]);//NOTE: offset is ~szy*0.3
+                        current->position_[2]); //NOTE: offset is ~szy*0.3
           glRotatef ((float)IRAND, 0.0, 0.0, 1.0);
           szx = 0.4F+0.6F*current->preFire_;
           drawQuad (szx, szx);
@@ -306,7 +301,7 @@ Splot_EnemyFleet::update ()
   GameState_t& game_state = SPLOT_STATE_SINGLETON::instance ()->gameState ();
 
   //-- maintain fleet enemies
-  float size, s[2], p[3], score = 0.0F;
+  float tmp_size, size[2], position[3], score = 0.0F;
   int num = 0;
   Splot_EnemyAircraft* prev, *tmp;
   Splot_EnemyAircraft* current = inherited::free_list_;
@@ -315,35 +310,38 @@ Splot_EnemyFleet::update ()
     num++;
     current->update ();
 
+    position[0] = current->position_[0];
+    position[1] = current->position_[1];
+    position[2] = current->position_[2];
     // add some damage explosions to the bosses when hit
     if (current->type_ >= ENEMYAIRCRAFT_BOSS_0)
     {
-      size = current->size_[0]*0.7F;
-      s[0] = size;
-      s[1] = size;
+      tmp_size = current->size_[0]*0.7F;
+      size[0] = tmp_size;
+      size[1] = tmp_size;
       if ((current->damage_ > current->baseDamage_*0.7F) &&
           !(state.game_frame%18))
       {
-        p[0] = current->position_[0]+SRAND*s[0];
-        p[1] = current->position_[1]+SRAND*s[1];
-        p[2] = current->position_[2];
-        state.explosions->add (EXPLOSION_ENEMY_DAMAGED, p, 0, 1.0);
+        position[0] = current->position_[0]+SRAND*size[0];
+        position[1] = current->position_[1]+SRAND*size[1];
+        //position[2] = current->position_[2];
+        state.explosions->add (EXPLOSION_ENEMY_DAMAGED, position, 0, 1.0);
       } // end IF
       if ((current->damage_ > current->baseDamage_*0.5F) &&
           !(state.game_frame%10))
       {
-        p[0] = current->position_[0]+SRAND*s[0];
-        p[1] = current->position_[1]+SRAND*s[1];
-        p[2] = current->position_[2];
-        state.explosions->add (EXPLOSION_ENEMY_DAMAGED, p, 0, 1.0);
+        position[0] = current->position_[0]+SRAND*size[0];
+        position[1] = current->position_[1]+SRAND*size[1];
+        //position[2] = current->position_[2];
+        state.explosions->add (EXPLOSION_ENEMY_DAMAGED, position, 0, 1.0);
       } // end IF
       if ((current->damage_ > current->baseDamage_*0.3F) &&
           !(state.game_frame%4))
       {
-        p[0] = current->position_[0]+SRAND*s[0];
-        p[1] = current->position_[1]+SRAND*s[1];
-        p[2] = current->position_[2];
-        state.explosions->add (EXPLOSION_ENEMY_DAMAGED, p, 0, 1.0);
+        position[0] = current->position_[0]+SRAND*size[0];
+        position[1] = current->position_[1]+SRAND*size[1];
+        //position[2] = current->position_[2];
+        state.explosions->add (EXPLOSION_ENEMY_DAMAGED, position, 0, 1.0);
       } // end IF
     } // end IF
 
@@ -361,102 +359,102 @@ Splot_EnemyFleet::update ()
     } // end IF
 
     // if enemies are critically damaged, destroy them
-    if (current->damage_ > 0.0F)
+    if (current->damage_ <= 0.0F)
     {
-      prev = NULL;
-      tmp = inherited::free_list_;
-      while (tmp)
-      {
-        if (tmp == current)
-          break;
-
-        prev = tmp;
-        tmp = tmp->get_next ();
-      } // end WHILE
-      tmp = current->get_next ();
-      if (prev)
-        prev->set_next (tmp);
-      else
-        inherited::free_list_ = tmp;
-      inherited::size_--;
-
-      if (current->age_) // *NOTE*: set age to 0 for quiet deletion...
-        switch (current->type_)
-        {
-          case ENEMYAIRCRAFT_BOSS_0:
-          case ENEMYAIRCRAFT_BOSS_1:
-            destroyAll ();
-            bossExplosion (current);
-
-            if (state.game_mode != GAMEMODE_GAME_OVER)
-            {
-              //-- trigger end of level
-              score += SCORE_END_OF_LEVEL;
-              state.game_mode = GAMEMODE_LEVEL_COMPLETE;
-              state.player_success = 0;
-            } // end IF
-            break;
-          case ENEMYAIRCRAFT_OMNI:
-            score += SCORE_KILL_OMNI;
-            state.explosions->add (EXPLOSION_ENEMY_DAMAGED, current->position_);
-            state.explosions->add (EXPLOSION_ENEMY_DAMAGED, current->position_, -3, 0.7F);
-            state.explosions->add (EXPLOSION_ENEMY_AMMUNITION_4, current->position_);
-            state.audio->play (SOUND_EXPLOSION_LIGHT, current->position_);
-            break;
-          case ENEMYAIRCRAFT_RAYGUN:
-            score += SCORE_KILL_RAYGUN;
-            state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p);
-            p[0] = current->position_[0]+0.55F;
-            state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, -5, 1.5F);
-            p[0] = current->position_[0]-0.5F;
-            p[1] = current->position_[1]+0.2F;
-            state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, -15);
-            p[0] = current->position_[0];
-            state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, -20, 2.0F);
-            state.explosions->add (EXPLOSION_ENEMY_DAMAGED, p, -30, 2.0F);
-            state.audio->play (SOUND_EXPLOSION_DEFAULT, current->position_);
-            state.audio->play (SOUND_EXPLOSION_HEAVY, current->position_);
-            break;
-          case ENEMYAIRCRAFT_TANK:
-            score += SCORE_KILL_TANK;
-            p[0] = current->position_[0];
-            p[1] = current->position_[1];
-            state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, -5, 2.5F);
-            p[0] = current->position_[0]-0.9F;
-            p[1] = current->position_[1]-1.0F;
-            state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, -0, 1.5F);
-            p[0] = current->position_[0]+1.0F;
-            p[1] = current->position_[1]-0.8F;
-            state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, -13, 2.0F);
-            state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, -2, 1.0F);
-            p[0] = current->position_[0]+0.7F;
-            p[1] = current->position_[1]+0.7F;
-            state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, -20, 1.7F);
-            p[0] = current->position_[0]-0.7F;
-            p[1] = current->position_[1]+0.9F;
-            state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, -8, 1.5F);
-            state.audio->play (SOUND_EXPLOSION_DEFAULT, current->position_);
-            state.audio->play (SOUND_EXPLOSION_HEAVY, current->position_);
-            break;
-          case ENEMYAIRCRAFT_GNAT:
-            score += SCORE_KILL_GNAT;
-            state.explosions->add (EXPLOSION_ENEMY_AMMUNITION_4, current->position_);
-            state.audio->play (SOUND_EXPLOSION_LIGHT, current->position_);
-            break;
-          default: //-- extra damage explosion delayed for bloom effect *TODO*
-            score += SCORE_KILL_DEFAULT;
-            state.explosions->add (EXPLOSION_ENEMY_DESTROYED, current->position_);
-            state.explosions->add (EXPLOSION_ENEMY_DAMAGED, current->position_, -15);
-            state.audio->play (SOUND_EXPLOSION_DEFAULT, current->position_);
-            break;
-        } // end SWITCH
-
-      Splot_Screen::remove (current);
-
-      current = tmp;
-    } // end IF
-    else
       current = current->get_next ();
+      continue;
+    } // end IF
+
+    prev = NULL;
+    tmp = inherited::free_list_;
+    while (tmp)
+    {
+      if (tmp == current)
+        break;
+
+      prev = tmp;
+      tmp = tmp->get_next ();
+    } // end WHILE
+    tmp = current->get_next ();
+    if (prev)
+      prev->set_next (tmp);
+    else
+      inherited::free_list_ = tmp;
+    inherited::size_--;
+
+    position[0] = current->position_[0];
+    position[1] = current->position_[1];
+    if (current->age_) // *NOTE*: set age to 0 for quiet deletion...
+      switch (current->type_)
+      {
+        case ENEMYAIRCRAFT_BOSS_0:
+        case ENEMYAIRCRAFT_BOSS_1:
+          destroyAll ();
+          bossExplosion (current);
+
+          if (state.game_mode != GAMEMODE_GAME_OVER)
+          {
+            //-- trigger end of level
+            score += SCORE_END_OF_LEVEL;
+            state.game_mode = GAMEMODE_LEVEL_COMPLETE;
+            state.player_success = 0;
+          } // end IF
+          break;
+        case ENEMYAIRCRAFT_OMNI:
+          score += SCORE_KILL_OMNI;
+          state.explosions->add (EXPLOSION_ENEMY_DAMAGED, current->position_);
+          state.explosions->add (EXPLOSION_ENEMY_DAMAGED, current->position_, -3, 0.7F);
+          state.explosions->add (EXPLOSION_ENEMY_AMMUNITION_4, current->position_);
+          state.audio->play (SOUND_EXPLOSION_LIGHT, current->position_);
+          break;
+        case ENEMYAIRCRAFT_RAYGUN:
+          score += SCORE_KILL_RAYGUN;
+          state.explosions->add (EXPLOSION_ENEMY_DESTROYED, current->position_);
+          position[0] = current->position_[0]+0.55F;
+          state.explosions->add (EXPLOSION_ENEMY_DESTROYED, position, -5, 1.5F);
+          position[0] = current->position_[0]-0.5F;
+          position[1] = current->position_[1]+0.2F;
+          state.explosions->add (EXPLOSION_ENEMY_DESTROYED, position, -15);
+          position[0] = current->position_[0];
+          state.explosions->add (EXPLOSION_ENEMY_DESTROYED, position, -20, 2.0F);
+          state.explosions->add (EXPLOSION_ENEMY_DAMAGED, position, -30, 2.0F);
+          state.audio->play (SOUND_EXPLOSION_DEFAULT, current->position_);
+          state.audio->play (SOUND_EXPLOSION_HEAVY, current->position_);
+          break;
+        case ENEMYAIRCRAFT_TANK:
+          score += SCORE_KILL_TANK;
+          state.explosions->add (EXPLOSION_ENEMY_DESTROYED, position, -5, 2.5F);
+          position[0] = current->position_[0]-0.9F;
+          position[1] = current->position_[1]-1.0F;
+          state.explosions->add (EXPLOSION_ENEMY_DESTROYED, position, -0, 1.5F);
+          position[0] = current->position_[0]+1.0F;
+          position[1] = current->position_[1]-0.8F;
+          state.explosions->add (EXPLOSION_ENEMY_DESTROYED, position, -13, 2.0F);
+          state.explosions->add (EXPLOSION_ENEMY_DESTROYED, position, -2, 1.0F);
+          position[0] = current->position_[0]+0.7F;
+          position[1] = current->position_[1]+0.7F;
+          state.explosions->add (EXPLOSION_ENEMY_DESTROYED, position, -20, 1.7F);
+          position[0] = current->position_[0]-0.7F;
+          position[1] = current->position_[1]+0.9F;
+          state.explosions->add (EXPLOSION_ENEMY_DESTROYED, position, -8, 1.5F);
+          state.audio->play (SOUND_EXPLOSION_DEFAULT, current->position_);
+          state.audio->play (SOUND_EXPLOSION_HEAVY, current->position_);
+          break;
+        case ENEMYAIRCRAFT_GNAT:
+          score += SCORE_KILL_GNAT;
+          state.explosions->add (EXPLOSION_ENEMY_AMMUNITION_4, current->position_);
+          state.audio->play (SOUND_EXPLOSION_LIGHT, current->position_);
+          break;
+        default: //-- extra damage explosion delayed for bloom effect *TODO*
+          score += SCORE_KILL_DEFAULT;
+          state.explosions->add (EXPLOSION_ENEMY_DESTROYED, current->position_);
+          state.explosions->add (EXPLOSION_ENEMY_DAMAGED, current->position_, -15);
+          state.audio->play (SOUND_EXPLOSION_DEFAULT, current->position_);
+          break;
+      } // end SWITCH
+
+    Splot_Screen::remove (current);
+    current = tmp;
   } // end WHILE
   game_state.score += score;
 }
@@ -467,29 +465,29 @@ Splot_EnemyFleet::bossExplosion (Splot_EnemyAircraft* enemy_in)
   ACE_ASSERT (enemy_in);
 
   float a, b;
-  float p[3] = {0.0, 0.0, 0.0};
+  float position[3] = {0.0, 0.0, 0.0};
   int tmp = 0;
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
   for (int i = 4; i > 0; i--)
   {
     a = enemy_in->size_[0]*(i*0.2F);
     b = enemy_in->size_[1]*(i*0.2F);
-    p[0] = enemy_in->position_[0]+a*FRAND;
-    p[1] = enemy_in->position_[1]+b*FRAND;
+    position[0] = enemy_in->position_[0]+a*FRAND;
+    position[1] = enemy_in->position_[1]+b*FRAND;
     tmp = (int)(-FRAND*8.0F);
-    state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, tmp, 1.5F+FRAND);
-    p[0] = enemy_in->position_[0]-a*FRAND;
-    p[1] = enemy_in->position_[1]+b*FRAND;
+    state.explosions->add (EXPLOSION_ENEMY_DESTROYED, position, tmp, 1.5F+FRAND);
+    position[0] = enemy_in->position_[0]-a*FRAND;
+    position[1] = enemy_in->position_[1]+b*FRAND;
     tmp = (int)(-FRAND*8.0F);
-    state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, tmp, 1.5F+FRAND);
-    p[0] = enemy_in->position_[0]+a*FRAND;
-    p[1] = enemy_in->position_[1]-b*FRAND;
+    state.explosions->add (EXPLOSION_ENEMY_DESTROYED, position, tmp, 1.5F+FRAND);
+    position[0] = enemy_in->position_[0]+a*FRAND;
+    position[1] = enemy_in->position_[1]-b*FRAND;
     tmp = (int)(-FRAND*8.0F);
-    state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, tmp, 1.5F+FRAND);
-    p[0] = enemy_in->position_[0]-a*FRAND;
-    p[1] = enemy_in->position_[1]-b*FRAND;
+    state.explosions->add (EXPLOSION_ENEMY_DESTROYED, position, tmp, 1.5F+FRAND);
+    position[0] = enemy_in->position_[0]-a*FRAND;
+    position[1] = enemy_in->position_[1]-b*FRAND;
     tmp = (int)(-FRAND*8.0F);
-    state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, tmp, 1.5F+FRAND);
+    state.explosions->add (EXPLOSION_ENEMY_DESTROYED, position, tmp, 1.5F+FRAND);
   } // end FOR
 
   float c, d;
@@ -524,54 +522,52 @@ Splot_EnemyFleet::bossExplosion (Splot_EnemyAircraft* enemy_in)
   {
     ii = i*0.5F;
     r = ii/40.0F;
-    xsin = r*scaleX*sin (ii*a);
-    ycos = r*scaleY*cos (ii*b);
-    p[0] = enemy_in->position_[0]+xsin;
-    p[1] = enemy_in->position_[1]+ycos;
+    position[0] = enemy_in->position_[0]+r*scaleX*sin (ii*a);
+    position[1] = enemy_in->position_[1]+r*scaleY*cos (ii*b);
     if (!(i%4))
-      state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, (int)(-ii*2.0F), 1.5F+FRAND);
+      state.explosions->add (EXPLOSION_ENEMY_DESTROYED, position, (int)(-ii*2.0F), 1.5F+FRAND);
     xsin = r*scaleX*sin (i*c);
     ycos = r*scaleY*cos (i*d);
-    p[0] = enemy_in->position_[0]+xsin*1.5F;
-    p[1] = enemy_in->position_[1]-ycos*1.5F;
+    position[0] = enemy_in->position_[0]+xsin*1.5F;
+    position[1] = enemy_in->position_[1]-ycos*1.5F;
     if (!(i%5))
     {
-      state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, (int)(-40.0F-(ii*3.0F)), 1.5F+FRAND);
-      state.explosions->add (EXPLOSION_ENEMY_DAMAGED, p, (int)(-60.0F-(ii*3.0F)), 1.5F+FRAND);
+      state.explosions->add (EXPLOSION_ENEMY_DESTROYED, position, (int)(-40.0F-(ii*3.0F)), 1.5F+FRAND);
+      state.explosions->add (EXPLOSION_ENEMY_DAMAGED, position, (int)(-60.0F-(ii*3.0F)), 1.5F+FRAND);
     } // end IF
-    p[0] = enemy_in->position_[0]+xsin*1.5F;
-    p[1] = enemy_in->position_[1]+ycos*1.0F;
+    position[0] = enemy_in->position_[0]+xsin*1.5F;
+    position[1] = enemy_in->position_[1]+ycos*1.0F;
     if (!(i%3))
-      state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, (int)-ii, 1.5F+FRAND);
-    p[0] = enemy_in->position_[0]-ycos;
-    p[1] = enemy_in->position_[1]+xsin;
+      state.explosions->add (EXPLOSION_ENEMY_DESTROYED, position, (int)-ii, 1.5F+FRAND);
+    position[0] = enemy_in->position_[0]-ycos;
+    position[1] = enemy_in->position_[1]+xsin;
     if (!(i%3))
-      state.explosions->add (EXPLOSION_ENEMY_DESTROYED, p, (int)-ii, 1.5F+FRAND);
+      state.explosions->add (EXPLOSION_ENEMY_DESTROYED, position, (int)-ii, 1.5F+FRAND);
   } // end FOR
   //-- Boss Audio Explosion
-  p[0] = -10.0F; p[1] = -5.0F;
-  state.audio->play (SOUND_EXPLOSION_DEFAULT, p);
-  state.audio->play (SOUND_EXPLOSION_DEFAULT, p, -27);
-  state.audio->play (SOUND_EXPLOSION_LIGHT, p, -45);
-  p[0] = 10.0F;
-  state.audio->play (SOUND_EXPLOSION_DEFAULT, p, -3);
-  state.audio->play (SOUND_EXPLOSION_DEFAULT, p, -25);
-  state.audio->play (SOUND_EXPLOSION_LIGHT, p, -40);
-  p[0] = 0.0F;
-  state.audio->play (SOUND_EXPLOSION_HEAVY, p, 0);
-  state.audio->play (SOUND_EXPLOSION_HEAVY, p, -60);
-  state.audio->play (SOUND_EXPLOSION_LIGHT, p, -55);
-  state.audio->play (SOUND_EXPLOSION_LIGHT, p, -80);
-  state.audio->play (SOUND_EXPLOSION_LIGHT, p, -120);
-  state.audio->play (SOUND_EXPLOSION_LIGHT, p, -160);
+  position[0] = -10.0F;
+  position[1] = -5.0F;
+  state.audio->play (SOUND_EXPLOSION_DEFAULT, position);
+  state.audio->play (SOUND_EXPLOSION_DEFAULT, position, -27);
+  state.audio->play (SOUND_EXPLOSION_LIGHT, position, -45);
+  position[0] = 10.0F;
+  state.audio->play (SOUND_EXPLOSION_DEFAULT, position, -3);
+  state.audio->play (SOUND_EXPLOSION_DEFAULT, position, -25);
+  state.audio->play (SOUND_EXPLOSION_LIGHT, position, -40);
+  position[0] = 0.0F;
+  state.audio->play (SOUND_EXPLOSION_HEAVY, position, 0);
+  state.audio->play (SOUND_EXPLOSION_HEAVY, position, -60);
+  state.audio->play (SOUND_EXPLOSION_LIGHT, position, -55);
+  state.audio->play (SOUND_EXPLOSION_LIGHT, position, -80);
+  state.audio->play (SOUND_EXPLOSION_LIGHT, position, -120);
+  state.audio->play (SOUND_EXPLOSION_LIGHT, position, -160);
 }
 
 void
 Splot_EnemyFleet::destroyAll ()
 {
   Splot_EnemyAircraft* current = inherited::free_list_;
-  while (current &&
-         (current->type_ != ENEMYAIRCRAFT_INVALID))
+  while (current)
   {
     current->damage_ = 1.0F;
     current = current->get_next ();
@@ -585,35 +581,61 @@ Splot_EnemyFleet::add (Splot_EnemyAircraft* enemy_in)
 
   if (enemy_in->over_) // insert this enemy after 'over' aircraft in list
   {
-    Splot_EnemyAircraft* tmp = inherited::free_list_;
+    Splot_EnemyAircraft* over = inherited::free_list_;
     do
     {
-      if (!tmp ||
-          (tmp == enemy_in->over_))
+      if (!over ||
+          (over == enemy_in->over_))
         break;
 
-      tmp = tmp->get_next ();
+      over = over->get_next ();
     } while (true);
-    if (tmp)
+    if (over)
     {
-      enemy_in->set_next (tmp->get_next ());
-      tmp->set_next (enemy_in);
+      enemy_in->set_next (over->get_next ());
+      over->set_next (enemy_in);
+
       return;
     } // end IF
 
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("over not found (was: %@), continuing\n"),
+                ACE_TEXT ("\"over\" element not found (was: %@), continuing\n"),
                 enemy_in->over_));
   } // end IF
   else
     inherited::add (enemy_in);
 }
 
-//void
-//Splot_EnemyFleet::killEnemy (Splot_EnemyAircraft* enemy_in)
-//{
-//  ACE_ASSERT (enemy_in);
-//
-//  State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-//  state.item_add->killScreenItem (enemy_in);
-//}
+void
+Splot_EnemyFleet::dump ()
+{
+  std::cerr << ACE_TEXT_ALWAYS_CHAR ("enemy fleet: ") << inherited::size_ << std::endl;
+  Splot_EnemyAircraft* current = inherited::free_list_;
+  int i = 0;
+  while (current)
+  {
+    std::cerr << ACE_TEXT_ALWAYS_CHAR ("#")
+              << i
+              << ACE_TEXT_ALWAYS_CHAR (" @: ")
+              << current
+              << std::endl
+              << ACE_TEXT_ALWAYS_CHAR ("position: [")
+              << current->position_[0]
+              << ACE_TEXT_ALWAYS_CHAR (",")
+              << current->position_[1]
+              << ACE_TEXT_ALWAYS_CHAR (",")
+              << current->position_[2]
+              << ACE_TEXT_ALWAYS_CHAR ("]")
+              << std::endl
+              << ACE_TEXT_ALWAYS_CHAR ("prev/next: ")
+              << current->prev_
+              << ACE_TEXT_ALWAYS_CHAR ("/")
+              << current->next_
+              << std::endl;
+    if (current->next_)
+      std::cerr << ACE_TEXT_ALWAYS_CHAR (" --> ") << std::endl;
+
+    i++;
+    current = current->get_next ();
+  } // end WHILE
+}

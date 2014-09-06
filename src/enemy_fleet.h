@@ -40,6 +40,8 @@ class Splot_EnemyFleet
   void loadTextures ();
   void deleteTextures ();
 
+  void dump ();
+
   private:
    typedef ACE_Locked_Free_List<Splot_EnemyAircraft,
                                 ACE_SYNCH_NULL_MUTEX> inherited;

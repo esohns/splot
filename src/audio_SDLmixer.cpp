@@ -37,7 +37,7 @@ Splot_AudioSDLMixer::init ()
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("SDL audio not initialized, returning\n")));
 
-    SPLOT_CONFIGURATION_SINGLETON::instance()->setAudio(false);
+    SPLOT_CONFIGURATION_SINGLETON::instance ()->setAudio (false);
 
     return;
   } // end IF
@@ -90,6 +90,7 @@ Splot_AudioSDLMixer::init ()
     }
   } // end SWITCH
   char driver[PATH_MAX];
+  ACE_OS::memset (driver, 0, sizeof (driver));
   if (!SDL_AudioDriverName (driver,
                             sizeof (driver)))
     ACE_DEBUG ((LM_ERROR,
@@ -169,8 +170,8 @@ Splot_AudioSDLMixer::init ()
   else
     if (configuration.debug)
       ACE_DEBUG ((LM_INFO,
-                  ACE_TEXT ("available mixing channels (default/current): %d/%d\n"),
-                  def_num_channels, MAX_MIXING_CHANNELS));
+                  ACE_TEXT ("available mixing channels: %d (default: %d)\n"),
+                  MAX_MIXING_CHANNELS, def_num_channels));
 
   if (Mix_ReserveChannels (1) != 1) // channel 0 is for music
     ACE_DEBUG ((LM_ERROR,

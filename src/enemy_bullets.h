@@ -42,12 +42,12 @@ class Splot_EnemyBullets
  private:
   void remove (const Bullet_t&);
 
-  Bullets_t bullets_[NUM_ENEMY_AMMO_TYPES];
-  static float bullet_size[NUM_ENEMY_AMMO_TYPES][2];
-  static float bullet_damage[NUM_ENEMY_AMMO_TYPES];
+  Bullets_t bullets_[NUM_ENEMY_AMMUNITION_TYPES];
+  static float bullet_size[NUM_ENEMY_AMMUNITION_TYPES][2];
+  static float bullet_damage[NUM_ENEMY_AMMUNITION_TYPES];
   //Bullets_t bulletPool_;
 
-  GLuint texBullet_[NUM_ENEMY_AMMO_TYPES];
+  GLuint texBullet_[NUM_ENEMY_AMMUNITION_TYPES];
 };
 
 #endif // ENEMYBULLETS_H

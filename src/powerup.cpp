@@ -183,12 +183,14 @@ Splot_PowerUps::remove (Splot_PowerUp* powerUp_in)
   } // end IF
   current_ = prev;
   if (prev)
+  {
     prev->set_next (current->get_next ());
+    inherited::size_--;
+  } // end IF
   else
     inherited::remove (); // was head element, now empty
 
   Splot_Screen::remove (powerUp_in);
-  inherited::size_--;
 
 //  const Configuration_t& configuration =
 //   SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();

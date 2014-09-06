@@ -15,14 +15,14 @@
 #include "player_aircraft.h"
 
 // init statics
-float Splot_EnemyBullets::bullet_size[NUM_ENEMY_AMMO_TYPES][2];
-float Splot_EnemyBullets::bullet_damage[NUM_ENEMY_AMMO_TYPES];
+float Splot_EnemyBullets::bullet_size[NUM_ENEMY_AMMUNITION_TYPES][2];
+float Splot_EnemyBullets::bullet_damage[NUM_ENEMY_AMMUNITION_TYPES];
 
 void
 Splot_EnemyBullets::initialize ()
 {
   ////-- initialize everything to sane values...
-  //for (int i = 0; i < NUM_ENEMY_AMMO_TYPES; i++)
+  //for (int i = 0; i < NUM_ENEMY_AMMUNITION_TYPES; i++)
   //{
   //  Splot_EnemyBullets::bullet_size[i][0] = 0.13;
   //  Splot_EnemyBullets::bullet_size[i][1] = 0.13;
@@ -46,23 +46,18 @@ Splot_EnemyBullets::initialize ()
 }
 
 Splot_EnemyBullets::Splot_EnemyBullets ()
+ //: bullets_ ()
+ //, texBullet_ ()
 {
   //-- initialize everything to sane values...
-  for (int i = 0; i < NUM_ENEMY_AMMO_TYPES; i++)
-  {
-    //Splot_EnemyBullets::bullet_size[i][0] = 0.13;
-    //Splot_EnemyBullets::bullet_size[i][1] = 0.13;
-    //Splot_EnemyBullets::bullet_damage[i] = 510.0;
+  for (int i = 0; i < NUM_ENEMY_AMMUNITION_TYPES; i++)
     texBullet_[i] = 0;
-  } // end FOR
 
   loadTextures ();
 }
 
 Splot_EnemyBullets::~Splot_EnemyBullets ()
 {
-  clear ();
-
   deleteTextures ();
 }
 
@@ -73,7 +68,7 @@ Splot_EnemyBullets::loadTextures ()
   path_base += ACE_DIRECTORY_SEPARATOR_STR;
   std::string filename;
   char buffer[PATH_MAX];
-  for (int i = 0; i < NUM_ENEMY_AMMO_TYPES; i++)
+  for (int i = 0; i < NUM_ENEMY_AMMUNITION_TYPES; i++)
   {
     filename = path_base;
     ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("enemyAmmo%02d.png"), i);
@@ -89,7 +84,7 @@ Splot_EnemyBullets::loadTextures ()
 void
 Splot_EnemyBullets::deleteTextures ()
 {
-  glDeleteTextures (NUM_ENEMY_AMMO_TYPES, &(texBullet_[0]));
+  glDeleteTextures (NUM_ENEMY_AMMUNITION_TYPES, &(texBullet_[0]));
 }
 
 //ActiveAmmo*
@@ -111,7 +106,7 @@ Splot_EnemyBullets::deleteTextures ()
 //void
 //Splot_EnemyBullets::remove (const Bullet_t& bullet_in)
 //{
-//  for (int i = 0; i < NUM_ENEMY_AMMO_TYPES; i++)
+//  for (int i = 0; i < NUM_ENEMY_AMMUNITION_TYPES; i++)
 //  {
 //    BulletsIterator_t iterator;
 //    for (iterator = bullets_[i].begin ();
@@ -130,7 +125,7 @@ Splot_EnemyBullets::deleteTextures ()
 void
 Splot_EnemyBullets::clear ()
 {
-  for (int i = 0; i < NUM_ENEMY_AMMO_TYPES; i++)
+  for (int i = 0; i < NUM_ENEMY_AMMUNITION_TYPES; i++)
     bullets_[i].clear ();
 }
 
@@ -139,21 +134,20 @@ Splot_EnemyBullets::add (int type_in,
                          const float (&position_in)[3],
                          const float (&translationStep_in)[3])
 {
-  if (type_in < 0 ||
-      type_in >= NUM_ENEMY_AMMO_TYPES)
-    return;
+  ACE_ASSERT (type_in >= 0 &&
+              type_in < NUM_ENEMY_AMMUNITION_TYPES);
 
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-  float translation_vector[3] = {translationStep_in[0]*state.speed_adj,
-                                 translationStep_in[1]*state.speed_adj,
-                                 translationStep_in[2]*state.speed_adj};
+  float translation_step[3] = {translationStep_in[0]*state.speed_adj,
+                               translationStep_in[1]*state.speed_adj,
+                               translationStep_in[2]*state.speed_adj};
 
   Bullet_t new_bullet;
   new_bullet.damage = Splot_EnemyBullets::bullet_damage[type_in];
   //new_bullet.position = position_in;
   ACE_OS::memcpy (&new_bullet.position, &position_in, sizeof (position_in));
   //new_bullet.translation_step = v;
-  ACE_OS::memcpy (&new_bullet.translation_vector, &translation_vector, sizeof (translation_vector));
+  ACE_OS::memcpy (&new_bullet.translation_step, &translation_step, sizeof (new_bullet.translation_step));
   bullets_[type_in].push_back (new_bullet);
 
   Bullet_t::count++;
@@ -164,31 +158,33 @@ Splot_EnemyBullets::update ()
 {
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
-
-  std::vector<BulletsIterator_t> finished_bullets;
-  for (int i = 0; i < NUM_ENEMY_AMMO_TYPES; i++)
+  std::vector<BulletsIterator_t> expired_bullets;
+  for (int i = 0; i < NUM_ENEMY_AMMUNITION_TYPES; i++)
   {
-    finished_bullets.clear ();
+    expired_bullets.clear ();
     for (BulletsIterator_t iterator = bullets_[i].begin ();
          iterator != bullets_[i].end ();
          iterator++)
     {
-      if ((*iterator).position[1] > configuration.screen_bound[1])
-        finished_bullets.push_back (iterator);
+      if (((*iterator).position[0] >  configuration.screen_bound[0]) ||
+          ((*iterator).position[0] < -configuration.screen_bound[0]) ||
+          ((*iterator).position[1] >  configuration.screen_bound[1]) ||
+          ((*iterator).position[1] < -configuration.screen_bound[1]))
+        expired_bullets.push_back (iterator);
       else
       {
         Bullet_t& current = *iterator;
-        current.position[0] += current.translation_vector[0];
-        current.position[1] += current.translation_vector[1];
-        current.position[2] += current.translation_vector[2];
+        current.position[0] += current.translation_step[0];
+        current.position[1] += current.translation_step[1];
+        current.position[2] += current.translation_step[2];
       } // end ELSE
     } // end FOR
 
-    for (std::vector<BulletsIterator_t>::reverse_iterator iterator = finished_bullets.rbegin ();
-         iterator != finished_bullets.rend ();
+    for (std::vector<BulletsIterator_t>::reverse_iterator iterator = expired_bullets.rbegin ();
+         iterator != expired_bullets.rend ();
          iterator++)
       bullets_[i].erase (*iterator);
-    Bullet_t::count -= finished_bullets.size ();
+    Bullet_t::count -= expired_bullets.size ();
   } // end FOR
 }
 
@@ -204,45 +200,40 @@ Splot_EnemyBullets::checkForHits (Splot_PlayerAircraft* aircraft_in)
   Explosion_t* explosion;
 
   //-- Go through all the ammunition and check for hits
-  std::vector<BulletsIterator_t> finished_bullets;
-  for (int i = 0; i < NUM_ENEMY_AMMO_TYPES; i++)
+  std::vector<BulletsIterator_t> expired_bullets;
+  for (int i = 0; i < NUM_ENEMY_AMMUNITION_TYPES; i++)
   {
-    finished_bullets.clear ();
-
+    expired_bullets.clear ();
     for (BulletsIterator_t iterator = bullets_[i].begin ();
          iterator != bullets_[i].end ();
          iterator++)
     {
-      dist = fabs ((*iterator).position[0]-aircraft_in->position_[0]) + 
-             fabs ((*iterator).position[1]-aircraft_in->position_[1]);
+      dist = ::fabs ((*iterator).position[0]-aircraft_in->position_[0]) + 
+             ::fabs ((*iterator).position[1]-aircraft_in->position_[1]);
       if (dist >= min_dist)
         continue;
 
       //do damage
       //				hero->doDamage(ammoDamage[i]);
-      aircraft_in->ammoDamage ((*iterator).damage, (*iterator).translation_vector);
+      aircraft_in->ammoDamage ((*iterator).damage, (*iterator).translation_step);
       //add explosion
       explosion =
         state.explosions->add ((ExplosionType_t)(EXPLOSION_ENEMY_AMMUNITION_0+i), (*iterator).position);
-      if (!explosion)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Splot_Explosions::add(%d), continuing\n"),
-                    EXPLOSION_ENEMY_AMMUNITION_0 + i));
-      if (i > 1)	// add second explosion for the bug guns...
+      if (i > 1) // add second explosion for the bug guns...
         explosion =
           state.explosions->add ((ExplosionType_t)(EXPLOSION_ENEMY_AMMUNITION_0+i), (*iterator).position, -5);
       else
         if (explosion)
-          explosion->velocity[1] = -0.1F;
+          explosion->translation_step[1] = -0.1F;
 
-      finished_bullets.push_back (iterator);
+      expired_bullets.push_back (iterator);
     } // end FOR
 
-    for (std::vector<BulletsIterator_t>::reverse_iterator iterator = finished_bullets.rbegin ();
-         iterator != finished_bullets.rend ();
+    for (std::vector<BulletsIterator_t>::reverse_iterator iterator = expired_bullets.rbegin ();
+         iterator != expired_bullets.rend ();
          iterator++)
       bullets_[i].erase (*iterator);
-    Bullet_t::count -= finished_bullets.size ();
+    Bullet_t::count -= expired_bullets.size ();
   } // end FOR
 }
 
@@ -251,7 +242,7 @@ Splot_EnemyBullets::drawGL ()
 {
   glColor4f (1.0, 1.0, 1.0, 1.0);
 
-  for (int i = 0; i < NUM_ENEMY_AMMO_TYPES; i++)
+  for (int i = 0; i < NUM_ENEMY_AMMUNITION_TYPES; i++)
   {
     glBindTexture (GL_TEXTURE_2D, texBullet_[i]);
     glBegin (GL_QUADS);

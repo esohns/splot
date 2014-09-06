@@ -181,8 +181,8 @@ struct GameState_t
   int ships;
   int super_bomb_exploding;
 
-  float ammo_stock[NUM_PLAYER_AMMO_TYPES];
-  float gun_pause[NUM_PLAYER_AMMO_TYPES];
+  float ammo_stock[NUM_PLAYER_AMMUNITION_TYPES];
+  float gun_pause[NUM_PLAYER_AMMUNITION_TYPES];
   bool gun_swap;
   bool gun_trigger;
 
@@ -207,7 +207,7 @@ enum GameToolkitType_t
 struct Bullet_t
 {
   float position[3];
-  float translation_vector[3];
+  float translation_step[3];
   float damage;
 
   static unsigned int count;
@@ -227,8 +227,8 @@ struct Explosion_t
    , size (1)
   {
     position[0] = 0.0; position[1] = 0.0; position[2] = 0.0;
-    velocity[0] = 0.0; velocity[1] = 0.0; velocity[2] = 0.0;
-    clr[0] = 1.0; clr[1] = 1.0; clr[2] = 1.0; clr[3] = 1.0;
+    translation_step[0] = 0.0; translation_step[1] = 0.0; translation_step[2] = 0.0;
+    color[0] = 1.0; color[1] = 1.0; color[2] = 1.0; color[3] = 1.0;
     count++;
   }
   ~Explosion_t () { count--; }
@@ -236,14 +236,14 @@ struct Explosion_t
              int = 0,            // age
              float = 1.0);       // size
   void init (const float (&)[3], // position
-             const float (&)[3], // direction
+             const float (&)[3], // translation step
              const float (&)[4], // color
              int = 0,            // age
              float = 1.0);       // size
 
   float position[3];
-  float velocity[3];
-  float clr[4];
+  float translation_step[3];
+  float color[4];
   int   age;
   float size;
 

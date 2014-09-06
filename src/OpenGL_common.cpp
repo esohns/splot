@@ -330,10 +330,13 @@ Splot_OpenGLCommon::drawLevelComplete ()
     return;
   } // end IF
 
+  // fade out music
+  float fade_factor = -state.player_success/450.0F;
   if (state.player_success < 0)
   {
     float vol =
-      configuration.vol_music-(configuration.vol_music*(-state.player_success/450.0F));
+      configuration.vol_music-(configuration.vol_music*fade_factor);
+    if (vol < 0.0) vol = 0.0;
     state.audio->setMusicVolume (vol);
   } // end IF
 

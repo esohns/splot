@@ -118,7 +118,7 @@ Splot_Screen::put ()
   //const Configuration_t& configuration =
   //  SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
   //if (configuration.debug)
-  //  state.power_ups->dump ();
+  //  state.enemies->getFleet ()->dump ();
 }
 
 void
@@ -196,7 +196,7 @@ Splot_Screen::add (int releaseTime_in,
   state.screen_elements.push_back (screen_element);
 }
 
-void
+unsigned int
 Splot_Screen::add (const EnemyWave_t& wave_in)
 {
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
@@ -223,21 +223,33 @@ Splot_Screen::add (const EnemyWave_t& wave_in)
     {
       case FORMATION_ARROW:
         position[0] = wave_in.position[0]+wave_in.xJitter*iteration;
-        enemy_aircraft = NULL;
-        ACE_NEW (enemy_aircraft,
-                 Splot_EnemyAircraft (wave_in.type,
-                                      position,
-                                      0.0));
+        enemy_aircraft = Splot_EnemyAircraft::make (wave_in.type,
+                                                    position,
+                                                    0.0);
+        if (!enemy_aircraft)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to Splot_EnemyAircraft::make(%d), continuing\n"),
+                      wave_in.type));
+
+          break;
+        } // end IF
         Splot_Screen::add (i, enemy_aircraft);
         num++;
         if (iteration > 0)
         {
           position[0] = wave_in.position[0]-wave_in.xJitter*iteration;
-          enemy_aircraft = NULL;
-          ACE_NEW (enemy_aircraft,
-                   Splot_EnemyAircraft (wave_in.type,
-                                        position,
-                                        0.0));
+          enemy_aircraft = Splot_EnemyAircraft::make (wave_in.type,
+                                                      position,
+                                                      0.0);
+          if (!enemy_aircraft)
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to Splot_EnemyAircraft::make(%d), continuing\n"),
+                        wave_in.type));
+
+            break;
+          } // end IF
           Splot_Screen::add (i, enemy_aircraft);
           num++;
         } // end IF
@@ -246,11 +258,17 @@ Splot_Screen::add (const EnemyWave_t& wave_in)
         break;
       case FORMATION_NONE:
         position[0] = wave_in.position[0]+wave_in.xJitter*SRAND;
-        enemy_aircraft = NULL;
-        ACE_NEW (enemy_aircraft,
-                 Splot_EnemyAircraft (wave_in.type,
-                                      position,
-                                      0.0));
+        enemy_aircraft = Splot_EnemyAircraft::make (wave_in.type,
+                                                    position,
+                                                    1.0);
+        if (!enemy_aircraft)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to Splot_EnemyAircraft::make(%d), continuing\n"),
+                      wave_in.type));
+
+          break;
+        } // end IF
         Splot_Screen::add (i, enemy_aircraft);
         num++;
         interval = period+(int)(SRAND*jitter);
@@ -269,21 +287,30 @@ Splot_Screen::add (const EnemyWave_t& wave_in)
                     ACE_TEXT ("unknown/invalid formation (was: %d), returning\n"),
                     wave_in.formation));
 
-        return;
+        return num;
     } // end SWITCH
   } // end FOR
 
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("formation: %d: added %d enemy aircraft(s)...\n"),
-              wave_in.formation, num));
+  return num;
 }
 
-Splot_EnemyAircraft*
+bool
 Splot_Screen::makeAdd (EnemyAircraftType_t type_in,
                        const float (&position_in)[3],
                        int releaseTime_in)
 {
-  Splot_EnemyAircraft* enemy = NULL;
+  Splot_EnemyAircraft* enemy_aircraft = Splot_EnemyAircraft::make (type_in,
+                                                                   position_in,
+                                                                   1.0F);
+  if (!enemy_aircraft)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Splot_EnemyAircraft::make(%d), aborting\n"),
+                type_in));
+
+    return false;
+  } // end IF
+
   //if (deadPool[et]->next)
   //{
   //  addEnemy = deadPool[et]->next;
@@ -291,19 +318,16 @@ Splot_Screen::makeAdd (EnemyAircraftType_t type_in,
   //  addEnemy->init(pos);
   //} // end IF
   //else
-  ACE_NEW_RETURN (enemy,
-                  Splot_EnemyAircraft (type_in, position_in),
-                  NULL);
-  Splot_Screen::add (releaseTime_in, enemy);
+  Splot_Screen::add (releaseTime_in, enemy_aircraft);
 
-  return enemy;
+  return true;
 }
 
 void
 Splot_Screen::loadLevel ()
 {
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-
+  int num_ships = 0;
   int num_iterations = 12000;
   ////	int	numIterations = (int)(11100 * game->gameSkill);
   ////	int	numIterations = (int)(1100 * game->gameSkill);
@@ -313,9 +337,8 @@ Splot_Screen::loadLevel ()
   float r, d;
   int wave_duration = 500;
   int i = 600;
-#ifndef DEBUG_NO_ENEMIES
-  Splot_Screen::addStraightWave (1, i, 0.4F);
-#endif
+  if (!DEBUG_NO_ENEMIES)
+    num_ships += Splot_Screen::addStraightWave (1, i, 0.4F);
   while (i < num_iterations-1000)
   {
     if (i < 1500)
@@ -323,43 +346,47 @@ Splot_Screen::loadLevel ()
     else
       d = 1.0F;
     r = FRAND;
-#ifndef DEBUG_NO_ENEMIES
-    if      (r < 0.15) Splot_Screen::addStraightArrowWave (i, wave_duration, d);
-    else if (r < 0.25) Splot_Screen::addOmniArrowWave (i, wave_duration, d);
-    else if (r > 0.60) Splot_Screen::addStraightWave (i, wave_duration, d);
-    else               Splot_Screen::addOmniWave (i, wave_duration, d);
-#endif
+    if (!DEBUG_NO_ENEMIES)
+    {
+      if      (r < 0.15) num_ships += Splot_Screen::addStraightArrowWave (i, wave_duration, d);
+      else if (r < 0.25) num_ships += Splot_Screen::addOmniArrowWave (i, wave_duration, d);
+      else if (r > 0.60) num_ships += Splot_Screen::addStraightWave (i, wave_duration, d);
+      else               num_ships += Splot_Screen::addOmniWave (i, wave_duration, d);
+    } // end IF
     i += wave_duration;
-    wave_duration = (int)(600.0*state.game_skill) + (int)(100*SRAND);
-    i += 50 + (int)(50*FRAND);
+    wave_duration = (int)(600.0*state.game_skill)+(int)(100*SRAND);
+    i += 50+(int)(50*FRAND);
   } // end WHILE
 
   //-- ray gun enemy starts halfway through...
-  EnemyWave_t ray_wave;
-  ray_wave.type = ENEMYAIRCRAFT_RAYGUN;
-  ray_wave.xJitter = 8.0;
-  ray_wave.setFrequency (60, 5);
-  ray_wave.setFrequency (2000, 1000);
-  ray_wave.setInOut (num_iterations/2, i-1000);
-  //ray_wave.setInOut (100, i-1000);
-#ifndef DEBUG_NO_ENEMIES
-  Splot_Screen::add (ray_wave);
-#endif
+  EnemyWave_t wave;
+  wave.type = ENEMYAIRCRAFT_RAYGUN;
+  wave.xJitter = 8.0;
+  wave.setFrequency (60, 5);
+  wave.setFrequency (2000, 1000);
+  wave.setInOut (num_iterations/2, i-1000);
+  //wave.setInOut (100, i-1000);
+  if (!DEBUG_NO_ENEMIES)
+    num_ships += Splot_Screen::add (wave);
 
   //-- Boss
-  EnemyWave_t boss_wave;
-  boss_wave.type = ENEMYAIRCRAFT_BOSS_0;
-  boss_wave.setInOut (i+75, i+1000);
-  boss_wave.setPos (0.0, 15.0);
-  boss_wave.xJitter = 4.0;
-  boss_wave.setFrequency (5000, 0);
-#ifndef DEBUG_NO_ENEMIES
-  Splot_Screen::add (boss_wave);
-#endif
+  wave.type = ENEMYAIRCRAFT_BOSS_0;
+  wave.setInOut (i+75, i+1000);
+  wave.setPos (0.0, 15.0);
+  wave.xJitter = 4.0;
+  wave.setFrequency (5000, 0);
+  if (!DEBUG_NO_ENEMIES)
+    num_ships += Splot_Screen::add (wave);
 
   //-- Ammunition and PowerUps
-  Splot_Screen::addPowerUps (POWERUPCATEGORY_AMMUNITION,    0, num_iterations+9000);
-  Splot_Screen::addPowerUps (POWERUPCATEGORY_REPAIR_SHIELD, 0, num_iterations+9000);
+  if (!DEBUG_NO_AMMUNITION)
+    Splot_Screen::addPowerUps (POWERUPCATEGORY_AMMUNITION,    0, num_iterations+9000);
+  if (!DEBUG_NO_POWERUPS)
+    Splot_Screen::addPowerUps (POWERUPCATEGORY_REPAIR_SHIELD, 0, num_iterations+9000);
+
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("added %u enemy aircraft(s)\n"),
+  //            num_ships));
 }
 
 void
@@ -413,6 +440,7 @@ Splot_Screen::loadLevel1 ()
 void
 Splot_Screen::loadLevel2 ()
 {
+  int num_ships = 0;
   int num_iterations = 14000;
   ////int	num_iterations = 1400;
 
@@ -422,7 +450,8 @@ Splot_Screen::loadLevel2 ()
   float r;
   int wave_duration = 500;	
   int i = 500;
-  Splot_Screen::addStraightWave (100, i, 0.4F);
+  if (!DEBUG_NO_ENEMIES)
+    num_ships += Splot_Screen::addStraightWave (100, i, 0.4F);
   while (i < num_iterations)
   {
     r = FRAND;
@@ -432,55 +461,69 @@ Splot_Screen::loadLevel2 ()
         waves == 11 || waves == 12 ||
         waves == 15 || waves == 16 )
     {
-      Splot_Screen::addGnatWave (i, wave_duration, 1.0, false);
+      if (!DEBUG_NO_ENEMIES)
+        num_ships += Splot_Screen::addGnatWave (i, wave_duration, 1.0, false);
     } // end IF
     else if (waves < 5)
     {
-      if      (r < 0.20) Splot_Screen::addStraightArrowWave (i, wave_duration);
-      else if (r < 0.30) Splot_Screen::addOmniArrowWave (i, wave_duration);
-      else if (r < 0.60) Splot_Screen::addOmniWave (i, wave_duration);
-      else               Splot_Screen::addStraightWave (i, wave_duration);
+      if (!DEBUG_NO_ENEMIES)
+      {
+        if      (r < 0.20) num_ships += Splot_Screen::addStraightArrowWave (i, wave_duration);
+        else if (r < 0.30) num_ships += Splot_Screen::addOmniArrowWave (i, wave_duration);
+        else if (r < 0.60) num_ships += Splot_Screen::addOmniWave (i, wave_duration);
+        else               num_ships += Splot_Screen::addStraightWave (i, wave_duration);
+      } // end IF
     } // end ELSE
     else
     {
-      if      (r < 0.25) Splot_Screen::addGnatWave (i, wave_duration);
-      else if (r < 0.35) Splot_Screen::addStraightArrowWave (i, wave_duration);
-      else if (r < 0.50) Splot_Screen::addOmniArrowWave (i, wave_duration);
-      else if (r < 0.80) Splot_Screen::addOmniWave (i, wave_duration);
-      else               Splot_Screen::addStraightWave (i, wave_duration);
+      if (!DEBUG_NO_ENEMIES)
+      {
+        if      (r < 0.25) num_ships += Splot_Screen::addGnatWave (i, wave_duration);
+        else if (r < 0.35) num_ships += Splot_Screen::addStraightArrowWave (i, wave_duration);
+        else if (r < 0.50) num_ships += Splot_Screen::addOmniArrowWave (i, wave_duration);
+        else if (r < 0.80) num_ships += Splot_Screen::addOmniWave (i, wave_duration);
+        else               num_ships += Splot_Screen::addStraightWave (i, wave_duration);
+      } // end IF
     } // end ELSE
     i += wave_duration;
-    wave_duration = (int)(700.0 + 100.0*SRAND);
-    i += 50 + (int)(50*FRAND);
+    wave_duration = (int)(700.0+100.0*SRAND);
+    i += 50+(int)(50*FRAND);
   } // end WHILE
 
-  EnemyWave_t gnat_wave;
-  gnat_wave.type = ENEMYAIRCRAFT_GNAT;
-  gnat_wave.setInOut (2200, 5000);
-  gnat_wave.setPos (FRAND*4.0F, 10.0F);
-  gnat_wave.setFrequency (150, 140);
-  gnat_wave.xJitter = 5.0;
-  Splot_Screen::add (gnat_wave);
-
-  //gnat_wave.setInOut (8000, 11000);
+  EnemyWave_t wave;
+  wave.type = ENEMYAIRCRAFT_GNAT;
+  wave.setInOut (2200, 5000);
+  wave.setPos (FRAND*4.0F, 10.0F);
+  wave.setFrequency (150, 140);
+  wave.xJitter = 5.0;
+  if (!DEBUG_NO_ENEMIES)
+    num_ships += Splot_Screen::add (wave);
+  //wave.setInOut (8000, 11000);
 
   //-- Boss
-  EnemyWave_t boss_wave;
-  boss_wave.type = ENEMYAIRCRAFT_BOSS_1;
-  boss_wave.setPos (0.0, 15.0);
-  boss_wave.xJitter = 4.0;
-  boss_wave.setFrequency (5000, 0);
-  boss_wave.setInOut (num_iterations+700, num_iterations+710);
-  Splot_Screen::add (boss_wave);
+  wave.type = ENEMYAIRCRAFT_BOSS_1;
+  wave.setPos (0.0, 15.0);
+  wave.xJitter = 4.0;
+  wave.setFrequency (5000, 0);
+  wave.setInOut (num_iterations+700, num_iterations+710);
+  if (!DEBUG_NO_ENEMIES)
+    num_ships += Splot_Screen::add (wave);
 
   //-- Ammunition and PowerUps
-  Splot_Screen::addPowerUps (POWERUPCATEGORY_AMMUNITION,    0, num_iterations+9000);
-  Splot_Screen::addPowerUps (POWERUPCATEGORY_REPAIR_SHIELD, 0, num_iterations+9000);
+  if (!DEBUG_NO_AMMUNITION)
+    Splot_Screen::addPowerUps (POWERUPCATEGORY_AMMUNITION,    0, num_iterations+9000);
+  if (!DEBUG_NO_POWERUPS)
+    Splot_Screen::addPowerUps (POWERUPCATEGORY_REPAIR_SHIELD, 0, num_iterations+9000);
+
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("added %u enemy aircraft(s)\n"),
+  //            num_ships));
 }
 
 void
 Splot_Screen::loadLevel3 ()
 {
+  int num_ships = 0;
   int	num_iterations = 14000;
   //int num_iterations = 1400;
 
@@ -490,7 +533,8 @@ Splot_Screen::loadLevel3 ()
   float r;
   int wave_duration = 500;	
   int i = 500;
-  Splot_Screen::addStraightWave (100, i, 0.5);
+  if (!DEBUG_NO_ENEMIES)
+    num_ships += Splot_Screen::addStraightWave (100, i, 0.5);
   while (i < num_iterations)
   {
     r = FRAND;
@@ -499,87 +543,109 @@ Splot_Screen::loadLevel3 ()
     if (waves ==  5 || 
         waves == 12 )
     {
-      Splot_Screen::addGnatWave (i, wave_duration, 0.9F, false);
+      if (!DEBUG_NO_ENEMIES)
+        num_ships += Splot_Screen::addGnatWave (i, wave_duration, 0.9F, false);
     } // end IF
     else if (waves ==  6 ||
              waves == 11 ||
              waves == 15 || waves == 16 )
     {
-      EnemyWave_t tank_wave;
-      tank_wave.type = ENEMYAIRCRAFT_TANK;
-      tank_wave.setPos (0.0, 11.0);
-      tank_wave.xJitter = 10.0;
-      tank_wave.setFrequency (700, 100);
-      tank_wave.setInOut (i+50, wave_duration-50);
-      Splot_Screen::add (tank_wave);
-
-      Splot_Screen::addStraightWave (i, 300);
+      EnemyWave_t wave;
+      wave.type = ENEMYAIRCRAFT_TANK;
+      wave.setPos (0.0, 11.0);
+      wave.xJitter = 10.0;
+      wave.setFrequency (700, 100);
+      wave.setInOut (i+50, wave_duration-50);
+      if (!DEBUG_NO_ENEMIES)
+        num_ships += Splot_Screen::add (wave);
+      if (!DEBUG_NO_ENEMIES)
+        num_ships += Splot_Screen::addStraightWave (i, 300);
     } // end ELSE
     else if (waves < 5)
     {
-      if      (r < 0.20) Splot_Screen::addStraightArrowWave (i, wave_duration);
-      else if (r < 0.30) Splot_Screen::addOmniArrowWave (i, wave_duration);
-      else if (r < 0.60) Splot_Screen::addOmniWave (i, wave_duration);
-      else               Splot_Screen::addStraightWave (i, wave_duration);
+      if (!DEBUG_NO_ENEMIES)
+      {
+        if      (r < 0.20) num_ships += Splot_Screen::addStraightArrowWave (i, wave_duration);
+        else if (r < 0.30) num_ships += Splot_Screen::addOmniArrowWave (i, wave_duration);
+        else if (r < 0.60) num_ships += Splot_Screen::addOmniWave (i, wave_duration);
+        else               num_ships += Splot_Screen::addStraightWave (i, wave_duration);
+      } // end IF
     } // end ELSE
     else
     {
-      if      (r < 0.25) Splot_Screen::addGnatWave (i, wave_duration);
-      else if (r < 0.35) Splot_Screen::addStraightArrowWave (i, wave_duration);
-      else if (r < 0.50) Splot_Screen::addOmniArrowWave (i, wave_duration);
-      else if (r < 0.80) Splot_Screen::addOmniWave (i, wave_duration);
-      else               Splot_Screen::addStraightWave (i, wave_duration);
+      if (!DEBUG_NO_ENEMIES)
+      {
+        if      (r < 0.25) num_ships += Splot_Screen::addGnatWave (i, wave_duration);
+        else if (r < 0.35) num_ships += Splot_Screen::addStraightArrowWave (i, wave_duration);
+        else if (r < 0.50) num_ships += Splot_Screen::addOmniArrowWave (i, wave_duration);
+        else if (r < 0.80) num_ships += Splot_Screen::addOmniWave (i, wave_duration);
+        else               num_ships += Splot_Screen::addStraightWave (i, wave_duration);
+      } // end IF
     } // end ELSE
     i += wave_duration;
-    wave_duration = (int)(700.0 + 100.0*SRAND);
-    i += 50 + (int)(50*FRAND);
+    wave_duration = (int)(700.0+100.0*SRAND);
+    i += 50+(int)(50*FRAND);
   } // end WHILE
 
-  EnemyWave_t gnat_wave;
-  gnat_wave.type = ENEMYAIRCRAFT_GNAT;
-  gnat_wave.setInOut (3000, 5000);
-  gnat_wave.setPos (FRAND*4.0F, 10.0F);
-  gnat_wave.setFrequency (150, 140);
-  gnat_wave.xJitter = 5.0;
-  Splot_Screen::add (gnat_wave);
+  EnemyWave_t wave;
+  wave.type = ENEMYAIRCRAFT_GNAT;
+  wave.setInOut (3000, 5000);
+  wave.setPos (FRAND*4.0F, 10.0F);
+  wave.setFrequency (150, 140);
+  wave.xJitter = 5.0;
+  if (!DEBUG_NO_ENEMIES)
+    num_ships += Splot_Screen::add (wave);
 
-  gnat_wave.setInOut (8000, 11000);
-  Splot_Screen::add (gnat_wave);
+  wave.setInOut (8000, 11000);
+  if (!DEBUG_NO_ENEMIES)
+    num_ships += Splot_Screen::add (wave);
 
   //-- give some extra power ups...
-  Splot_Screen::addPowerUps (POWERUPCATEGORY_AMMUNITION, 0, 2000, 500, 700, 0);
-  Splot_Screen::addPowerUps (POWERUPCATEGORY_AMMUNITION, 10000, 2000, 500, 700, 0);
-  Splot_Screen::addPowerUps (POWERUPCATEGORY_REPAIR_SHIELD, 3000, 2000, 2500, 2500, 0);
-  Splot_Screen::addPowerUps (POWERUPCATEGORY_REPAIR_SHIELD, 9500, 2000, 2500, 2500, 0);
-  Splot_Screen::addPowerUps (POWERUPCATEGORY_REPAIR_SHIELD, num_iterations, 2000, 2500, 2500, 1);
+  if (!DEBUG_NO_AMMUNITION)
+  {
+    Splot_Screen::addPowerUps (POWERUPCATEGORY_AMMUNITION, 0, 2000, 500, 700, 0);
+    Splot_Screen::addPowerUps (POWERUPCATEGORY_AMMUNITION, 10000, 2000, 500, 700, 0);
+  } // end IF
+  if (!DEBUG_NO_POWERUPS)
+  {
+    Splot_Screen::addPowerUps (POWERUPCATEGORY_REPAIR_SHIELD, 3000, 2000, 2500, 2500, 0);
+    Splot_Screen::addPowerUps (POWERUPCATEGORY_REPAIR_SHIELD, 9500, 2000, 2500, 2500, 0);
+    Splot_Screen::addPowerUps (POWERUPCATEGORY_REPAIR_SHIELD, num_iterations, 2000, 2500, 2500, 1);
+  } // end IF
 
   //-- Boss
-  EnemyWave_t boss_wave;
-  boss_wave.type = ENEMYAIRCRAFT_BOSS_1;
-  boss_wave.setPos (0.0, 15.0);
-  boss_wave.xJitter = 4.0;
-  boss_wave.setFrequency (5000, 0);
-  boss_wave.setInOut (num_iterations+700, num_iterations+710);
-  Splot_Screen::add (boss_wave);
+  wave.type = ENEMYAIRCRAFT_BOSS_1;
+  wave.setPos (0.0, 15.0);
+  wave.xJitter = 4.0;
+  wave.setFrequency (5000, 0);
+  wave.setInOut (num_iterations+700, num_iterations+710);
+  if (!DEBUG_NO_ENEMIES)
+    num_ships += Splot_Screen::add (wave);
 
-  EnemyWave_t tank_wave;
-  tank_wave.type = ENEMYAIRCRAFT_TANK;
-  tank_wave.setPos (0.0, 11.0);
-  tank_wave.xJitter = 10.0;
-  tank_wave.setFrequency (2000, 200);
-  tank_wave.setInOut (num_iterations+400, num_iterations+3000);
-  Splot_Screen::add (tank_wave);
+  wave.type = ENEMYAIRCRAFT_TANK;
+  wave.setPos (0.0, 11.0);
+  wave.xJitter = 10.0;
+  wave.setFrequency (2000, 200);
+  wave.setInOut (num_iterations+400, num_iterations+3000);
+  if (!DEBUG_NO_ENEMIES)
+    num_ships += Splot_Screen::add (wave);
 
   //-- Ammunition and PowerUps
-  Splot_Screen::addPowerUps (POWERUPCATEGORY_AMMUNITION,    0, num_iterations+9000);
-  Splot_Screen::addPowerUps (POWERUPCATEGORY_REPAIR_SHIELD, 0, num_iterations+9000);
+  if (!DEBUG_NO_AMMUNITION)
+    Splot_Screen::addPowerUps (POWERUPCATEGORY_AMMUNITION,    0, num_iterations+9000);
+  if (!DEBUG_NO_POWERUPS)
+    Splot_Screen::addPowerUps (POWERUPCATEGORY_REPAIR_SHIELD, 0, num_iterations+9000);
+
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("added %u enemy aircraft(s)\n"),
+  //            num_ships));
 }
 
 void
 Splot_Screen::loadLevel4 ()
 {
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-
+  int num_ships = 0;
   int num_iterations = 12000;
 
   //clearDeadPool ();
@@ -587,7 +653,8 @@ Splot_Screen::loadLevel4 ()
   float r, d;
   int wave_duration = 500;
   int i = 600;
-  addStraightWave (1, i, 0.4F);
+  if (!DEBUG_NO_ENEMIES)
+    num_ships += Splot_Screen::addStraightWave (1, i, 0.4F);
   while (i < num_iterations-1000)
   {
     if (i < 1500)
@@ -595,58 +662,68 @@ Splot_Screen::loadLevel4 ()
     else
       d = 1.0F;
     r = FRAND;
-    if      (r < 0.15) Splot_Screen::addStraightArrowWave (i, wave_duration, d);
-    else if (r < 0.25) Splot_Screen::addOmniArrowWave (i, wave_duration, d);
-    else if (r > 0.60) Splot_Screen::addStraightWave (i, wave_duration, d);
-    else
+    if (!DEBUG_NO_ENEMIES)
     {
-      if      (r < 0.25) Splot_Screen::addGnatWave (i, wave_duration);
-      else if (r < 0.35) Splot_Screen::addStraightArrowWave (i, wave_duration);
-      else if (r < 0.50) Splot_Screen::addOmniArrowWave (i, wave_duration);
-      else if (r < 0.80) Splot_Screen::addOmniWave (i, wave_duration);
-      else               Splot_Screen::addStraightWave (i, wave_duration);
-    } // end ELSE
-
+      if      (r < 0.15) num_ships += Splot_Screen::addStraightArrowWave (i, wave_duration, d);
+      else if (r < 0.25) num_ships += Splot_Screen::addOmniArrowWave (i, wave_duration, d);
+      else if (r > 0.60) num_ships += Splot_Screen::addStraightWave (i, wave_duration, d);
+      else
+      {
+        if      (r < 0.25) num_ships += Splot_Screen::addGnatWave (i, wave_duration);
+        else if (r < 0.35) num_ships += Splot_Screen::addStraightArrowWave (i, wave_duration);
+        else if (r < 0.50) num_ships += Splot_Screen::addOmniArrowWave (i, wave_duration);
+        else if (r < 0.80) num_ships += Splot_Screen::addOmniWave (i, wave_duration);
+        else               num_ships += Splot_Screen::addStraightWave (i, wave_duration);
+      } // end ELSE
+    } // end IF
     i += wave_duration;
     wave_duration = (int)(600.0*state.game_skill)+(int)(100*SRAND);
     i += 50 + (int)(50*FRAND);
   } // end WHILE
 
-  EnemyWave_t gnat_wave;
-  gnat_wave.type = ENEMYAIRCRAFT_GNAT;
-  gnat_wave.setInOut (3000, 5000);
-  gnat_wave.setPos (FRAND*4.0F, 10.0F);
-  gnat_wave.setFrequency (150, 140);
-  gnat_wave.xJitter = 5.0;
-  Splot_Screen::add (gnat_wave);
+  EnemyWave_t wave;
+  wave.type = ENEMYAIRCRAFT_GNAT;
+  wave.setInOut (3000, 5000);
+  wave.setPos (FRAND*4.0F, 10.0F);
+  wave.setFrequency (150, 140);
+  wave.xJitter = 5.0;
+  if (!DEBUG_NO_ENEMIES)
+    num_ships += Splot_Screen::add (wave);
 
-  gnat_wave.setInOut (8000, 11000);
-  Splot_Screen::add (gnat_wave);
+  wave.setInOut (8000, 11000);
+  if (!DEBUG_NO_ENEMIES)
+    num_ships += Splot_Screen::add (wave);
 
   //-- ray gun enemy starts halfway through...
-  EnemyWave_t ray_wave;
-  ray_wave.type = ENEMYAIRCRAFT_RAYGUN;
-  ray_wave.xJitter = 8.0;
-  ray_wave.setFrequency (60, 5);
-  ray_wave.setFrequency (2000, 1000);
-  ray_wave.setInOut (num_iterations/2, i-1000);
-  Splot_Screen::add (ray_wave);
+  wave.type = ENEMYAIRCRAFT_RAYGUN;
+  wave.xJitter = 8.0;
+  wave.setFrequency (60, 5);
+  wave.setFrequency (2000, 1000);
+  wave.setInOut (num_iterations/2, i-1000);
+  if (!DEBUG_NO_ENEMIES)
+    num_ships += Splot_Screen::add (wave);
 
   //-- Boss
-  EnemyWave_t boss_wave;
-  boss_wave.type = ENEMYAIRCRAFT_BOSS_0;
-  boss_wave.setInOut (i+75, i+1000);
-  boss_wave.setPos (0.0, 15.0);
-  boss_wave.xJitter = 4.0;
-  boss_wave.setFrequency (5000, 0);
-  Splot_Screen::add (boss_wave);
+  wave.type = ENEMYAIRCRAFT_BOSS_0;
+  wave.setInOut (i+75, i+1000);
+  wave.setPos (0.0, 15.0);
+  wave.xJitter = 4.0;
+  wave.setFrequency (5000, 0);
+  if (!DEBUG_NO_ENEMIES)
+    num_ships += Splot_Screen::add (wave);
 
   //-- Ammunition and PowerUps
-  Splot_Screen::addPowerUps (POWERUPCATEGORY_AMMUNITION,    0, num_iterations+9000);
-  Splot_Screen::addPowerUps (POWERUPCATEGORY_REPAIR_SHIELD, 0, num_iterations+9000);
+  if (!DEBUG_NO_AMMUNITION)
+    Splot_Screen::addPowerUps (POWERUPCATEGORY_AMMUNITION,    0, num_iterations+9000);
+  if (!DEBUG_NO_POWERUPS)
+    Splot_Screen::addPowerUps (POWERUPCATEGORY_REPAIR_SHIELD, 0, num_iterations+9000);
+
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("added %u enemy aircraft(s)\n"),
+  //            num_ships));
 }
 
-void
+unsigned int
 Splot_Screen::addStraightWave (int o, int duration, float density)
 {
   EnemyWave_t straight_wave;
@@ -654,147 +731,153 @@ Splot_Screen::addStraightWave (int o, int duration, float density)
   straight_wave.xJitter = 8.0;
   straight_wave.setFrequency ((int)(60*(1.0/density)), 5);
   straight_wave.setInOut (o, o+duration);
-  Splot_Screen::add (straight_wave);
+  return Splot_Screen::add (straight_wave);
 }
 
-void
+unsigned int
 Splot_Screen::addOmniWave (int o, int duration, float density)
 {
-  EnemyWave_t omni_wave;
-  omni_wave.type = ENEMYAIRCRAFT_OMNI;
-  omni_wave.xJitter = 1.0;
-  omni_wave.setFrequency ((int)(39*(1.0/density)), 7);
-  omni_wave.setPos ((SRAND*8.0F), 9.0F);
-  omni_wave.setInOut (o, o+(duration/2)+50);
-  Splot_Screen::add (omni_wave);
-  omni_wave.setPos ((SRAND*8.0F), 9.0F);
-  omni_wave.setInOut (o+(duration/2)-50, o+duration);
-  Splot_Screen::add (omni_wave);
+  int num_ships = 0;
 
-  EnemyWave_t straight_wave;
-  straight_wave.type = ENEMYAIRCRAFT_STRAIGHT;
-  straight_wave.xJitter = 8.0;
-  straight_wave.setFrequency (200, 50);
-  straight_wave.setInOut (o+100, o+duration);
-  Splot_Screen::add (straight_wave);
+  EnemyWave_t wave;
+  wave.type = ENEMYAIRCRAFT_OMNI;
+  wave.xJitter = 1.0;
+  wave.setFrequency ((int)(39*(1.0/density)), 7);
+  wave.setPos ((SRAND*8.0F), 9.0F);
+  wave.setInOut (o, o+(duration/2)+50);
+  num_ships += Splot_Screen::add (wave);
+
+  wave.setPos ((SRAND*8.0F), 9.0F);
+  wave.setInOut (o+(duration/2)-50, o+duration);
+  num_ships += Splot_Screen::add (wave);
+
+  wave.type = ENEMYAIRCRAFT_STRAIGHT;
+  wave.xJitter = 8.0;
+  wave.setFrequency (200, 50);
+  wave.setInOut (o+100, o+duration);
+  num_ships += Splot_Screen::add (wave);
+
+  return num_ships;
 }
 
-void
+unsigned int
 Splot_Screen::addStraightArrowWave (int o, int /*duration*/, float density)
 {
+  int num_ships = 0;
   float c = SRAND;
 
-  EnemyWave_t straight_arrow;
-  straight_arrow.type = ENEMYAIRCRAFT_STRAIGHT;
-  straight_arrow.setInOut (o, o+130);
-  straight_arrow.setPos (c, 10.0);
-  straight_arrow.setFrequency ((int)(50*(1.0/density)), 0);
-  straight_arrow.xJitter = 1.6F;
-  straight_arrow.formation = FORMATION_ARROW;
-  Splot_Screen::add (straight_arrow);
+  EnemyWave_t wave;
+  wave.type = ENEMYAIRCRAFT_STRAIGHT;
+  wave.setInOut (o, o+130);
+  wave.setPos (c, 10.0);
+  wave.setFrequency ((int)(50*(1.0/density)), 0);
+  wave.xJitter = 1.6F;
+  wave.formation = FORMATION_ARROW;
+  num_ships += Splot_Screen::add (wave);
 
-  EnemyWave_t omni_wave;
-  omni_wave.type = ENEMYAIRCRAFT_OMNI;
-  omni_wave.setFrequency ((int)(15*(1.0/density)), 5);
-  omni_wave.setPos (c, 9.0);
-  omni_wave.xJitter = 2.0F;
-  omni_wave.setInOut (o+220, o+260);
-  Splot_Screen::add (omni_wave);
+  wave.type = ENEMYAIRCRAFT_OMNI;
+  wave.setFrequency ((int)(15*(1.0/density)), 5);
+  wave.setPos (c, 9.0);
+  wave.xJitter = 2.0F;
+  wave.setInOut (o+220, o+260);
+  num_ships += Splot_Screen::add (wave);
 
-  omni_wave.xJitter = 3.0F;
-  omni_wave.setFrequency ((int)(22*(1.0/density)), 5);
-  omni_wave.setInOut (o+440, o+600);
-  Splot_Screen::add (omni_wave);
+  wave.xJitter = 3.0F;
+  wave.setFrequency ((int)(22*(1.0/density)), 5);
+  wave.setInOut (o+440, o+600);
+  num_ships += Splot_Screen::add (wave);
+
+  return num_ships;
 }
 
-void
+unsigned int
 Splot_Screen::addOmniArrowWave (int o, int /*duration*/, float density)
 {
+  int num_ships = 0;
   float c = SRAND*2.0F;
 
-  EnemyWave_t omni_arrow;
-  omni_arrow.type = ENEMYAIRCRAFT_OMNI;
-  omni_arrow.formation = FORMATION_ARROW;
-  omni_arrow.setPos (c, 10.0);
-  omni_arrow.setFrequency ((int)(25*(1.0/density)), 0);
-  omni_arrow.xJitter = 1.0;
-  omni_arrow.setInOut (o+50, o+150);
-  Splot_Screen::add (omni_arrow);
+  EnemyWave_t wave;
+  wave.type = ENEMYAIRCRAFT_OMNI;
+  wave.formation = FORMATION_ARROW;
+  wave.setPos (c, 10.0);
+  wave.setFrequency ((int)(25*(1.0/density)), 0);
+  wave.xJitter = 1.0;
+  wave.setInOut (o+50, o+150);
+  num_ships += Splot_Screen::add (wave);
 
-  omni_arrow.setInOut (o+250, o+320);
-  Splot_Screen::add (omni_arrow);
-  omni_arrow.setInOut (o+300, o+330);
-  Splot_Screen::add (omni_arrow);
-  omni_arrow.setInOut (o+350, o+470);
-  Splot_Screen::add (omni_arrow);
+  wave.setInOut (o+250, o+320);
+  num_ships += Splot_Screen::add (wave);
+  wave.setInOut (o+300, o+330);
+  num_ships += Splot_Screen::add (wave);
+  wave.setInOut (o+350, o+470);
+  num_ships += Splot_Screen::add (wave);
 
-  omni_arrow.setFrequency (5, 0);
-  omni_arrow.xJitter = 1.8F;
-  omni_arrow.setInOut (o+550, o+555);
-  Splot_Screen::add (omni_arrow);
+  wave.setFrequency (5, 0);
+  wave.xJitter = 1.8F;
+  wave.setInOut (o+550, o+555);
+  num_ships += Splot_Screen::add (wave);
+
+  return num_ships;
 }
 
-void
+unsigned int
 Splot_Screen::addGnatWave (int o, int duration, float density, bool mixed)
 {
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-
+  int num_ships = 0;
   float c = -FRAND*3.0F;
-
+  EnemyWave_t wave;
   if (mixed)
   {
-    EnemyWave_t straight_arrow;
-    straight_arrow.type = ENEMYAIRCRAFT_STRAIGHT;
-    straight_arrow.setInOut (o+50, o+duration);
-    straight_arrow.setPos (c, 10.0);
-    straight_arrow.setFrequency ((int)(90*(1.0/density)), 20);
-    straight_arrow.xJitter = 8.0;
+    wave.type = ENEMYAIRCRAFT_STRAIGHT;
+    wave.setInOut (o+50, o+duration);
+    wave.setPos (c, 10.0);
+    wave.setFrequency ((int)(90 * (1.0 / density)), 20);
+    wave.xJitter = 8.0;
     if (c > 0.0)
-    {
-      Splot_Screen::add (straight_arrow);
-    } // end IF
+      num_ships += Splot_Screen::add (wave);
     else
     {
-      EnemyWave_t omni_arrow;
-      omni_arrow.type = ENEMYAIRCRAFT_OMNI;
-      omni_arrow.setInOut (o+50, o+130);
-      omni_arrow.setPos (c, 10.0);
-      omni_arrow.setFrequency ((int)(20*(1.0/density)), 0);
-      omni_arrow.xJitter = 1.1F;
-      Splot_Screen::add (omni_arrow);
-      omni_arrow.setInOut (o+320, o+400);
-      Splot_Screen::add (omni_arrow);
+      EnemyWave_t wave_2;
+      wave_2.type = ENEMYAIRCRAFT_OMNI;
+      wave_2.setInOut (o+50, o+130);
+      wave_2.setPos (c, 10.0);
+      wave_2.setFrequency ((int)(20*(1.0/density)), 0);
+      wave_2.xJitter = 1.1F;
+      num_ships += Splot_Screen::add (wave_2);
+      wave_2.setInOut (o+320, o+400);
+      num_ships += Splot_Screen::add (wave_2);
 
-      straight_arrow.setInOut (o+200, o+250);
-      Splot_Screen::add (straight_arrow);
+      wave.setInOut (o+200, o+250);
+      num_ships += Splot_Screen::add (wave);
     } // end ELSE
 
-    EnemyWave_t gnat_wave;
-    gnat_wave.type = ENEMYAIRCRAFT_GNAT;
-    //gnat_wave.setInOut (o, o+(17*game->gameSkill)*(1.0+FRAND*0.2));
-    gnat_wave.setInOut (o, o+(int)((25*state.game_skill)*(1.0+FRAND*0.2)));
-    gnat_wave.setPos (SRAND*5.0F, 10.0F);
-    gnat_wave.setFrequency ((int)(3*(1.0/density)), 0);
-    gnat_wave.xJitter = 3.0;
-    Splot_Screen::add (gnat_wave);
+    wave.type = ENEMYAIRCRAFT_GNAT;
+    //wave.setInOut (o, o+(17*game->gameSkill)*(1.0+FRAND*0.2));
+    wave.setInOut (o, o+(int)((25*state.game_skill)*(1.0+FRAND*0.2)));
+    wave.setPos (SRAND*5.0F, 10.0F);
+    wave.setFrequency ((int)(3*(1.0/density)), 0);
+    wave.xJitter = 3.0;
+    num_ships += Splot_Screen::add (wave);
   } // end IF
   else
   {
-    EnemyWave_t gnat_wave;
-    gnat_wave.type = ENEMYAIRCRAFT_GNAT;
-    //gnat_wave.setInOut (o, o+(17*game->gameSkill)*(1.0+FRAND*0.2));
-    gnat_wave.setPos (-3.0F+(SRAND*5.0F), 10.0F);
-    gnat_wave.setFrequency ((int)(1*(1.0/density)), 0);
-    gnat_wave.xJitter = 3.0;
-    gnat_wave.setInOut (o, o+35);
-    Splot_Screen::add (gnat_wave);
-    gnat_wave.setPos (SRAND*5.0F, 10.0F);
-    gnat_wave.setInOut (o+300, o+310);
-    Splot_Screen::add (gnat_wave);
-    gnat_wave.setFrequency ((int)(30*(1.0/density)), 0);
-    gnat_wave.setInOut (o+300, o+400);
-    Splot_Screen::add (gnat_wave);
+    wave.type = ENEMYAIRCRAFT_GNAT;
+    //wave.setInOut (o, o+(17*game->gameSkill)*(1.0+FRAND*0.2));
+    wave.setPos (-3.0F+(SRAND*5.0F), 10.0F);
+    wave.setFrequency ((int)(1*(1.0/density)), 0);
+    wave.xJitter = 3.0;
+    wave.setInOut (o, o+35);
+    num_ships += Splot_Screen::add (wave);
+    wave.setPos (SRAND*5.0F, 10.0F);
+    wave.setInOut (o+300, o+310);
+    num_ships += Splot_Screen::add (wave);
+    wave.setFrequency ((int)(30*(1.0/density)), 0);
+    wave.setInOut (o+300, o+400);
+    num_ships += Splot_Screen::add (wave);
   } // end ELSE
+
+  return num_ships;
 }
 
 void
@@ -1001,11 +1084,11 @@ Splot_Screen::addPowerUps (PowerUpCategory_t category_in,
     } // end SWITCH
   } // end FOR
 
-  const Configuration_t& configuration =
-    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
-  if (configuration.debug)
-    ACE_DEBUG ((LM_INFO,
-                ACE_TEXT ("added %d power-up(s) (category: %d)\n"),
-                count,
-                category_in));
+  //const Configuration_t& configuration =
+  //  SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
+  //if (configuration.debug)
+  //  ACE_DEBUG ((LM_INFO,
+  //              ACE_TEXT ("added %d power-up(s) (category: %d)\n"),
+  //              count,
+  //              category_in));
 }

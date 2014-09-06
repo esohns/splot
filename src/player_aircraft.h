@@ -68,9 +68,9 @@ class Splot_PlayerAircraft
   void setAmmoStock (int, float);
   void deathExplosions ();
 
-  float gunFlash0_[NUM_PLAYER_AMMO_TYPES];
-  float gunFlash1_[NUM_PLAYER_AMMO_TYPES];
-  bool gunActive_[NUM_PLAYER_AMMO_TYPES];
+  float gunFlash0_[NUM_PLAYER_AMMUNITION_TYPES];
+  float gunFlash1_[NUM_PLAYER_AMMUNITION_TYPES];
+  bool gunActive_[NUM_PLAYER_AMMUNITION_TYPES];
 
  private:
   typedef Splot_GameElement inherited;

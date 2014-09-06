@@ -42,7 +42,7 @@ class Splot_StatusDisplay
   GLuint texTop_;
   GLuint texPlayerSuper_;
   GLuint texPlayerShield_;
-  GLuint texPlayerAmmoFlash_[NUM_PLAYER_AMMO_TYPES];
+  GLuint texPlayerAmmoFlash_[NUM_PLAYER_AMMUNITION_TYPES];
   GLuint texUseFocus_;
   GLuint texUseItem_[MAX_PLAYER_ITEMS];
 
@@ -67,7 +67,7 @@ class Splot_StatusDisplay
   static float statPosShld[3];
   static float statClrWarn[4];
   static float statClrZero[4];
-  static float statClrAmmo[NUM_PLAYER_AMMO_TYPES][4];
+  static float statClrAmmo[NUM_PLAYER_AMMUNITION_TYPES][4];
 };
 
 #endif // STATUSDISPLAY_H

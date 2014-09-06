@@ -39,9 +39,6 @@ class Splot_EnemyAircraft
 
  public:
   Splot_EnemyAircraft (); // *WARNING*: do NOT use !
-  Splot_EnemyAircraft (EnemyAircraftType_t, // type
-                       const float (&)[3],  // position
-                       float = 1.0);        // random movement factor
   virtual ~Splot_EnemyAircraft ();
 
   virtual Splot_EnemyAircraft* get_next () { return (Splot_EnemyAircraft*)inherited::get_next (); };
@@ -62,17 +59,22 @@ class Splot_EnemyAircraft
   float damage_;
   float baseDamage_;
 
+  float randomMoveX_;
   float collisionMove_;
   float secondaryMove_[2];
 
   float preFire_;
 
-  //static Splot_EnemyAircraft* make (EnemyAircraftType_t, // type
-  //                                  float p[3],          // position
-  //                                  int relTime);        // relTime
+  static Splot_EnemyAircraft* make (EnemyAircraftType_t, // type
+                                    const float (&)[3],  // position
+                                    float = 1.0);        // random movement factor
   static void printNumAllocated ();
 
  protected:
+  Splot_EnemyAircraft (EnemyAircraftType_t, // type
+                       const float (&)[3],  // position
+                       float = 1.0);        // random movement factor
+
   void calcShootInterval ();
   void move ();
 
@@ -83,7 +85,6 @@ class Splot_EnemyAircraft
   int   shootInterval_;
   int   shootSwap_;
 
-  float randomMoveX_;
   float lastMove_[2];
 
   float speedAdjustment_;

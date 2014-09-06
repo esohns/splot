@@ -41,7 +41,7 @@ float Splot_StatusDisplay::statPosAmmo[3] = {-10.5, 8.00, 25.0};
 float Splot_StatusDisplay::statPosShld[3] = {-10.4F, -7.80F, 25.0F};
 float Splot_StatusDisplay::statClrWarn[4] = {1.1F, 0.6F, 0.1F, 1.1F};
 float Splot_StatusDisplay::statClrZero[4] = {0.0, 0.0, 0.0, 0.0};
-float Splot_StatusDisplay::statClrAmmo[NUM_PLAYER_AMMO_TYPES][4] =
+float Splot_StatusDisplay::statClrAmmo[NUM_PLAYER_AMMUNITION_TYPES][4] =
 {
   {1.0F, 0.7F, 0.5F, 0.6F},
   {0.0, 1.0, 0.5F, 0.7F},
@@ -65,7 +65,7 @@ Splot_StatusDisplay::Splot_StatusDisplay ()
  , tipSuperShow_ (0)
  , enemyWarn_ (0.0)
 {
-  for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
+  for (int i = 0; i < NUM_PLAYER_AMMUNITION_TYPES; i++)
     texPlayerAmmoFlash_[i] = 0;
   for (int i = 0; i < MAX_PLAYER_ITEMS; i++)
     texUseItem_[i] = 0;
@@ -120,7 +120,7 @@ Splot_StatusDisplay::loadTextures ()
                 ACE_TEXT ("failed to Splot_Image::load(\"%s\"), continuing\n"),
                 ACE_TEXT (filename.c_str ())));
   char buffer[PATH_MAX];
-  for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
+  for (int i = 0; i < NUM_PLAYER_AMMUNITION_TYPES; i++)
   {
     ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("heroAmmoFlash%02d.png"), i);
     filename = dataLoc (path_base + buffer);
@@ -155,7 +155,7 @@ Splot_StatusDisplay::deleteTextures ()
   glDeleteTextures (1, &texShld_);
   glDeleteTextures (1, &texPlayerSuper_);
   glDeleteTextures (1, &texPlayerShield_);
-  glDeleteTextures (NUM_PLAYER_AMMO_TYPES, &(texPlayerAmmoFlash_[0]));
+  glDeleteTextures (NUM_PLAYER_AMMUNITION_TYPES, &(texPlayerAmmoFlash_[0]));
   glDeleteTextures (MAX_PLAYER_ITEMS, &(texUseItem_[0]));
 }
 
@@ -295,7 +295,7 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
   float x = 0.0, y, y3;
   bool  statClrWarnAmmo = false;
   float w = 0.1F;
-  for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
+  for (int i = 0; i < NUM_PLAYER_AMMUNITION_TYPES; i++)
   {
     glColor4fv (Splot_StatusDisplay::statClrAmmo[i]);
     if (game_state.ammo_stock[i] > 0.0)

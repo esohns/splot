@@ -106,7 +106,7 @@ Splot_PlayerAircraft::reset ()
 
   secondaryMove_[0] = secondaryMove_[1] = 0.0;
 
-  for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
+  for (int i = 0; i < NUM_PLAYER_AMMUNITION_TYPES; i++)
   {
     gunActive_[i] = false;
     gunFlash0_[i] = 0.0;
@@ -258,7 +258,7 @@ Splot_PlayerAircraft::useItem ()
   switch (game_state.current_item_index)
   {
     case 0: // self destruct
-      for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
+      for (int i = 0; i < NUM_PLAYER_AMMUNITION_TYPES; i++)
       {
         //eject all ammo - return remaining ammo to game->powerUps
         if (game_state.ammo_stock[i] > 1.0)
@@ -507,7 +507,7 @@ Splot_PlayerAircraft::shootGun ()
   } // end IF
 
   //-- clean up gun active
-  for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
+  for (int i = 0; i < NUM_PLAYER_AMMUNITION_TYPES; i++)
     if (game_state.ammo_stock[i] < 0.0F)
     {
       game_state.ammo_stock[i] = 0.0F;
@@ -519,7 +519,7 @@ void
 Splot_PlayerAircraft::setAmmoStock (int index_in, float value_in)
 {
   if (index_in < 0 ||
-      index_in > NUM_PLAYER_AMMO_TYPES)
+      index_in > NUM_PLAYER_AMMUNITION_TYPES)
     return;
 
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
@@ -745,7 +745,7 @@ Splot_PlayerAircraft::update ()
   if (game_state.gun_trigger)
     shootGun ();
   float flash, pause;
-  for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
+  for (int i = 0; i < NUM_PLAYER_AMMUNITION_TYPES; i++)
   {
     if (game_state.gun_pause[i] >= 0.0)
       game_state.gun_pause[i] -= state.speed_adj;

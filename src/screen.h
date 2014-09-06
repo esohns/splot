@@ -18,15 +18,15 @@ class Splot_Screen
   static void clear ();
 
   static bool load ();
-  static Splot_EnemyAircraft* makeAdd (EnemyAircraftType_t, // type
-                                       const float (&)[3],  // position
-                                       int);                // release time
+  static bool makeAdd (EnemyAircraftType_t, // type
+                       const float (&)[3],  // position
+                       int);                // release time
 
  private:
   //void clearDeadPool();
   static void add (int,                 // release time
                    Splot_GameElement*); // game element
-  static void add (const EnemyWave_t&); // wave
+  static unsigned int add (const EnemyWave_t&); // wave
 
   static void loadLevel ();
   static void loadLevel1 ();
@@ -34,11 +34,11 @@ class Splot_Screen
   static void loadLevel3 ();
   static void loadLevel4 ();
 
-  static void addStraightWave (int o, int duration, float density = 1.0);
-  static void addOmniWave (int o, int duration, float density = 1.0);
-  static void addStraightArrowWave (int o, int duration, float density = 1.0);
-  static void addOmniArrowWave (int o, int duration, float density = 1.0);
-  static void addGnatWave (int o, int duration, float density = 1.0, bool mixed = true);
+  static unsigned int addStraightWave (int o, int duration, float density = 1.0);
+  static unsigned int addOmniWave (int o, int duration, float density = 1.0);
+  static unsigned int addStraightArrowWave (int o, int duration, float density = 1.0);
+  static unsigned int addOmniArrowWave (int o, int duration, float density = 1.0);
+  static unsigned int addGnatWave (int o, int duration, float density = 1.0, bool mixed = true);
 
   static void addPowerUps (PowerUpCategory_t, // category
                            int,               // origin (release time begin)

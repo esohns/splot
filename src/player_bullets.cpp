@@ -35,8 +35,8 @@
 #include "image.h"
 
 // init statics
-float Splot_PlayerBullets::bullet_size[NUM_PLAYER_AMMO_TYPES][2];
-float Splot_PlayerBullets::bullet_damage[NUM_PLAYER_AMMO_TYPES];
+float Splot_PlayerBullets::bullet_size[NUM_PLAYER_AMMUNITION_TYPES][2];
+float Splot_PlayerBullets::bullet_damage[NUM_PLAYER_AMMUNITION_TYPES];
 
 void
 Splot_PlayerBullets::initialize ()
@@ -52,7 +52,7 @@ Splot_PlayerBullets::initialize ()
 
 Splot_PlayerBullets::Splot_PlayerBullets ()
 {
-  for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
+  for (int i = 0; i < NUM_PLAYER_AMMUNITION_TYPES; i++)
   {
    // bulletSize_[i][0] = 0.1F;
    // bulletSize_[i][0] = 0.5F;
@@ -77,7 +77,7 @@ Splot_PlayerBullets::loadTextures ()
   std::string path_base = ACE_TEXT_ALWAYS_CHAR (SPLOT_IMAGE_DATA_DIR);
   path_base += ACE_DIRECTORY_SEPARATOR_STR;
   std::string format_string = ACE_TEXT_ALWAYS_CHAR ("%sheroAmmo%02d.png");
-  for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
+  for (int i = 0; i < NUM_PLAYER_AMMUNITION_TYPES; i++)
   {
     if (ACE_OS::snprintf (filename,
                           PATH_MAX,
@@ -101,7 +101,7 @@ Splot_PlayerBullets::loadTextures ()
 void
 Splot_PlayerBullets::deleteTextures ()
 {
-  glDeleteTextures (NUM_PLAYER_AMMO_TYPES, &(texBullet_[0]));
+  glDeleteTextures (NUM_PLAYER_AMMUNITION_TYPES, &(texBullet_[0]));
 }
 
 //void
@@ -126,7 +126,7 @@ Splot_PlayerBullets::deleteTextures ()
 void
 Splot_PlayerBullets::clear ()
 {
-  for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
+  for (int i = 0; i < NUM_PLAYER_AMMUNITION_TYPES; i++)
     bullets_[i].clear ();
 }
 
@@ -135,12 +135,12 @@ Splot_PlayerBullets::add (int type_in,
                           const float (&position_in)[3])
 {
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-  float translation_vector[3] = {0.0, 0.0, 0.0};
+  float translation_step[3] = {0.0, 0.0, 0.0};
   switch (type_in)
   {
-    case 0: translation_vector[1] = 0.5F*state.speed_adj; break;
-    case 1: translation_vector[1] = 0.2F*state.speed_adj; break;
-    case 2: translation_vector[1] = 0.3F*state.speed_adj; break;
+    case 0: translation_step[1] = 0.5F*state.speed_adj; break;
+    case 1: translation_step[1] = 0.2F*state.speed_adj; break;
+    case 2: translation_step[1] = 0.3F*state.speed_adj; break;
     default:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unkown bullet type (was: %d), returning\n"),
@@ -161,7 +161,7 @@ Splot_PlayerBullets::add (int type_in,
   //bullet.position = position_in;
   ACE_OS::memcpy (&(bullet.position), &position_in, sizeof (position_in));
   //bullet.translation_step = v;
-  ACE_OS::memcpy (&(bullet.translation_vector), &translation_vector, sizeof (translation_vector));
+  ACE_OS::memcpy (&(bullet.translation_step), &translation_step, sizeof (translation_step));
   bullets_[type_in].push_back (bullet);
   Bullet_t::count++;
 }
@@ -169,7 +169,7 @@ Splot_PlayerBullets::add (int type_in,
 void
 Splot_PlayerBullets::print (int type_in)
 {
-  ACE_ASSERT (type_in >= 0 && type_in < NUM_PLAYER_AMMO_TYPES);
+  ACE_ASSERT (type_in >= 0 && type_in < NUM_PLAYER_AMMUNITION_TYPES);
 
   int i = 0;
   for (BulletsIterator_t iterator = bullets_[type_in].begin ();
@@ -179,7 +179,7 @@ Splot_PlayerBullets::print (int type_in)
                 ACE_TEXT ("#%d\t(type/position/step): %d / [%f,%f,%f] / [%f,%f,%f]\n"),
                 i + 1, type_in,
                 (*iterator).position[0], (*iterator).position[1], (*iterator).position[2],
-                (*iterator).translation_vector[0], (*iterator).translation_vector[1], (*iterator).translation_vector[2]));
+                (*iterator).translation_step[0], (*iterator).translation_step[1], (*iterator).translation_step[2]));
 }
 
 void
@@ -187,31 +187,30 @@ Splot_PlayerBullets::update ()
 {
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
-
-  std::vector<BulletsIterator_t> finished_bullets;
-  for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
+  std::vector<BulletsIterator_t> expired_bullets;
+  for (int i = 0; i < NUM_PLAYER_AMMUNITION_TYPES; i++)
   {
-    finished_bullets.clear ();
+    expired_bullets.clear ();
     for (BulletsIterator_t iterator = bullets_[i].begin ();
          iterator != bullets_[i].end ();
          iterator++)
     {
       if ((*iterator).position[1] > configuration.screen_bound[1])
-        finished_bullets.push_back (iterator);
+        expired_bullets.push_back (iterator);
       else
       {
         Bullet_t& current = *iterator;
-        current.position[0] += current.translation_vector[0];
-        current.position[1] += current.translation_vector[1];
-        current.position[2] += current.translation_vector[2];
+        current.position[0] += current.translation_step[0];
+        current.position[1] += current.translation_step[1];
+        current.position[2] += current.translation_step[2];
       } // end ELSE
     } // end FOR
 
-    for (std::vector<BulletsIterator_t>::reverse_iterator iterator = finished_bullets.rbegin ();
-         iterator != finished_bullets.rend ();
+    for (std::vector<BulletsIterator_t>::reverse_iterator iterator = expired_bullets.rbegin ();
+         iterator != expired_bullets.rend ();
          iterator++)
       bullets_[i].erase (*iterator);
-    Bullet_t::count -= finished_bullets.size ();
+    Bullet_t::count -= expired_bullets.size ();
   } // end FOR
 }
 
@@ -221,9 +220,9 @@ Splot_PlayerBullets::checkForHits (Splot_EnemyFleet* fleet_in)
   ACE_ASSERT (fleet_in);
 
   //-- get minimum ship Y location --> ignore some of the bullets
-  float	min_ship_y = 100.0;
+  float min_ship_y = 100.0;
   fleet_in->toFirst ();
-  Splot_EnemyAircraft* enemy = NULL; fleet_in->getShip ();
+  Splot_EnemyAircraft* enemy = NULL;
   while ((enemy = fleet_in->getShip ()))
     if ((enemy->position_[1]-3.0F) < min_ship_y)
       min_ship_y = enemy->position_[1]-3.0F;
@@ -231,7 +230,7 @@ Splot_PlayerBullets::checkForHits (Splot_EnemyFleet* fleet_in)
   //-- Go through all the ammunition and check for hits
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
   std::vector<BulletsIterator_t> bullets;
-  for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
+  for (int i = 0; i < NUM_PLAYER_AMMUNITION_TYPES; i++)
   {
     bullets.clear ();
     for (BulletsIterator_t iterator = bullets_[i].begin ();
@@ -275,7 +274,7 @@ Splot_PlayerBullets::drawGL ()
 {
   glColor4f (1.0F, 1.0F, 1.0F, 1.0F);
 
-  for (int i = 0; i < NUM_PLAYER_AMMO_TYPES; i++)
+  for (int i = 0; i < NUM_PLAYER_AMMUNITION_TYPES; i++)
   {
     glBindTexture (GL_TEXTURE_2D, texBullet_[i]);
     glBegin (GL_QUADS);

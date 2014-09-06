@@ -127,8 +127,8 @@
 #define MIN_SCREEN_SIZE                      0 // 320x200
 #define MAX_SCREEN_SIZE                      8 // 1280x1024
 
-#define NUM_ENEMY_AMMO_TYPES                 5
-#define NUM_PLAYER_AMMO_TYPES                3
+#define NUM_ENEMY_AMMUNITION_TYPES           5
+#define NUM_PLAYER_AMMUNITION_TYPES          3
 #define MAX_PLAYER_ITEMS                     1
 
 #define PLAYER_DEFAULT_DAMAGE                -500.0F
@@ -171,7 +171,7 @@
 #define NUM_EXPLO                            2
 #define NUM_EXPLO_POP                        6
 #define MAX_MUSIC                            32
-#define MAX_MIXING_CHANNELS                  16
+#define MAX_MIXING_CHANNELS                  20
 
 #define AUDIO_FREQUENCY                      22050
 #define AUDIO_SDL_FORMAT                     AUDIO_S16
@@ -180,11 +180,14 @@
 
 #define NUM_HELP_MESSAGE_LINES               7
 
-#define DEBUG_NO_ENEMIES                     1
+#define DEBUG_NO_ENEMIES                     0
+#define DEBUG_NO_ENEMY_FIRE                  0
 #define DEBUG_NO_AMMUNITION                  0
 #define DEBUG_NO_POWERUPS                    0
 
 #define WOBBLE_0                             45
 #define WOBBLE_1                             75
+
+#define OMNI_SWAP                            138
 
 #endif // DEFINES_H

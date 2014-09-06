@@ -227,15 +227,21 @@ Splot_Explosions::add (ExplosionType_t type_in,
                        int age_in,
                        float size_in)
 {
-  Explosion_t* result = NULL;
-
   ACE_ASSERT ((int)type_in >= 0 && type_in < MAX_EXPLOSION_TYPES);
+
+  Explosion_t* result = NULL;
   if ((exploPause_[type_in][0]) <= 0)
   {
     exploPause_[type_in][2] = 1; //-- set flag to init explo pause count
-    ACE_NEW_RETURN (result,
-                    Explosion_t (),
-                    NULL);
+    ACE_NEW_NORETURN (result,
+                      Explosion_t);
+    if (!result)
+    {
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate memory, aborting\n")));
+
+      return NULL;
+    } // end IF
     result->init (position_in, age_in, size_in);
     explosions_[type_in].push_back (result);
   } // end IF
@@ -289,9 +295,9 @@ Splot_Explosions::update ()
     {
       if (++(*iterator)->age > 0)
       {
-        (*iterator)->position[0] += (*iterator)->velocity[0]*state.speed_adj;
-        (*iterator)->position[1] += (*iterator)->velocity[1]*state.speed_adj;
-        (*iterator)->position[2] += (*iterator)->velocity[2]*state.speed_adj;
+        (*iterator)->position[0] += (*iterator)->translation_step[0]*state.speed_adj;
+        (*iterator)->position[1] += (*iterator)->translation_step[1]*state.speed_adj;
+        (*iterator)->position[2] += (*iterator)->translation_step[2]*state.speed_adj;
       } // end IF
 
       if ((*iterator)->age > (exploStay_[i]/state.speed_adj))
@@ -620,13 +626,13 @@ Splot_Explosions::drawElectric (ExplosionType_t type_in)
     tmp = age/exploStay_[type_in];
     alpha = 1.0F-tmp;
     alpha = 5.0F*(alpha*alpha);
-    glColor4f ((*iterator)->clr[0], (*iterator)->clr[1], (*iterator)->clr[2], (*iterator)->clr[3]*alpha);
+    glColor4f ((*iterator)->color[0], (*iterator)->color[1], (*iterator)->color[2], (*iterator)->color[3]*alpha);
     ex = exploSize_[type_in][0];
     ey = exploSize_[type_in][1]*tmp;
     tmp = (1.0F-state.speed_adj)+(state.speed_adj*1.075F);
-    (*iterator)->velocity[0] *= tmp;
-    (*iterator)->velocity[1] *= tmp;
-    (*iterator)->velocity[2] *= tmp;
+    (*iterator)->translation_step[0] *= tmp;
+    (*iterator)->translation_step[1] *= tmp;
+    (*iterator)->translation_step[2] *= tmp;
     tOff = FRAND;
     glPushMatrix ();
     glTranslatef ((*iterator)->position[0], (*iterator)->position[1], (*iterator)->position[2]);
@@ -666,7 +672,7 @@ Splot_Explosions::drawGlitter (ExplosionType_t type_in)
     tmp = age/exploStay_[type_in];
     alpha = 1.0F-tmp;
     //alpha = 5.0*(alpha*alpha);
-    glColor4f ((*iterator)->clr[0], (*iterator)->clr[1], (*iterator)->clr[2], (*iterator)->clr[3]*alpha);
+    glColor4f ((*iterator)->color[0], (*iterator)->color[1], (*iterator)->color[2], (*iterator)->color[3]*alpha);
     tmp = alpha*alpha;
     ex = tmp*(*iterator)->size*exploSize_[type_in][0];
     ey = tmp*(*iterator)->size*exploSize_[type_in][1]+(0.02F*age);
@@ -688,9 +694,12 @@ Explosion_t::init (const float (&position_in)[3],
                    int age_in,
                    float size_in)
 {
-  position[0] = position_in[0]; position[1] = position_in[1]; position[2] = position_in[2];
-  velocity[0] = 0.0; velocity[1] = 0.0; velocity[2] = 0.0;
-  clr[0] = 1.0; clr[1] = 1.0; clr[2] = 1.0; clr[3] = 1.0;
+  ACE_OS::memcpy (&position, &position_in, sizeof (position));
+  //position[0] = position_in[0]; position[1] = position_in[1]; position[2] = position_in[2];
+  ACE_OS::memset (&translation_step, 0, sizeof (translation_step));
+  //translation_step[0] = 0.0; translation_step[1] = 0.0; translation_step[2] = 0.0;
+  ACE_OS::memset (&color, 0, sizeof (color));
+  //color[0] = 1.0; color[1] = 1.0; color[2] = 1.0; color[3] = 1.0;
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
   age = (int)(age_in/state.speed_adj);
   size = size_in;
@@ -698,14 +707,17 @@ Explosion_t::init (const float (&position_in)[3],
 
 void
 Explosion_t::init (const float (&position_in)[3],
-                   const float (&velocity_in)[3],
+                   const float (&translationStep_in)[3],
                    const float (&color_in)[4],
                    int age_in,
                    float size_in)
 {
-  position[0] = position_in[0]; position[1] = position_in[1]; position[2] = position_in[2];
-  velocity[0] = velocity_in[0]; velocity[1] = velocity_in[1]; velocity[2] = velocity_in[2];
-  clr[0] = color_in[0]; clr[1] = color_in[1]; clr[2] = color_in[2]; clr[3] = color_in[3];
+  ACE_OS::memcpy (&position, &position_in, sizeof (position));
+  //position[0] = position_in[0]; position[1] = position_in[1]; position[2] = position_in[2];
+  ACE_OS::memcpy (&translation_step, &translationStep_in, sizeof (translation_step));
+  //translation_step[0] = translationStep_in[0]; translation_step[1] = translationStep_in[1]; translation_step[2] = translationStep_in[2];
+  ACE_OS::memcpy (&color, &color_in, sizeof (color));
+  //color[0] = color_in[0]; color[1] = color_in[1]; color[2] = color_in[2]; color[3] = color_in[3];
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
   age = (int)(age_in/state.speed_adj);
   size = size_in;
