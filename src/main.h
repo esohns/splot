@@ -6,7 +6,8 @@
 class Splot_Main
 {
  public:
-  Splot_Main (int = 0, ACE_TCHAR** = NULL);
+  Splot_Main (int = 0,
+              ACE_TCHAR** = NULL);
   virtual ~Splot_Main ();
 
   virtual bool run () = 0;

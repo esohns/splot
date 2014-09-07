@@ -14,7 +14,7 @@ class Splot_Configuration
 {
   // singleton requires access to the ctor/dtor
   friend class ACE_Singleton<Splot_Configuration,
-                             ACE_Thread_Mutex>;
+                             ACE_Null_Mutex>;
 
  public:
   bool init (int,         // argc
@@ -35,15 +35,15 @@ class Splot_Configuration
   void setBlend (bool set_in) { configuration_.blend_enabled = set_in; }
   void setGfxLevel(int level_in)
   {
-    configuration_.gfx_level = level_in;
-    if (configuration_.gfx_level < 0)
-      configuration_.gfx_level = 0;
-    if (configuration_.gfx_level > 2)
-      configuration_.gfx_level = 2;
+    configuration_.graphics_level = level_in;
+    if (configuration_.graphics_level < 0)
+      configuration_.graphics_level = 0;
+    if (configuration_.graphics_level > 2)
+      configuration_.graphics_level = 2;
   }
   void setTrueColor (bool set_in) { configuration_.true_color = set_in; }
-  void setTexBorder (bool set_in) { configuration_.tex_border = set_in; }
-  void setShowFPS (bool set_in) { configuration_.show_fps = set_in; }
+  void setTextureBorder (bool set_in) { configuration_.texture_border = set_in; }
+  void setShowFPS (bool set_in) { configuration_.show_FPS = set_in; }
   void setViewGamma (float gamma_in) { configuration_.view_gamma = gamma_in; }
 
   void setAutoSpeed (bool set_in) { configuration_.auto_speed = set_in; }
@@ -57,18 +57,18 @@ class Splot_Configuration
 
   void setAudio (bool enabled_in) { configuration_.audio_enabled = enabled_in; }
   void setVolSound (float volume_in) {
-    configuration_.vol_sound = volume_in;
-    if (configuration_.vol_sound < 0.0)
-      configuration_.vol_sound = 0.0;
-    if (configuration_.vol_sound > 1.0)
-      configuration_.vol_sound = 1.0;
+    configuration_.volume_sound = volume_in;
+    if (configuration_.volume_sound < 0.0)
+      configuration_.volume_sound = 0.0;
+    if (configuration_.volume_sound > 1.0)
+      configuration_.volume_sound = 1.0;
   }
   void setVolMusic (float volume_in) {
-    configuration_.vol_music = volume_in;
-    if (configuration_.vol_music < 0.0)
-      configuration_.vol_music = 0.0;
-    if (configuration_.vol_music > 1.0)
-      configuration_.vol_music = 1.0;
+    configuration_.volume_music = volume_in;
+    if (configuration_.volume_music < 0.0)
+      configuration_.volume_music = 0.0;
+    if (configuration_.volume_music > 1.0)
+      configuration_.volume_music = 1.0;
   }
 
   void setSkillBase (float skill_in) {
@@ -93,7 +93,7 @@ class Splot_Configuration
 };
 
 typedef ACE_Singleton<Splot_Configuration,
-                      ACE_Thread_Mutex> SPLOT_CONFIGURATION_SINGLETON;
-//SPLOT_SINGLETON_DECLARE(ACE_Singleton, Splot_Configuration, ACE_Thread_Mutex);
+                      ACE_Null_Mutex> SPLOT_CONFIGURATION_SINGLETON;
+//SPLOT_SINGLETON_DECLARE(ACE_Singleton, Splot_Configuration, ACE_Null_Mutex);
 
 #endif // CONFIGURATION_H

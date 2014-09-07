@@ -96,7 +96,7 @@ Splot_BackgroundMetalSegment::drawGL ()
 #else // EXPERIMENTAL
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
-  if (configuration.gfx_level > 1)
+  if (configuration.graphics_level > 1)
     drawBlip (rep, S, tilt, blipMirrorT);
   drawSurface (Splot_BackgroundMetalSegment::c0_clr,
                Splot_BackgroundMetalSegment::c1_clr,
@@ -238,7 +238,7 @@ Splot_BackgroundMetalSegment::drawSurface (float* c0_clr,
   //float rep = 1.0;
   glBindTexture (GL_TEXTURE_2D, parent_->tex_[BACKGROUND_BASE]);
   glBegin (GL_TRIANGLES); //-- use triangles to prevent color popping on Utah
-  if (configuration.gfx_level > 0)
+  if (configuration.graphics_level > 0)
   {
     glColor4fv (c0_clr); glTexCoord2f (1.0, 1.0);
     glVertex3f ( inherited::position_[0],

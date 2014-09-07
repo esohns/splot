@@ -172,8 +172,8 @@ Splot_Menu::startMenu ()
   //createLists( (thickText = true) );
 
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-  state.cursor_pos[0] = 0.0;
-  state.cursor_pos[1] = 0.0;
+  state.cursor_position[0] = 0.0;
+  state.cursor_position[1] = 0.0;
 }
 
 void
@@ -199,7 +199,7 @@ Splot_Menu::drawGL ()
 
   //-- Place camera
   glLoadIdentity ();
-  glTranslatef (0.0, 0.0, configuration.z_trans);
+  glTranslatef (0.0, 0.0, configuration.z_transformation);
 
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -209,7 +209,7 @@ Splot_Menu::drawGL ()
   state.background->drawGL ();
 
   //-- Update audio
-  state.audio->update ();
+//  state.audio->update ();
 
   int i;
   float szx  =  9.0;
@@ -399,7 +399,7 @@ Splot_Menu::drawGL ()
   //		glEnd();
   //	}
 
-  if (thickText_ && state.fps < 30)
+  if (thickText_ && state.FPS < 30)
   {
     if (configuration.debug)
       ACE_DEBUG ((LM_INFO,
@@ -407,7 +407,7 @@ Splot_Menu::drawGL ()
     thickText_ = false;
     createLists (thickText_);
   } // end IF
-  if (!thickText_ && state.fps > 40)
+  if (!thickText_ && state.FPS > 40)
   {
     if (configuration.debug)
       ACE_DEBUG ((LM_INFO,
@@ -459,8 +459,8 @@ Splot_Menu::drawIndicator ()
                        skillText_[tmp]);
       break;
     case MENU_GRAPHICS:
-      level = configuration.gfx_level/2.0F;
-      switch (configuration.gfx_level)
+      level = configuration.graphics_level/2.0F;
+      switch (configuration.graphics_level)
       {
         case 0: ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("low")); break;
         case 1: ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("med")); break;
@@ -478,12 +478,12 @@ Splot_Menu::drawIndicator ()
       else ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("false"));
       break;
     case MENU_SOUND:
-      level = configuration.vol_sound;
+      level = configuration.volume_sound;
       ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("%d"),
                        (int)((level+0.05)*10.0));
       break;
     case MENU_MUSIC:
-      level = configuration.vol_music;
+      level = configuration.volume_music;
       ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("%d"),
                        (int)((level+0.05)*10.0));
       break;
@@ -769,7 +769,7 @@ Splot_Menu::activateItem ()
       state.game_mode = GAMEMODE_GAME;
       SPLOT_STATE_SINGLETON::instance ()->newGame ();
       state.toolkit->grabMouse (true);
-      state.audio->setMusicMode (SOUND_MUSIC_GAME);
+      state.audio->setMusicMode (MUSIC_GAME);
       break;
     case MENU_SKILL_LEVEL:
       break;
@@ -840,7 +840,7 @@ Splot_Menu::incItem ()
         SPLOT_STATE_SINGLETON::instance ()->newGame ();
       break;
     case MENU_GRAPHICS:
-      SPLOT_CONFIGURATION_SINGLETON::instance ()->setGfxLevel (configuration.gfx_level + 1);
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setGfxLevel (configuration.graphics_level+1);
       break;
     case MENU_SCREENSIZE:
       SPLOT_CONFIGURATION_SINGLETON::instance ()->setScreenSize (SPLOT_CONFIGURATION_SINGLETON::instance ()->approxScreenSize () + 1);
@@ -870,16 +870,16 @@ Splot_Menu::incItem ()
       } // end IF
       break;
     case MENU_SOUND:
-      SPLOT_CONFIGURATION_SINGLETON::instance ()->setVolSound (configuration.vol_sound + 0.05F);
-      state.audio->setSoundVolume (configuration.vol_sound);
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setVolSound (configuration.volume_sound+0.05F);
+      state.audio->setSoundVolume (configuration.volume_sound);
       state.audio->play (SOUND_EXPLOSION_DEFAULT, position);
       break;
     case MENU_MUSIC:
-      SPLOT_CONFIGURATION_SINGLETON::instance ()->setVolMusic (configuration.vol_music + 0.05F);
-      state.audio->setMusicVolume (configuration.vol_music);
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setVolMusic (configuration.volume_music+0.05F);
+      state.audio->setMusicVolume (configuration.volume_music);
       break;
     case MENU_MOVEMENTSPEED:
-      SPLOT_CONFIGURATION_SINGLETON::instance ()->setMovementSpeed (configuration.movement_speed + 0.005F);
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setMovementSpeed (configuration.movement_speed+0.005F);
       break;
     case MENU_QUIT:
       activateItem ();
@@ -901,7 +901,7 @@ Splot_Menu::decItem ()
     case MENU_NEWGAME:
       break;
     case MENU_SKILL_LEVEL:
-      SPLOT_CONFIGURATION_SINGLETON::instance ()->setSkillBase (configuration.skill_base - 0.1F);
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setSkillBase (configuration.skill_base-0.1F);
       if (configuration.debug)
         state.highscore->print (SPLOT_CONFIGURATION_SINGLETON::instance ()->intSkill ());
       SPLOT_STATE_SINGLETON::instance ()->newGame ();
@@ -913,7 +913,7 @@ Splot_Menu::decItem ()
       SPLOT_STATE_SINGLETON::instance ()->newGame ();
       break;
     case MENU_GRAPHICS:
-      SPLOT_CONFIGURATION_SINGLETON::instance ()->setGfxLevel (configuration.gfx_level - 1);
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setGfxLevel (configuration.graphics_level-1);
       break;
     case MENU_SCREENSIZE:
       SPLOT_CONFIGURATION_SINGLETON::instance ()->setScreenSize (SPLOT_CONFIGURATION_SINGLETON::instance ()->approxScreenSize () - 1);
@@ -943,16 +943,16 @@ Splot_Menu::decItem ()
       } // end IF
       break;
     case MENU_SOUND:
-      SPLOT_CONFIGURATION_SINGLETON::instance ()->setVolSound (configuration.vol_sound - 0.05F);
-      state.audio->setSoundVolume (configuration.vol_sound);
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setVolSound (configuration.volume_sound-0.05F);
+      state.audio->setSoundVolume (configuration.volume_sound);
       state.audio->play (SOUND_EXPLOSION_DEFAULT, position);
       break;
     case MENU_MUSIC:
-      SPLOT_CONFIGURATION_SINGLETON::instance ()->setVolMusic (configuration.vol_music - 0.05F);
-      state.audio->setMusicVolume (configuration.vol_music);
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setVolMusic (configuration.volume_music-0.05F);
+      state.audio->setMusicVolume (configuration.volume_music);
       break;
     case MENU_MOVEMENTSPEED:
-      SPLOT_CONFIGURATION_SINGLETON::instance ()->setMovementSpeed (configuration.movement_speed - 0.005F);
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setMovementSpeed (configuration.movement_speed-0.005F);
       break;
     case MENU_QUIT:
       break;

@@ -47,9 +47,9 @@ Splot_PlayerAircraft::Splot_PlayerAircraft ()
   size_[1] = 0.85F;
 
   bound_[0][0] = -10.0F;
-  bound_[0][1] = 10.0F;
+  bound_[0][1] =  10.0F;
   bound_[1][0] = -7.5F;
-  bound_[1][1] = 7.5F;
+  bound_[1][1] =  7.5F;
 
   ACE_OS::memset (&deathCircle_, 0, sizeof (deathCircle_));
 
@@ -299,18 +299,51 @@ Splot_PlayerAircraft::nextItem ()
 }
 
 void
-Splot_PlayerAircraft::moveEvent (int x_in, int y_in)
+Splot_PlayerAircraft::moveEventMouse (int x_in, int y_in)
 {
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-  const Configuration_t& configuration =
-   SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
-
   if ((state.game_mode == GAMEMODE_GAME_OVER) ||
       state.game_pause)
     return;
 
+  // scale to 1.0
+  const Configuration_t& configuration =
+   SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
+  inherited::position_[0] = (float)x_in/(float)configuration.screen_width;
+  inherited::position_[1] = (float)y_in/(float)configuration.screen_height;
+
+  inherited::position_[0] -= 0.5;
+  inherited::position_[1] -= 0.5;
+  inherited::position_[0] *= 2.0;
+  inherited::position_[1] *= 2.0;
+
+  // scale to the bounding box
+  inherited::position_[0] *=  bound_[0][1];
+  inherited::position_[1] *= -bound_[1][1];
+
+  if (inherited::position_[0] < bound_[0][0])
+    inherited::position_[0] = bound_[0][0];
+  else if (inherited::position_[0] > bound_[0][1])
+    inherited::position_[0] = bound_[0][1];
+  if (inherited::position_[1] < bound_[1][0])
+    inherited::position_[1] = bound_[1][0];
+  else if (inherited::position_[1] > bound_[1][1])
+    inherited::position_[1] = bound_[1][1];
+}
+
+void
+Splot_PlayerAircraft::moveEvent (int x_in, int y_in)
+{
+  State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
+  if ((state.game_mode == GAMEMODE_GAME_OVER) ||
+      state.game_pause)
+    return;
+
+  const Configuration_t& configuration =
+   SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
   inherited::position_[0] +=  x_in*configuration.movement_speed;
   inherited::position_[1] += -y_in*configuration.movement_speed;
+
   if (inherited::position_[0] < bound_[0][0])
     inherited::position_[0] = bound_[0][0];
   else if (inherited::position_[0] > bound_[0][1])

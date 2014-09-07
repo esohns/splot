@@ -20,11 +20,13 @@ class Splot_AudioSDLMixer
   virtual void play (SoundType_t,        // type
                      const float (&)[3], // position
                      int = 0);           // age
+  virtual void setSoundVolume (float); // volume [0.0, 1.0]
+
+  virtual void playMusic (MusicMode_t); // mode
   virtual void stopMusic ();
   virtual void pauseMusic (bool); // pause ? : resume
-  virtual void setMusicMode (SoundType_t);
-  virtual void setMusicVolume (float);
-  virtual void setSoundVolume (float);
+  virtual void setMusicMode (MusicMode_t); // mode
+  virtual void setMusicVolume (float); // volume [0.0, 1.0]
 
  protected:
   virtual void init ();
@@ -33,6 +35,7 @@ class Splot_AudioSDLMixer
   typedef Splot_Audio inherited;
 
   Mix_Chunk* sounds_[MAX_SOUND_TYPES];
+  Mix_Music* music_[MAX_MUSICFORMAT_TYPES][MAX_MUSIC_MODES];
 };
 
 //#ifdef __cplusplus

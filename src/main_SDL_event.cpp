@@ -2,30 +2,16 @@
 
 #include "main_SDL.h"
 
-//#ifdef HAVE_CONFIG_H
-//#include <chromium-bsu-config.h>
-//#endif
-//
-//#include "gettext.h"
-//
-//#include "Splot_MainSDL.h"
-
 #ifdef USE_SDL
-
-//#include <cstdlib>
-//#include <cstdio>
-//#include <cstring>
-//
+//#include "gettext.h"
 
 #include "ace/Log_Msg.h"
 
-//
 #include "state.h"
 #include "configuration.h"
 #include "player_aircraft.h"
 #include "menu.h"
 #include "audio.h"
-//#include "Ground.h"
 
 #if SDL_VERSION_ATLEAST (2,0,0)
 #define SDLK_KP1 SDLK_KP_1
@@ -300,7 +286,7 @@ Splot_MainSDL::process (SDL_Event* event_in)
 //}
 
 void
-Splot_MainSDL::activation (bool iconifiedRestored_in,
+Splot_MainSDL::activation (bool minimizedRestored_in,
                            bool mouseFocus_in,
                            bool inputFocus_in,
                            bool gained_in)
@@ -310,13 +296,15 @@ Splot_MainSDL::activation (bool iconifiedRestored_in,
                      !state.game_pause                  &&
                      gained_in);
 
-  if (mouseFocus_in && gained_in) // (re-)gained mouse focus
+  if (minimizedRestored_in) // minimized/restored window
+    grabMouse (grab_mouse, grab_mouse);
+  else if (mouseFocus_in) // (re-)gained/lost mouse focus
   {
     Uint8 button_state = SDL_GetMouseState (&last_[0], &last_[1]);
     ACE_UNUSED_ARG (button_state);
   } // end IF
-
-  grabMouse (grab_mouse, false);
+  else if (inputFocus_in) // (re-)gained/lost input focus
+    grabMouse (grab_mouse, grab_mouse);
 }
 
 void
@@ -358,7 +346,7 @@ Splot_MainSDL::keyDown (SDL_Event* event_in)
       {
         state.game_mode = GAMEMODE_MENU;
         state.menu->startMenu ();
-        state.audio->setMusicMode (SOUND_MUSIC_MENU);
+        state.audio->setMusicMode (MUSIC_MENU);
         grabMouse (false);
       } // end ELSE
       break;
@@ -372,12 +360,12 @@ Splot_MainSDL::keyDown (SDL_Event* event_in)
           state.game_mode = GAMEMODE_GAME;
           SPLOT_STATE_SINGLETON::instance ()->newGame ();
           grabMouse (true);
-          state.audio->setMusicMode (SOUND_MUSIC_GAME);
+          state.audio->setMusicMode (MUSIC_GAME);
           break;
         case GAMEMODE_LEVEL_COMPLETE:
           SPLOT_STATE_SINGLETON::instance ()->gotoNextLevel ();
           state.game_mode = GAMEMODE_GAME;
-          state.audio->setMusicMode (SOUND_MUSIC_GAME);
+          state.audio->setMusicMode (MUSIC_GAME);
           break;
         case GAMEMODE_MENU:
           Key_t key;
@@ -422,7 +410,6 @@ void
 Splot_MainSDL::keyDownGame (SDL_Event* event_in)
 {
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-  bool move_event = false;
   switch (event_in->key.keysym.sym)
   {
     case SDLK_KP_PLUS:
@@ -554,26 +541,32 @@ Splot_MainSDL::mouseMotion (SDL_Event* event_in)
   if (!mouseToggle_)
     return; // nothing to do
 
-  //if (event_in->motion.x == mid_[0] &&
-  //    event_in->motion.y == mid_[1])
-  //{
-  //  last_[0] = event_in->motion.x;
-  //  last_[1] = event_in->motion.y;
+  if (event_in->motion.x == mid_[0] &&
+      event_in->motion.y == mid_[1])
+  {
+    last_[0] = event_in->motion.x;
+    last_[1] = event_in->motion.y;
 
-  //  return;
-  //} // end IF
+    return;
+  } // end IF
+
+  State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
+//  state.player->moveEventMouse (event_in->motion.x,
+//                                event_in->motion.y);
 
   int xDiff, yDiff;
   xDiff = event_in->motion.x-last_[0];
   yDiff = event_in->motion.y-last_[1];
-  State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
   if (xDiff || yDiff)
   {
     state.player->moveEvent (xDiff, yDiff);
 //#if SDL_VERSION_ATLEAST (2,0,0)
-//    SDL_WarpMouseInWindow (window_, mid_[0], mid_[1]);
+//    SDL_WarpMouseInWindow (window_,
+//                           mid_[0],
+//                           mid_[1]);
 //#else
-//    SDL_WarpMouse (mid_[0], mid_[1]);
+//    SDL_WarpMouse (mid_[0],
+//                   mid_[1]);
 //#endif
   } // end IF
 
@@ -658,22 +651,25 @@ Splot_MainSDL::grabMouse (bool status_in, bool warpmouse_in)
 //  int status_before = SDL_ShowCursor ((int)!status_in); // toggle ?
 //  ACE_UNUSED_ARG (status_before);
 
+  if (!warpmouse_in)
+    return;
+
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
   mid_[0] = configuration.screen_width / 2;
   mid_[1] = configuration.screen_height / 2;
-
-  if (!warpmouse_in)
-    return;
 
   //State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
   //int x, y;
   //Uint8 button_state = SDL_GetMouseState (&x, &y);
   //ACE_UNUSED_ARG (button_state);
 #if SDL_VERSION_ATLEAST (2,0,0)
-  SDL_WarpMouseInWindow(window_, mid_[0], mid_[1]);
+  SDL_WarpMouseInWindow (window_,
+                         mid_[0],
+                         mid_[1]);
 #else
-  SDL_WarpMouse (mid_[0], mid_[1]);
+  SDL_WarpMouse (mid_[0],
+                 mid_[1]);
 #endif
   last_[0] = mid_[0];
   last_[1] = mid_[1];
@@ -682,6 +678,9 @@ Splot_MainSDL::grabMouse (bool status_in, bool warpmouse_in)
 void
 Splot_MainSDL::joystickMotion (SDL_Event* event_in)
 {
+  if (!joystickToggle_)
+    return; // nothing to do
+
   static int c = 0;
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
@@ -690,9 +689,6 @@ Splot_MainSDL::joystickMotion (SDL_Event* event_in)
                 ACE_TEXT ("joy %05d : axis(%d), value(%d)\n"),
                 c++,
                 event_in->jaxis.axis, event_in->jaxis.value));
-
-  //if (!joystickToggle_)
-  //  return; // nothing to do
 
   if (event_in->motion.x == mid_[0] &&
       event_in->motion.y == mid_[1])
@@ -709,7 +705,14 @@ Splot_MainSDL::joystickMotion (SDL_Event* event_in)
   if (xDiff || yDiff)
   {
     state.player->moveEvent (xDiff, yDiff);
-    SDL_WarpMouse (mid_[0], mid_[1]);
+#if SDL_VERSION_ATLEAST (2,0,0)
+    SDL_WarpMouseInWindow (window_,
+                           configuration.screen_width/2,
+                           configuration.screen_height/2);
+#else
+    SDL_WarpMouse (configuration.screen_width/2,
+                   configuration.screen_height/2);
+#endif
   } // end IF
 
   last_[0] = event_in->motion.x;

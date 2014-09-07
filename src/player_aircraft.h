@@ -31,8 +31,11 @@ class Splot_PlayerAircraft
   virtual ~Splot_PlayerAircraft ();
 
   void moveEvent (int, int); // x/y
+  void moveEventMouse (int, int); // x/y
+
   void fireGun (bool); // status
   void shootGun ();
+
   void useItem (int); // index
   void useItem ();
   void nextItem ();

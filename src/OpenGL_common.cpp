@@ -31,16 +31,45 @@
 #include "screen.h"
 #include "status_display.h"
 
+// init statics
+bool Splot_OpenGLCommon::initialized_ = false;
+
 bool
 Splot_OpenGLCommon::init ()
+{
+  if (!Splot_OpenGLCommon::initialized_)
+  {
+    if (!Splot_OpenGLCommon::initTextToolkit ())
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Splot_OpenGLCommon::initTextToolkit(), aborting\n")));
+
+      return false;
+    } // end IF
+
+    Splot_OpenGLCommon::initialized_ = true;
+  } // end IF
+
+  return Splot_OpenGLCommon::initialized_;
+}
+
+void
+Splot_OpenGLCommon::fini ()
+{
+  Splot_OpenGLCommon::finiTextToolkit ();
+}
+
+bool
+Splot_OpenGLCommon::initScreen ()
 {
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
   if (configuration.debug)
     ACE_DEBUG ((LM_INFO,
-                ACE_TEXT ("init\n")));
+                ACE_TEXT ("init screen\n")));
 
-  Splot_OpenGLCommon::reshape (configuration.screen_width, configuration.screen_height);
+  Splot_OpenGLCommon::reshape (configuration.screen_width,
+                               configuration.screen_height);
 
   glDisable (GL_DEPTH_TEST);
   glDepthFunc (GL_LEQUAL);
@@ -74,66 +103,44 @@ Splot_OpenGLCommon::init ()
   glClearColor (0.0, 0.0, 0.0, 1.0);
 
 #ifdef USE_GLPNG_IMAGE
-  pngSetViewingGamma (config->viewGamma());
+  pngSetViewingGamma (configuration.view_gamma);
 #endif
 
-  Splot_OpenGLCommon::loadTextures ();
+  return true;
+}
 
-  Splot_PlayerBullets::initialize ();
-  Splot_EnemyBullets::initialize ();
-  Splot_PowerUps::initialize ();
+bool
+Splot_OpenGLCommon::initTextToolkit ()
+{
+  State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
+#if defined (USE_GLC_TEXT) && defined (USE_FTGL_TEXT)
+  const Configuration_t& configuration =
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
+  if (configuration.text_type == TEXT_GLC)
+    ACE_NEW_RETURN (state.text,
+                    TextGLC (),
+                    false);
+  else
+    ACE_NEW_RETURN (state.text,
+                    TextFTGL (),
+                    false);
+#elif defined (USE_GLC_TEXT)
+  ACE_NEW_RETURN (state.text,
+                  TextGLC (),
+                  false);
+#elif defined (USE_FTGL_TEXT)
+  ACE_NEW_RETURN (state.text,
+                  Splot_TextFTGL (),
+                  false);
+#else
+#error "USE_GLC_TEXT or USE_FTGL_TEXT must be defined"
+#endif
 
   return true;
 }
 
 void
-Splot_OpenGLCommon::fini ()
-{
-  Splot_OpenGLCommon::deleteTextures ();
-}
-
-void
-Splot_OpenGLCommon::loadTextures ()
-{
-  State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-  try
-  {
-#if defined (USE_GLC_TEXT) && defined (USE_FTGL_TEXT)
-    const Configuration_t& configuration =
-      SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
-    if (configuration.text_type == TEXT_GLC)
-      ACE_NEW (state.text,
-               TextGLC ());
-    else
-      ACE_NEW (state.text,
-               TextFTGL ());
-#elif defined (USE_GLC_TEXT)
-    ACE_NEW (state.text,
-             TextGLC ());
-#elif defined (USE_FTGL_TEXT)
-    ACE_NEW (state.text,
-             Splot_TextFTGL ());
-#else
-#error "USE_GLC_TEXT or USE_FTGL_TEXT must be defined"
-#endif
-  }
-  catch (char* error)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("Splot_OpenGLCommon::loadTextures(): caught exception \"%s\", exiting\n"),
-                error));
-    ACE_OS::exit (EXIT_FAILURE);
-  }
-  catch (...)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("Splot_OpenGLCommon::loadTextures(): caught exception, exiting\n")));
-    ACE_OS::exit (EXIT_FAILURE);
-  }
-}
-
-void
-Splot_OpenGLCommon::deleteTextures ()
+Splot_OpenGLCommon::finiTextToolkit ()
 {
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
   if (state.text)
@@ -179,7 +186,7 @@ Splot_OpenGLCommon::drawGame ()
 
   //-- Place camera
   glLoadIdentity ();
-  glTranslatef (0.0, 0.0, configuration.z_trans);
+  glTranslatef (0.0, 0.0, configuration.z_transformation);
   //	glTranslatef(0.0, 5.0, -12.0);
 
   if (!state.game_pause)
@@ -200,7 +207,7 @@ Splot_OpenGLCommon::drawGame ()
       state.player->checkForPowerUps (state.power_ups);
     } // end IF
     state.explosions->update ();
-    state.audio->update ();
+//    state.audio->update ();
 
     state.player->update ();
     state.game_frame++;
@@ -215,7 +222,7 @@ Splot_OpenGLCommon::drawGame ()
   state.enemies->drawGL ();
   state.player->drawGL ();
 
-  if (configuration.gfx_level > 0)
+  if (configuration.graphics_level > 0)
     state.status_display->darkenGL ();
 
   glBlendFunc (GL_SRC_ALPHA, GL_ONE);
@@ -250,10 +257,10 @@ Splot_OpenGLCommon::drawGameOver ()
   if (state.player_death > 0)
   {
     float z = 1.0F*state.player_death/DEATH_TIME;
-    glTranslatef (0.0, 0.0, configuration.z_trans-z*z);
+    glTranslatef (0.0, 0.0, configuration.z_transformation-z*z);
   } // end IF
   else
-    glTranslatef (0.0, 0.0, configuration.z_trans);
+    glTranslatef (0.0, 0.0, configuration.z_transformation);
 
   //-- Add items to scene
   Splot_Screen::put ();
@@ -265,7 +272,7 @@ Splot_OpenGLCommon::drawGameOver ()
   state.player_bullets->update ();
   state.enemy_bullets->update ();
   state.player_bullets->checkForHits (state.enemies->getFleet ());
-  state.audio->update ();
+//  state.audio->update ();
   state.player->update ();
   state.game_frame++;
 
@@ -276,7 +283,7 @@ Splot_OpenGLCommon::drawGameOver ()
   //-- Draw actors
   state.enemies->drawGL ();
 
-  if (configuration.gfx_level > 0)
+  if (configuration.graphics_level > 0)
     state.status_display->darkenGL ();
 
   glBlendFunc (GL_SRC_ALPHA, GL_ONE);
@@ -325,8 +332,8 @@ Splot_OpenGLCommon::drawLevelComplete ()
   {
     SPLOT_STATE_SINGLETON::instance ()->gotoNextLevel ();
     state.game_mode = GAMEMODE_GAME;
-    state.audio->setMusicMode (SOUND_MUSIC_GAME);
-    state.audio->setMusicVolume (configuration.vol_music);
+    state.audio->setMusicMode (MUSIC_GAME);
+    state.audio->setMusicVolume (configuration.volume_music);
     return;
   } // end IF
 
@@ -335,7 +342,7 @@ Splot_OpenGLCommon::drawLevelComplete ()
   if (state.player_success < 0)
   {
     float vol =
-      configuration.vol_music-(configuration.vol_music*fade_factor);
+      configuration.volume_music-(configuration.volume_music*fade_factor);
     if (vol < 0.0) vol = 0.0;
     state.audio->setMusicVolume (vol);
   } // end IF
@@ -345,14 +352,14 @@ Splot_OpenGLCommon::drawLevelComplete ()
 
   //-- Place camera
   glLoadIdentity ();
-  glTranslatef (0.0, 0.0, configuration.z_trans);
+  glTranslatef (0.0, 0.0, configuration.z_transformation);
 
   //-- Update scene
   state.enemies->update ();
   state.explosions->update ();
   state.player_bullets->update ();
   state.player->update ();
-  state.audio->update ();
+//  state.audio->update ();
 
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   //-- Draw background
@@ -360,7 +367,7 @@ Splot_OpenGLCommon::drawLevelComplete ()
   //-- Draw actors
   state.player->drawGL ();
 
-  if (configuration.gfx_level > 0)
+  if (configuration.graphics_level > 0)
     state.status_display->darkenGL ();
 
   glBlendFunc (GL_SRC_ALPHA, GL_ONE);
@@ -393,7 +400,7 @@ Splot_OpenGLCommon::drawText (const char* string_in,
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
 
   //-- alpha
-  float tmp = 0.5F+0.5F*sin (pulse_in*0.02F);
+  float tmp = 0.5F+0.5F*::sin (pulse_in*0.02F);
   float aa, ca;
   aa = 0.7F-0.5F*tmp;
   if (pulse_in > -50.0)
@@ -429,8 +436,8 @@ Splot_OpenGLCommon::drawText (const char* string_in,
     for (int i = 0; i < 6; i++)
     {
       glColor4f (1.0, ca*ca*0.3F, ca*0.3F, aa*aa);
-      x_sin = 1.75F*sin (i+state.frame*0.06F);
-      y_sin = 0.75F*sin (i+state.frame*0.09F);
+      x_sin = 1.75F*::sin (i+state.frame*0.06F);
+      y_sin = 0.75F*::sin (i+state.frame*0.09F);
 
       glPushMatrix ();
       glScalef (scale_in, scale_in*0.75F, 1.0);
@@ -451,7 +458,7 @@ Splot_OpenGLCommon::reshape (int, int)
   glMatrixMode (GL_PROJECTION);
   glLoadIdentity ();
   gluPerspective (configuration.screen_FOV,
-                  configuration.screen_aspect,
+                  (float)configuration.screen_width/(float)configuration.screen_height,
                   configuration.screen_z_near,
                   configuration.screen_z_far);
   glMatrixMode (GL_MODELVIEW);

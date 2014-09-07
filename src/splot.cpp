@@ -27,13 +27,12 @@
 #endif
 
 #include "defines.h"
+#include "common.h"
 #include "configuration.h"
 #include "highscore.h"
 #include "state.h"
-
+#include "OpenGL_common.h"
 #include "enemy_aircraft.h"
-
-#include "common.h"
 
 void
 do_printVersion (const std::string& programName_in)
@@ -211,13 +210,31 @@ ACE_TMAIN (int argc_in,
 #else
 #error "USE_SDL or USE_GLUT must be defined"
 #endif
-  if (!SPLOT_STATE_SINGLETON::instance ()->initialize (toolkit,
-                                                       argc_in,
-                                                       argv_in))
+
+  Splot_State::initialize ();
+  Splot_State* splot_state = SPLOT_STATE_SINGLETON::instance ();
+  ACE_ASSERT (splot_state);
+  if (!splot_state->initialize (toolkit,
+                                argc_in,
+                                argv_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Splot_State::initialize (%d), aborting\n"),
                 toolkit));
+
+    // *PORTABILITY*: on Windows, need to fini ACE...
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (ACE::fini () == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
+#endif
+
+    return EXIT_FAILURE;
+  } // end IF
+  if (!Splot_OpenGLCommon::init ())
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Splot_OpenGLCommon::init(), aborting\n")));
 
     // *PORTABILITY*: on Windows, need to fini ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -234,9 +251,10 @@ ACE_TMAIN (int argc_in,
   //  state.highscore->print (SPLOT_CONFIGURATION_SINGLETON::instance ()->intSkill ());
 
   // step4: run game
-  SPLOT_STATE_SINGLETON::instance ()->run ();
+  splot_state->run ();
 
   // step5: clean up
+  Splot_OpenGLCommon::fini ();
 
   // *PORTABILITY*: on Windows, must fini ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

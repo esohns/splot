@@ -41,9 +41,12 @@ float Splot_PlayerBullets::bullet_damage[NUM_PLAYER_AMMUNITION_TYPES];
 void
 Splot_PlayerBullets::initialize ()
 {
-  Splot_PlayerBullets::bullet_size[0][0] = 0.05F; Splot_PlayerBullets::bullet_size[0][1] = 0.65F;
-  Splot_PlayerBullets::bullet_size[1][0] = 0.11F; Splot_PlayerBullets::bullet_size[1][1] = 1.5F;
-  Splot_PlayerBullets::bullet_size[2][0] = 0.3F;  Splot_PlayerBullets::bullet_size[2][1] = 1.5F;
+  Splot_PlayerBullets::bullet_size[0][0] = 0.05F;
+  Splot_PlayerBullets::bullet_size[0][1] = 0.65F;
+  Splot_PlayerBullets::bullet_size[1][0] = 0.11F;
+  Splot_PlayerBullets::bullet_size[1][1] = 1.5F;
+  Splot_PlayerBullets::bullet_size[2][0] = 0.3F;
+  Splot_PlayerBullets::bullet_size[2][1] = 1.5F;
 
   Splot_PlayerBullets::bullet_damage[0] = 3.5F;
   Splot_PlayerBullets::bullet_damage[1] = 6.0F;

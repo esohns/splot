@@ -41,58 +41,58 @@
 
 Splot_State::Splot_State ()
 {
-  state_.text              = NULL;
+  state_.text               = NULL;
 
-  state_.toolkit           = NULL;
-  state_.highscore         = NULL;
+  state_.toolkit            = NULL;
+  state_.highscore          = NULL;
 
-  state_.mouse_active      = false;
-  state_.joy_active        = false;
+  state_.mouse_active       = false;
+  state_.joy_active         = false;
 
-  state_.fps               = STATE_DEFAULT_FPS;
-  state_.frame             = 0;
-  state_.game_frame        = 0;
-  state_.game_speed        = STATE_DEFAULT_GAME_SPEED;
-  state_.game_skill        = STATE_DEFAULT_GAME_SKILL;
-  state_.game_level        = 1;
-  state_.max_level         = 1;
-  state_.speed_adj         = STATE_DEFAULT_SPEED_ADJUSTMENT;
+  state_.FPS                = STATE_DEFAULT_FPS;
+  state_.frame              = 0;
+  state_.game_frame         = 0;
+  state_.game_speed         = STATE_DEFAULT_GAME_SPEED;
+  state_.game_skill         = STATE_DEFAULT_GAME_SKILL;
+  state_.game_level         = 1;
+  state_.max_level          = 1;
+  state_.speed_adj          = STATE_DEFAULT_SPEED_ADJUSTMENT;
 
-  state_.cdrom_count       = 1;
+  state_.CDROM_count        = 1;
 
-  state_.game_mode         = GAMEMODE_MENU;
+  state_.game_mode          = GAMEMODE_MENU;
 
-  state_.player_death      = 0;
-  state_.player_success    = 0;
+  state_.player_death       = 0;
+  state_.player_success     = 0;
 
-  state_.scroll_speed      = STATE_DEFAULT_SCROLL_SPEED;
+  state_.scroll_speed       = STATE_DEFAULT_SCROLL_SPEED;
 
-  state_.player            = NULL;
-  state_.enemies           = NULL;
-  state_.player_bullets    = NULL;
-  state_.enemy_bullets     = NULL;
+  state_.player             = NULL;
+  state_.enemies            = NULL;
+  state_.player_bullets     = NULL;
+  state_.enemy_bullets      = NULL;
   //state_.screen_elements.clear ();
-  state_.explosions        = NULL;
-  state_.power_ups         = NULL;
-  state_.audio             = NULL;
-  state_.background        = NULL;
-  state_.background_game   = NULL;
-  state_.background_menu   = NULL;
-  state_.menu              = NULL;
+  state_.explosions         = NULL;
+  state_.power_ups          = NULL;
+  state_.audio              = NULL;
+  state_.background         = NULL;
+  state_.background_game    = NULL;
+  state_.background_menu    = NULL;
+  state_.menu               = NULL;
   //state_.main_GL           = NULL;
-  state_.status_display    = NULL;
+  state_.status_display     = NULL;
 
-  state_.cursor_pos[0]     = 0.0;
-  state_.cursor_pos[1]     = 0.0;
-  state_.cursor_pos[2]     = HERO_Z;
+  state_.cursor_position[0] = 0.0;
+  state_.cursor_position[1] = 0.0;
+  state_.cursor_position[2] = HERO_Z;
 
-  state_.event_file        = NULL;
+  state_.event_file         = NULL;
 
-  state_.tip_ship_past     = 0;
-  state_.tip_super_shield  = 0;
+  state_.tip_ship_past      = 0;
+  state_.tip_super_shield   = 0;
 
-  state_.game_pause        = false;
-  state_.game_quit         = false;
+  state_.game_pause         = false;
+  state_.game_quit          = false;
 
   ///////////////////////////////////////
   game_state_.damage               = PLAYER_DEFAULT_DAMAGE;
@@ -128,6 +128,7 @@ Splot_State::initialize ()
 {
   Splot_PlayerBullets::initialize ();
   Splot_EnemyBullets::initialize ();
+  Splot_PowerUps::initialize ();
 }
 
 bool
@@ -231,7 +232,7 @@ Splot_State::newGame ()
   state_.audio->setMusicIndex (state_.game_level-1);
 
   if (state_.event_file)
-    if (fclose (state_.event_file))
+    if (ACE_OS::fclose (state_.event_file))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to fclose () event file: \"%m\", continuing\n")));
   //	//-- cheezy, partially functional record mechanism
@@ -325,7 +326,6 @@ Splot_State::initGame ()
 
   //ACE_NEW (state_.main_GL,
   //         MainGL ());
-  Splot_OpenGLCommon::init ();
   ACE_NEW (state_.explosions,
            Splot_Explosions ());
   ACE_NEW (state_.enemies,
@@ -368,7 +368,7 @@ Splot_State::initGame ()
 
   //newGame ();
 
-  state_.audio->setMusicMode (SOUND_MUSIC_MENU);
+  state_.audio->setMusicMode (MUSIC_MENU);
 
   if (configuration.debug)
     ACE_DEBUG ((LM_INFO,
@@ -385,7 +385,6 @@ Splot_State::finiGame ()
     ACE_DEBUG ((LM_INFO,
                 ACE_TEXT("shutting down...\n")));
   
-  Splot_OpenGLCommon::fini ();
   //delete state_.main_GL;
   delete state_.enemies;
   delete state_.player;
@@ -415,7 +414,6 @@ Splot_State::deleteTextures ()
 
   glFinish ();
 
-  Splot_OpenGLCommon::deleteTextures ();
   state_.enemy_bullets->deleteTextures ();
   state_.enemies->deleteTextures ();
   state_.explosions->deleteTextures ();
@@ -440,7 +438,6 @@ Splot_State::loadTextures ()
 
   glFinish ();
 
-  Splot_OpenGLCommon::loadTextures ();
   state_.enemy_bullets->loadTextures ();
   state_.enemies->loadTextures ();
   state_.explosions->loadTextures ();

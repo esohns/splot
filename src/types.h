@@ -1,43 +1,43 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-enum AudioType_t
+enum AudioToolkitType_t
 {
- AUDIO_INVALID = -1,
- AUDIO_OPENAL = 0,
- AUDIO_SDL_MIXER,
+ AUDIOTOOLKIT_INVALID = -1,
+ AUDIOTOOLKIT_OPENAL = 0,
+ AUDIOTOOLKIT_SDL_MIXER,
  ////////////////////////////////////////
- MAX_AUDIO_TYPES
+ MAX_AUDIOTOOLKIT_TYPES
 };
 
-enum TextType_t
+enum TextToolkitType_t
 {
- TEXT_INVALD = -1,
- TEXT_GLC = 0,
- TEXT_FTGL,
+ TEXTTOOLKIT_INVALD = -1,
+ TEXTTOOLKIT_GLC = 0,
+ TEXTTOOLKIT_FTGL,
  ////////////////////////////////////////
- MAX_TEXT_TYPES
+ MAX_TEXTTOOLKIT_TYPES
 };
 
 struct Configuration_t
 {
   int    screen_width;
   int    screen_height;
-  float  screen_aspect;
+//  float  screen_aspect;
   float  screen_FOV;
   float  screen_z_near;
   float  screen_z_far;
   float  screen_bound[2];
-  float  z_trans;
+  float  z_transformation;
 
   bool   full_screen;
   bool   blend_enabled;
-  int    gfx_level;
+  int    graphics_level;
   bool   true_color;
-  bool   tex_border;
-  bool   show_fps;
+  bool   texture_border;
+  bool   show_FPS;
   float  view_gamma;
-  TextType_t text_type;
+  TextToolkitType_t text_toolkit_type;
 
   bool   auto_speed;
   float  movement_speed;
@@ -45,11 +45,12 @@ struct Configuration_t
   bool   audio_enabled;
   bool   swap_stereo;
   bool   use_playlist;
-  bool   use_cdrom;
-  int    cdrom_device;
-  float  vol_sound;
-  float  vol_music;
-  AudioType_t audio_type;
+  bool   use_CD_audio;
+  bool   use_MIDI_music;
+  int    CDROM_device;
+  float  volume_sound;
+  float  volume_music;
+  AudioToolkitType_t audio_toolkit_type;
 
   bool   debug;
 
@@ -114,7 +115,7 @@ struct State_t
 
   Splot_Text*      text;
 
-  float            fps;
+  float            FPS;
   int              frame;
   int              game_frame;
   float            game_speed;
@@ -123,7 +124,7 @@ struct State_t
   unsigned int     max_level;
   float            speed_adj;
 
-  int              cdrom_count;
+  int              CDROM_count;
 
   float            scroll_speed;
 
@@ -150,7 +151,7 @@ struct State_t
   Splot_Menu*           menu;
   Splot_StatusDisplay*  status_display;
 
-  float            cursor_pos[3];
+  float            cursor_position[3];
 
   // *TODO*: save randomness/state with static savegames
   // *TODO*: keep randomness/state here to support re-entrant code

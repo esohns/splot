@@ -26,13 +26,16 @@
 #include "state.h"
 #include "OpenGL_common.h"
 
-Splot_MainSDL::Splot_MainSDL (int argc_in, char** argv_in)
+Splot_MainSDL::Splot_MainSDL (int argc_in,
+                              ACE_TCHAR** argv_in)
  : inherited (argc_in, argv_in)
 #if SDL_VERSION_ATLEAST (2,0,0)
  , window_(NULL)
  //, context_ ()
 #endif
+#ifdef WITH_SDL_JOYSTICK
  , joystick_ (NULL)
+#endif
  , fire_ (0)
  , mouseToggle_ (true)
  , joystickToggle_ (true)
@@ -58,8 +61,8 @@ Splot_MainSDL::Splot_MainSDL (int argc_in, char** argv_in)
 #endif // WITH_SDL_JOYSTICK
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
-  if (!configuration.debug)
-    SDL_init_options |= SDL_INIT_NOPARACHUTE;
+//  if (!configuration.debug)
+//    SDL_init_options |= SDL_INIT_NOPARACHUTE;
 #ifdef USE_SDLMIXER_AUDIO
   SDL_init_options |= SDL_INIT_AUDIO;
 #endif
@@ -194,7 +197,7 @@ Splot_MainSDL::run ()
     //-- Draw scene and refresh screen
     Splot_OpenGLCommon::draw ();
 #if SDL_VERSION_ATLEAST (2,0,0)
-    SDL_GL_SwapWindow(window);
+    SDL_GL_SwapWindow (window);
 #else
     SDL_GL_SwapBuffers ();
 #endif // SDL_VERSION_ATLEAST (2,0,0)
@@ -225,7 +228,7 @@ Splot_MainSDL::run ()
       done = this->process (&event);
       if (!done) break;
     } // end WHILE
-    //this->joystickMove ();
+    this->joystickMove ();
     this->keyMove ();
     //++frames;
 
@@ -234,7 +237,7 @@ Splot_MainSDL::run ()
     {
       now_time = SDL_GetTicks ();
       if (last_time)
-        state.fps = (10.0F/(now_time-last_time))*1000.0F;
+        state.FPS = (10.0F/(now_time-last_time))*1000.0F;
       last_time = now_time;
 
       if (state.game_mode == GAMEMODE_MENU)
@@ -242,18 +245,18 @@ Splot_MainSDL::run ()
 
       if (state.game_frame < 400)
       {
-        if (state.fps < 48.0 &&
+        if (state.FPS < 48.0 &&
             state.game_speed < 1.0)
         {
           state.game_speed += 0.02F;
           if (configuration.debug)
             ACE_DEBUG ((LM_INFO,
                         ACE_TEXT ("speed calibration: fps: %3.2f, speed: %f ...\n"),
-                        state.fps, state.game_speed));
+                        state.FPS, state.game_speed));
         } // end IF
         else if (state.game_frame > 20)
         {
-          float tmp = 50.0F/state.fps;
+          float tmp = 50.0F/state.FPS;
           tmp = 0.8F*target_adj + 0.2F*tmp;
           target_adj = floor (100.0F*(tmp + 0.005F)) / 100.0F;
 //          if (configuration.debug)
@@ -263,20 +266,20 @@ Splot_MainSDL::run ()
         } // end IF
       } // end IF
       else if (configuration.auto_speed &&
-               (state.fps > 30.0 && state.fps < 100.0))  // discount any wacky fps from pausing
+               (state.FPS > 30.0 && state.FPS < 100.0))  // discount any wacky fps from pausing
       {
         //game->speedAdj = targetAdj;
         // Everything was originally based on 50fps - attempt to adjust
         // if outside of a reasonable range
-        float tmp = 50.0F/state.fps;
-        if (fabs (target_adj-tmp) > 0.1)
+        float tmp = 50.0F/state.FPS;
+        if (::fabs (target_adj-tmp) > 0.1)
         {
           adjCount_++;
           state.speed_adj = tmp;
           if (configuration.debug)
             ACE_DEBUG ((LM_INFO,
                         ACE_TEXT ("speed calibration: fps: %3.2f, adj: %f, state.speed_adj: %f ...\n"),
-                        state.fps, target_adj, state.speed_adj));
+                        state.FPS, target_adj, state.speed_adj));
         } // end IF
         else
           state.speed_adj = target_adj;
@@ -474,12 +477,15 @@ Splot_MainSDL::setVideoMode ()
                 OpenGL_surface->format->BitsPerPixel, rs, gs, bs, ds));
 #endif
 
-  bool result = Splot_OpenGLCommon::init ();
-  if (!result)
+  if (!Splot_OpenGLCommon::initScreen ())
+  {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Splot_OpenGLCommon::init(), aborting\n")));
+                ACE_TEXT ("failed to Splot_OpenGLCommon::initScreen(): \"%s\", aborting\n")));
 
-  return result;
+    return false;
+  } // end IF
+
+  return true;
 }
 
 #endif // USE_SDL

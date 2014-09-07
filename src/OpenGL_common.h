@@ -9,6 +9,8 @@ class Splot_OpenGLCommon
   static bool init ();
   static void fini ();
 
+  static bool initScreen ();
+
   static void draw ();
   static void drawGame ();
   static void drawGameOver ();
@@ -19,12 +21,15 @@ class Splot_OpenGLCommon
   static void reshape (int, int); // width / height
 
   static const char* findFont ();
-  static void loadTextures ();
-  static void deleteTextures ();
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Splot_OpenGLCommon ());
   ACE_UNIMPLEMENTED_FUNC (~Splot_OpenGLCommon ());
+
+  static bool initTextToolkit ();
+  static void finiTextToolkit ();
+
+  static bool initialized_;
 };
 
 #endif // OPENGLCOMMON_H

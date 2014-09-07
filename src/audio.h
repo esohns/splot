@@ -13,14 +13,30 @@
 
 #include "defines.h"
 
+enum MusicFormat_t
+{
+  MUSICFORMAT_INVALID = -1,
+  MUSICFORMAT_MID = 0,
+  MUSICFORMAT_WAV,
+  ///////////////////////////////////////
+  MAX_MUSICFORMAT_TYPES
+};
+
+enum MusicMode_t
+{
+  MUSIC_INVALID = -1,
+  MUSIC_GAME = 0,
+  MUSIC_MENU,
+  ///////////////////////////////////////
+  MAX_MUSIC_MODES
+};
+
 enum SoundType_t
 {
   SOUND_INVALID = -1,
   SOUND_EXPLOSION_DEFAULT = 0,
   SOUND_EXPLOSION_HEAVY,
   SOUND_EXPLOSION_LIGHT,
-  SOUND_MUSIC_GAME,
-  SOUND_MUSIC_MENU,
   SOUND_PLAYER_AMMUNITION_0,
   SOUND_POWERUP,
   SOUND_SHIP_ADD,
@@ -57,25 +73,29 @@ class Splot_Audio
   Splot_Audio ();
   virtual ~Splot_Audio ();
 
-  virtual void update () {};
+//  virtual void update ();
+
   virtual void play (SoundType_t,        // type
                      const float (&)[3], // position
                      int = 0) {};        // age
+  virtual void setSoundVolume (float) {}; // volume [0.0, 1.0]
+
+  virtual void playMusic (MusicMode_t); // mode
   virtual void stopMusic ();
   virtual void pauseMusic (bool); // pause ? : resume
-  virtual void setMusicMode (SoundType_t);
-  virtual void setMusicVolume (float);
-  virtual void setSoundVolume (float) {};
-  virtual void setMusicIndex (int);
+  virtual void setMusicMode (MusicMode_t); // mode
+  virtual void setMusicVolume (float); // volume [0.0, 1.0]
+  virtual void setMusicIndex (int); // track
   virtual void nextMusicIndex ();
 
  protected:
   virtual void init () {};
 #ifdef WITH_SDL_CDROM
   virtual void initCDROM ();
-#endif // USE_SDL
+#endif // WITH_SDL_CDROM
 
   char    soundFilenames_[MAX_SOUND_TYPES][PATH_MAX];
+  char    musicFilenames_[MAX_MUSICFORMAT_TYPES][MAX_MUSIC_MODES][PATH_MAX];
   char    musicPlaylistFilenames_[MAX_MUSIC][PATH_MAX];
   int     musicMaxIndex_;
   int     musicCurrentIndex_;

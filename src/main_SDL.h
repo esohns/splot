@@ -14,8 +14,8 @@ class Splot_MainSDL
  : public Splot_Main
 {
  public:
-  Splot_MainSDL (int = 0,        // argc
-                 char** = NULL); // argv
+  Splot_MainSDL (int = 0,             // argc
+                 ACE_TCHAR** = NULL); // argv
   virtual ~Splot_MainSDL ();
 
   bool run ();
@@ -23,7 +23,8 @@ class Splot_MainSDL
 
   bool setVideoMode ();
 
-  void grabMouse (bool, bool = true);
+  void grabMouse (bool,         // grab cursor ? : release
+                  bool = true); // warp ?
 
   bool process (SDL_Event*);
   void joystickMove ();
@@ -32,7 +33,10 @@ class Splot_MainSDL
  private:
   typedef Splot_Main inherited;
 
-  void activation (bool shown, bool mouse, bool input, bool gain);
+  void activation (bool,  // window (minimized/restored)
+                   bool,  // mouse focus
+                   bool,  // input focus
+                   bool); // window/focus gained ? : lost
   void keyDown (SDL_Event*);
   void keyDownGame (SDL_Event*);
   void keyUp (SDL_Event*);
@@ -48,10 +52,12 @@ class Splot_MainSDL
 
  private:
 #if SDL_VERSION_ATLEAST (2,0,0)
-  SDL_Window* window_;
+  SDL_Window*   window_;
   SDL_GLContext context_;
 #endif
+#ifdef WITH_SDL_JOYSTICK
   SDL_Joystick* joystick_;
+#endif
   int           fire_;
   bool          mouseToggle_;
   bool          joystickToggle_;
@@ -59,7 +65,6 @@ class Splot_MainSDL
   int           mid_[2];
   float         joy_[2];
   float         jNow_[2];
-
   int           adjCount_;
   float         key_speed_[2];
 };

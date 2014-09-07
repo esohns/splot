@@ -12,7 +12,7 @@ class Splot_State
 {
   // singleton requires access to the ctor/dtor
   friend class ACE_Singleton<Splot_State,
-                             ACE_Thread_Mutex>;
+                             ACE_Null_Mutex>;
 
  public:
   static void initialize ();
@@ -56,7 +56,7 @@ class Splot_State
 };
 
 typedef ACE_Singleton<Splot_State,
-                      ACE_Thread_Mutex> SPLOT_STATE_SINGLETON;
-//SPLOT_SINGLETON_DECLARE(ACE_Singleton, Splot_State, ACE_Thread_Mutex);
+                      ACE_Null_Mutex> SPLOT_STATE_SINGLETON;
+//SPLOT_SINGLETON_DECLARE(ACE_Singleton, Splot_State, ACE_Null_Mutex);
 
 #endif // STATE_H

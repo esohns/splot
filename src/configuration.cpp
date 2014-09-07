@@ -20,22 +20,21 @@ Splot_Configuration::Splot_Configuration ()
 {
   configuration_.screen_width = CONFIGURATION_DEFAULT_SCREEN_WIDTH;
   configuration_.screen_height = CONFIGURATION_DEFAULT_SCREEN_HEIGHT;
-  configuration_.screen_aspect = CONFIGURATION_DEFAULT_SCREEN_ASPECT;
   configuration_.screen_FOV = CONFIGURATION_DEFAULT_SCREEN_FOV;
   configuration_.screen_z_near = CONFIGURATION_DEFAULT_SCREEN_ZNEAR;
   configuration_.screen_z_far = CONFIGURATION_DEFAULT_SCREEN_ZFAR;
   configuration_.screen_bound[0] = CONFIGURATION_DEFAULT_SCREEN_BOUND_0;
   configuration_.screen_bound[1] = CONFIGURATION_DEFAULT_SCREEN_BOUND_1;
-  configuration_.z_trans = CONFIGURATION_DEFAULT_Z_TRANS;
+  configuration_.z_transformation = CONFIGURATION_DEFAULT_Z_TRANSFORMATION;
 
   configuration_.full_screen = CONFIGURATION_DEFAULT_FULLSCREEN;
   configuration_.blend_enabled = CONFIGURATION_DEFAULT_BLEND_ENABLED;
-  configuration_.gfx_level = 2;
+  configuration_.graphics_level = 2;
   configuration_.true_color = CONFIGURATION_DEFAULT_TRUE_COLOR;
-  configuration_.tex_border = CONFIGURATION_DEFAULT_TEX_BORDER;
-  configuration_.show_fps = CONFIGURATION_DEFAULT_SHOW_FPS;
+  configuration_.texture_border = CONFIGURATION_DEFAULT_TEXTURE_BORDER;
+  configuration_.show_FPS = CONFIGURATION_DEFAULT_SHOW_FPS;
   configuration_.view_gamma = CONFIGURATION_DEFAULT_VIEW_GAMMA;
-  configuration_.text_type = CONFIGURATION_DEFAULT_TEXT_TYPE;
+  configuration_.text_toolkit_type = CONFIGURATION_DEFAULT_TEXTTOOLKITTYPE;
 
   configuration_.auto_speed = CONFIGURATION_DEFAULT_AUTO_SPEED;
   configuration_.movement_speed = CONFIGURATION_DEFAULT_MOVEMENT_SPEED;
@@ -43,11 +42,12 @@ Splot_Configuration::Splot_Configuration ()
   configuration_.audio_enabled = CONFIGURATION_DEFAULT_AUDIO_ENABLED;
   configuration_.swap_stereo = CONFIGURATION_DEFAULT_SWAP_STEREO;
   configuration_.use_playlist = CONFIGURATION_DEFAULT_USE_PLAYLIST;
-  configuration_.use_cdrom = CONFIGURATION_DEFAULT_USE_CDROM;
-  configuration_.cdrom_device = 0;
-  configuration_.vol_sound = CONFIGURATION_DEFAULT_VOL_SOUND;
-  configuration_.vol_music = CONFIGURATION_DEFAULT_VOL_MUSIC;
-  configuration_.audio_type = CONFIGURATION_DEFAULT_AUDIO_TYPE;
+  configuration_.use_CD_audio = CONFIGURATION_DEFAULT_USE_CDAUDIO;
+  configuration_.use_MIDI_music = CONFIGURATION_DEFAULT_USE_MIDIMUSIC;
+  configuration_.CDROM_device = 0;
+  configuration_.volume_sound = CONFIGURATION_DEFAULT_VOLUME_SOUND;
+  configuration_.volume_music = CONFIGURATION_DEFAULT_VOLUME_MUSIC;
+  configuration_.audio_toolkit_type = CONFIGURATION_DEFAULT_AUDIOTOOLKITTYPE;
 
   configuration_.debug = CONFIGURATION_DEFAULT_DEBUG;
 
@@ -112,13 +112,13 @@ Splot_Configuration::init (int argc_in,
 
     return false;
   } // end IF
-  if (argument_parser.long_option (ACE_TEXT (OPTIONS_LONG_OPTION_INI_FILE),
+  if (argument_parser.long_option (ACE_TEXT (OPTIONS_LONG_OPTION_INIFILE),
                                    'i',
                                    ACE_Get_Opt::ARG_REQUIRED) == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Get_Opt::long_option (\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (OPTIONS_LONG_OPTION_INI_FILE)));
+                ACE_TEXT (OPTIONS_LONG_OPTION_INIFILE)));
 
     return false;
   } // end IF
@@ -132,23 +132,33 @@ Splot_Configuration::init (int argc_in,
 
     return false;
   } // end IF
-  if (argument_parser.long_option( ACE_TEXT (OPTIONS_LONG_OPTION_VIDEO_MODE),
+  if (argument_parser.long_option( ACE_TEXT (OPTIONS_LONG_OPTION_VIDEOMODE),
                                    'm',
                                    ACE_Get_Opt::ARG_REQUIRED) == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Get_Opt::long_option (\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (OPTIONS_LONG_OPTION_VIDEO_MODE)));
+                ACE_TEXT (OPTIONS_LONG_OPTION_VIDEOMODE)));
 
     return false;
   } // end IF
-  if (argument_parser.long_option (ACE_TEXT (OPTIONS_LONG_OPTION_NOTEXBORDER),
+  if (argument_parser.long_option( ACE_TEXT (OPTIONS_LONG_OPTION_MIDIMUSIC),
+                                   'M',
+                                   ACE_Get_Opt::NO_ARG) == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Get_Opt::long_option (\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (OPTIONS_LONG_OPTION_MIDIMUSIC)));
+
+    return false;
+  } // end IF
+  if (argument_parser.long_option (ACE_TEXT (OPTIONS_LONG_OPTION_NOTEXTUREBORDER),
                                    't',
                                    ACE_Get_Opt::NO_ARG) == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Get_Opt::long_option (\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (OPTIONS_LONG_OPTION_NOTEXBORDER)));
+                ACE_TEXT (OPTIONS_LONG_OPTION_NOTEXTUREBORDER)));
 
     return false;
   } // end IF
@@ -173,8 +183,25 @@ Splot_Configuration::init (int argc_in,
     return false;
   } // end IF
 
+  std::string ini_file = Splot_Configuration::getFileName ();
+  ACE_stat stat;
+  int result = ACE_OS::stat (ACE_TEXT (ini_file.c_str ()), &stat);
+  if ((result == -1)                        ||
+      ((stat.st_mode & S_IFMT) != S_IFREG)  || // regular file ?
+      ((stat.st_mode & S_IRUSR) != S_IRUSR))   // readable ?
+    ini_file.clear ();
+  if (!ini_file.empty ())
+    if (!load (ini_file))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Splot_Configuration::load (\"%s\"), aborting\n"),
+                  ACE_TEXT (ini_file.c_str ())));
+
+      return false;
+    } // end IF
+  ini_file.clear ();
+
   int option = 0;
-  std::string ini_file;
   std::stringstream converter;
   while ((option = argument_parser ()) != EOF)
   {
@@ -187,7 +214,7 @@ Splot_Configuration::init (int argc_in,
         configuration_.blend_enabled = false;
         break;
       case 'c':
-        configuration_.use_cdrom = true;
+        configuration_.use_CD_audio = true;
         break;
       case 'd':
         configuration_.debug = true;
@@ -211,8 +238,11 @@ Splot_Configuration::init (int argc_in,
 
         break;
       }
+      case 'M':
+        configuration_.use_MIDI_music = true;
+        break;
       case 't':
-        configuration_.tex_border = false;
+        configuration_.texture_border = false;
         break;
       case 'v':
         mode_out = MODE_SHOW_VERSION;
@@ -228,13 +258,13 @@ Splot_Configuration::init (int argc_in,
         {
           bool is_valid = true;
           std::string long_option = long_option_p;
-          if (long_option == ACE_TEXT_ALWAYS_CHAR (OPTIONS_LONG_OPTION_INI_FILE))
+          if (long_option == ACE_TEXT_ALWAYS_CHAR (OPTIONS_LONG_OPTION_INIFILE))
             ini_file = argument_parser.opt_arg ();
           if (long_option == ACE_TEXT_ALWAYS_CHAR (OPTIONS_LONG_OPTION_FULLSCREEN))
             configuration_.full_screen = true;
           else if (long_option == ACE_TEXT_ALWAYS_CHAR (OPTIONS_LONG_OPTION_WINDOWED))
             configuration_.full_screen = false;
-          else if (long_option == ACE_TEXT_ALWAYS_CHAR(OPTIONS_LONG_OPTION_VIDEO_MODE))
+          else if (long_option == ACE_TEXT_ALWAYS_CHAR(OPTIONS_LONG_OPTION_VIDEOMODE))
           {
             int video_mode = -1;
             converter.clear ();
@@ -250,13 +280,13 @@ Splot_Configuration::init (int argc_in,
           else if (long_option == ACE_TEXT_ALWAYS_CHAR (OPTIONS_LONG_OPTION_NOBLEND))
             configuration_.blend_enabled = false;
           else if (long_option == ACE_TEXT_ALWAYS_CHAR (OPTIONS_LONG_OPTION_CDMUSIC))
-            configuration_.use_cdrom = true;
+            configuration_.use_CD_audio = true;
+          else if (long_option == ACE_TEXT_ALWAYS_CHAR (OPTIONS_LONG_OPTION_MIDIMUSIC))
+            configuration_.use_MIDI_music = true;
           else if (long_option == ACE_TEXT_ALWAYS_CHAR (OPTIONS_LONG_OPTION_DEBUG))
             configuration_.debug = true;
-          if (long_option == ACE_TEXT_ALWAYS_CHAR (OPTIONS_LONG_OPTION_INI_FILE))
-            ini_file = argument_parser.opt_arg ();
-          else if (long_option == ACE_TEXT_ALWAYS_CHAR (OPTIONS_LONG_OPTION_NOTEXBORDER))
-            configuration_.tex_border = false;
+          else if (long_option == ACE_TEXT_ALWAYS_CHAR (OPTIONS_LONG_OPTION_NOTEXTUREBORDER))
+            configuration_.texture_border = false;
           else if (long_option == ACE_TEXT_ALWAYS_CHAR (OPTIONS_LONG_OPTION_VERSION))
             mode_out = MODE_SHOW_VERSION;
           else
@@ -298,6 +328,7 @@ usage:
                     ACE_TEXT ("\t[-f/--%s] run in full-screen mode (defaults to true)\n")
                     ACE_TEXT ("\t[-i/--%s] configuration file\n")
                     ACE_TEXT ("\t[-m/--%s <mode>]\n\t\tmode\t0 =  512 x  384\n\t\t\t1 =  640 x  480\n\t\t\2 =  800 x  600\n\t\t\t3 = 1024 x  768\n\t\t\t4 = 1280 x  960\n")
+                    ACE_TEXT ("\t[-M/--%s] MIDI music (defaults to false)\n")
                     ACE_TEXT ("\t[-t/--%s] do not set tex border color (OpenGL) (defaults to false)\n")
                     ACE_TEXT ("\t[-v/--%s] show version information (defaults to false)\n")
                     ACE_TEXT ("\t[-w/--%s] run in windowed mode (defaults to true)\n")
@@ -308,9 +339,10 @@ usage:
                     ACE_TEXT (OPTIONS_LONG_OPTION_CDMUSIC),
                     ACE_TEXT (OPTIONS_LONG_OPTION_DEBUG),
                     ACE_TEXT (OPTIONS_LONG_OPTION_FULLSCREEN),
-                    ACE_TEXT (OPTIONS_LONG_OPTION_INI_FILE),
-                    ACE_TEXT (OPTIONS_LONG_OPTION_VIDEO_MODE),
-                    ACE_TEXT (OPTIONS_LONG_OPTION_NOTEXBORDER),
+                    ACE_TEXT (OPTIONS_LONG_OPTION_INIFILE),
+                    ACE_TEXT (OPTIONS_LONG_OPTION_VIDEOMODE),
+                    ACE_TEXT (OPTIONS_LONG_OPTION_MIDIMUSIC),
+                    ACE_TEXT (OPTIONS_LONG_OPTION_NOTEXTUREBORDER),
                     ACE_TEXT (OPTIONS_LONG_OPTION_VERSION),
                     ACE_TEXT (OPTIONS_LONG_OPTION_WINDOWED)));
 
@@ -319,22 +351,23 @@ usage:
     } // end SWITCH
   } // end WHILE
 
-  if (ini_file.empty ()) ini_file = Splot_Configuration::getFileName ();
-  ACE_stat stat;
-  int result = ACE_OS::stat (ACE_TEXT (ini_file.c_str ()), &stat);
-  if ((result == -1)                        ||
-			((stat.st_mode & S_IFMT) != S_IFREG)  || // regular file ?
-      ((stat.st_mode & S_IRUSR) != S_IRUSR))   // readable ?
-    ini_file.clear ();
   if (!ini_file.empty ())
-    if (!load (ini_file))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Splot_Configuration::load (\"%s\"), aborting\n"),
-                  ACE_TEXT (ini_file.c_str ())));
+  {
+    result = ACE_OS::stat (ACE_TEXT (ini_file.c_str ()), &stat);
+    if ((result == -1)                        ||
+        ((stat.st_mode & S_IFMT) != S_IFREG)  || // regular file ?
+        ((stat.st_mode & S_IRUSR) != S_IRUSR))   // readable ?
+      ini_file.clear ();
+    if (!ini_file.empty ())
+      if (!load (ini_file))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Splot_Configuration::load (\"%s\"), aborting\n"),
+                    ACE_TEXT (ini_file.c_str ())));
 
-      return false;
-    } // end IF
+        return false;
+      } // end IF
+  } // end IF
 
   return true;
 }
@@ -418,7 +451,7 @@ Splot_Configuration::load (const std::string& filename_in)
                   ACE_TEXT (value_name.c_str ())));
 
       return false;
-    } // end IF800
+    } // end IF
 
     //     ACE_DEBUG ((LM_DEBUG,
     //                 ACE_TEXT ("enumerated \"%s\", type %d\n"),
@@ -431,13 +464,11 @@ Splot_Configuration::load (const std::string& filename_in)
     {
       converter.str (value.c_str ());
       converter >> std::hex >> configuration_.screen_width;
-//      configuration_.screen_width = ::atoi (value.c_str ());
     } // end IF
     else if (value_name == ACE_TEXT ("screen_height"))
     {
       converter.str (value.c_str ());
       converter >> std::hex >> configuration_.screen_height;
-//      configuration_.screen_height = ::atoi (value.c_str ());
     } // end IF
     else if (value_name == ACE_TEXT ("full_screen"))
     {
@@ -459,11 +490,10 @@ Splot_Configuration::load (const std::string& filename_in)
         converter >> std::boolalpha >> configuration_.blend_enabled;
       } // end IF
     } // end IF
-    else if (value_name == ACE_TEXT ("gfx_level"))
+    else if (value_name == ACE_TEXT ("graphics_level"))
     {
       converter.str (value.c_str ());
-      converter >> std::hex >> configuration_.gfx_level;
-//      configuration_.gfx_level = ::atoi (value.c_str ());
+      converter >> std::hex >> configuration_.graphics_level;
     } // end IF
     else if (value_name == ACE_TEXT ("true_color"))
     {
@@ -475,37 +505,36 @@ Splot_Configuration::load (const std::string& filename_in)
         converter >> std::boolalpha >> configuration_.true_color;
       } // end IF
     } // end IF
-    else if (value_name == ACE_TEXT ("tex_border"))
+    else if (value_name == ACE_TEXT ("texture_border"))
     {
       converter.str (value.c_str ());
-      converter >> configuration_.tex_border;
+      converter >> configuration_.texture_border;
       if (converter.fail ())
       {
         converter.clear ();
-        converter >> std::boolalpha >> configuration_.tex_border;
+        converter >> std::boolalpha >> configuration_.texture_border;
       } // end IF
     } // end IF
-    else if (value_name == ACE_TEXT ("show_fps"))
+    else if (value_name == ACE_TEXT ("show_FPS"))
     {
       converter.str (value.c_str ());
-      converter >> configuration_.show_fps;
+      converter >> configuration_.show_FPS;
       if (converter.fail ())
       {
         converter.clear ();
-        converter >> std::boolalpha >> configuration_.show_fps;
+        converter >> std::boolalpha >> configuration_.show_FPS;
       } // end IF
     } // end IF
     else if (value_name == ACE_TEXT ("view_gamma"))
     {
       configuration_.view_gamma = (float)::atof (value.c_str ());
     } // end IF
-    else if (value_name == ACE_TEXT ("text_type"))
+    else if (value_name == ACE_TEXT ("text_toolkit_type"))
     {
       int tmp = -1;
       converter.str (value.c_str ());
       converter >> std::hex >> tmp;
-      configuration_.text_type = (TextType_t)tmp;
-//      configuration_.text_type = (TextType_t)::atoi (value.c_str ());
+      configuration_.text_toolkit_type = (TextToolkitType_t)tmp;
     } // end IF
     else if (value_name == ACE_TEXT ("auto_speed"))
     {
@@ -547,14 +576,24 @@ Splot_Configuration::load (const std::string& filename_in)
         converter >> std::boolalpha >> configuration_.use_playlist;
       } // end IF
     } // end IF
-    else if (value_name == ACE_TEXT ("use_cdrom"))
+    else if (value_name == ACE_TEXT ("use_CD_audio"))
     {
       converter.str (value.c_str ());
-      converter >> configuration_.use_cdrom;
+      converter >> configuration_.use_CD_audio;
       if (converter.fail ())
       {
         converter.clear ();
-        converter >> std::boolalpha >> configuration_.use_cdrom;
+        converter >> std::boolalpha >> configuration_.use_CD_audio;
+      } // end IF
+    } // end IF
+    else if (value_name == ACE_TEXT ("use_MIDI_music"))
+    {
+      converter.str (value.c_str ());
+      converter >> configuration_.use_MIDI_music;
+      if (converter.fail ())
+      {
+        converter.clear ();
+        converter >> std::boolalpha >> configuration_.use_MIDI_music;
       } // end IF
     } // end IF
     else if (value_name == ACE_TEXT ("skill"))
@@ -562,10 +601,9 @@ Splot_Configuration::load (const std::string& filename_in)
       int tmp = -1;
       converter.str (value.c_str ());
       converter >> std::hex >> tmp;
-      configuration_.skill_base = (float)tmp / (float)10;
-      //      configuration_.vol_sound = (float)::atof (value.c_str ());
+      configuration_.skill_base = (float)tmp/(float)10;
     } // end IF
-    else if (value_name == ACE_TEXT ("vol_sound"))
+    else if (value_name == ACE_TEXT ("volume_sound"))
     {
       int tmp = -1;
       converter.str (value.c_str ());
@@ -575,10 +613,9 @@ Splot_Configuration::load (const std::string& filename_in)
 #else
 #error "sorry, OPENAL not fully supported yet"
 #endif
-     configuration_.vol_sound = (float)tmp/(float)factor;
-//      configuration_.vol_sound = (float)::atof (value.c_str ());
+     configuration_.volume_sound = (float)tmp/(float)factor;
     } // end IF
-    else if (value_name == ACE_TEXT ("vol_music"))
+    else if (value_name == ACE_TEXT ("volume_music"))
     {
       int tmp = -1;
       converter.str (value.c_str ());
@@ -588,16 +625,14 @@ Splot_Configuration::load (const std::string& filename_in)
 #else
 #error "sorry, OPENAL not fully supported yet"
 #endif
-      configuration_.vol_music = (float)tmp/(float)factor;
-//      configuration_.vol_music = (float)::atof (value.c_str ());
+      configuration_.volume_music = (float)tmp/(float)factor;
     } // end IF
-    else if (value_name == ACE_TEXT ("audio_type"))
+    else if (value_name == ACE_TEXT ("audio_toolkit_type"))
     {
       int tmp = -1;
       converter.str (value.c_str ());
       converter >> std::hex >> tmp;
-      configuration_.audio_type = (AudioType_t)tmp;
-//      configuration_.audio_type = (AudioType_t)::atoi (value.c_str ());
+      configuration_.audio_toolkit_type = (AudioToolkitType_t)tmp;
     } // end IF
     else
     {
@@ -742,10 +777,10 @@ Splot_Configuration::save ()
 
     return false;
   } // end IF
-  value_name = ACE_TEXT_ALWAYS_CHAR ("gfx_level");
+  value_name = ACE_TEXT_ALWAYS_CHAR ("graphics_level");
   if (configuration_heap.set_integer_value (section_key,
                                             ACE_TEXT (value_name.c_str ()),
-                                            (u_int)configuration_.gfx_level))
+                                            (u_int)configuration_.graphics_level))
   {
     ACE_ERROR((LM_ERROR,
                ACE_TEXT ("failed to ACE_Configuration_Heap::set_integer_value (\"%s\"): \"%m\", aborting\n"),
@@ -764,10 +799,10 @@ Splot_Configuration::save ()
 
     return false;
   } // end IF
-  value_name = ACE_TEXT_ALWAYS_CHAR ("tex_border");
+  value_name = ACE_TEXT_ALWAYS_CHAR ("texture_border");
   if (configuration_heap.set_integer_value (section_key,
                                             ACE_TEXT (value_name.c_str ()),
-                                            (u_int)configuration_.tex_border))
+                                            (u_int)configuration_.texture_border))
   {
     ACE_ERROR ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Configuration_Heap::set_integer_value (\"%s\"): \"%m\", aborting\n"),
@@ -775,10 +810,10 @@ Splot_Configuration::save ()
 
     return false;
   } // end IF
-  value_name = ACE_TEXT_ALWAYS_CHAR ("show_fps");
+  value_name = ACE_TEXT_ALWAYS_CHAR ("show_FPS");
   if (configuration_heap.set_integer_value (section_key,
                                             ACE_TEXT (value_name.c_str()),
-                                            (u_int)configuration_.show_fps))
+                                            (u_int)configuration_.show_FPS))
   {
     ACE_ERROR ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Configuration_Heap::set_integer_value (\"%s\"): \"%m\", aborting\n"),
@@ -797,10 +832,10 @@ Splot_Configuration::save ()
 
     return false;
   } // end IF
-  value_name = ACE_TEXT_ALWAYS_CHAR ("text_type");
+  value_name = ACE_TEXT_ALWAYS_CHAR ("text_toolkit_type");
   if (configuration_heap.set_integer_value (section_key,
                                             ACE_TEXT (value_name.c_str ()),
-                                            (u_int)configuration_.text_type))
+                                            (u_int)configuration_.text_toolkit_type))
   {
     ACE_ERROR ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Configuration_Heap::set_integer_value (\"%s\"): \"%m\", aborting\n"),
@@ -852,10 +887,21 @@ Splot_Configuration::save ()
 
     return false;
   } // end IF
-  value_name = ACE_TEXT_ALWAYS_CHAR ("use_cdrom");
+  value_name = ACE_TEXT_ALWAYS_CHAR ("use_CD_audio");
   if (configuration_heap.set_integer_value (section_key,
                                             ACE_TEXT (value_name.c_str ()),
-                                            (u_int)configuration_.use_cdrom))
+                                            (u_int)configuration_.use_CD_audio))
+  {
+    ACE_ERROR ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Configuration_Heap::set_integer_value (\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (value_name.c_str ())));
+
+    return false;
+  } // end IF
+  value_name = ACE_TEXT_ALWAYS_CHAR ("use_MIDI_music");
+  if (configuration_heap.set_integer_value (section_key,
+                                            ACE_TEXT (value_name.c_str ()),
+                                            (u_int)configuration_.use_MIDI_music))
   {
     ACE_ERROR ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Configuration_Heap::set_integer_value (\"%s\"): \"%m\", aborting\n"),
@@ -875,7 +921,7 @@ Splot_Configuration::save ()
 
     return false;
   } // end IF
-  value_name = ACE_TEXT_ALWAYS_CHAR ("vol_sound");
+  value_name = ACE_TEXT_ALWAYS_CHAR ("volume_sound");
   factor = 1;
 #ifdef USE_SDLMIXER_AUDIO
   factor = MIX_MAX_VOLUME;
@@ -884,7 +930,7 @@ Splot_Configuration::save ()
 #endif
   if (configuration_heap.set_integer_value (section_key,
                                             ACE_TEXT (value_name.c_str ()),
-                                            (u_int)(configuration_.vol_sound*factor)))
+                                            (u_int)(configuration_.volume_sound*factor)))
   {
     ACE_ERROR ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Configuration_Heap::set_integer_value (\"%s\"): \"%m\", aborting\n"),
@@ -892,10 +938,10 @@ Splot_Configuration::save ()
 
     return false;
   } // end IF
-  value_name = ACE_TEXT_ALWAYS_CHAR ("vol_music");
+  value_name = ACE_TEXT_ALWAYS_CHAR ("volume_music");
   if (configuration_heap.set_integer_value (section_key,
                                             ACE_TEXT (value_name.c_str ()),
-                                            (u_int)(configuration_.vol_music*factor)))
+                                            (u_int)(configuration_.volume_music*factor)))
   {
     ACE_ERROR ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Configuration_Heap::set_integer_value (\"%s\"): \"%m\", aborting\n"),
@@ -903,10 +949,10 @@ Splot_Configuration::save ()
 
     return false;
   } // end IF
-  value_name = ACE_TEXT_ALWAYS_CHAR ("audio_type");
+  value_name = ACE_TEXT_ALWAYS_CHAR ("audio_toolkit_type");
   if (configuration_heap.set_integer_value (section_key,
                                             ACE_TEXT (value_name.c_str ()),
-                                            (u_int)configuration_.audio_type))
+                                            (u_int)configuration_.audio_toolkit_type))
   {
     ACE_ERROR ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Configuration_Heap::set_integer_value (\"%s\"): \"%m\", aborting\n"),
@@ -986,9 +1032,6 @@ Splot_Configuration::setScreenSize (int mode_in)
       configuration_.screen_height = 768;
       break;
   } // end SWITCH
-
-  configuration_.screen_aspect =
-    (float)configuration_.screen_width/(float)configuration_.screen_height;
 }
 
 int

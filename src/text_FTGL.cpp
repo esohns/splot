@@ -3,7 +3,6 @@
 #include "text_FTGL.h"
 
 #ifdef USE_FTGL_TEXT
-
 #include <string>
 
 #include "ace/OS.h"
@@ -32,31 +31,47 @@ Splot_TextFTGL::Splot_TextFTGL ()
 
   ACE_NEW (ftFont_,
            FTBufferFont (font_file));
-  if (ftFont_->Error ())
+  FT_Error ft_error = ftFont_->Error ();
+  if (ft_error)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to FTBufferFont(\"%s\"), continuing\n"),
-                ACE_TEXT (font_file)));
+                ACE_TEXT ("failed to FTBufferFont(\"%s\"): %d, continuing\n"),
+                ACE_TEXT (font_file),
+                ft_error));
   free ((void*)font_file);
 
-  ftFont_->FaceSize (24);
+  if (!ftFont_->FaceSize (24, 72))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to FTFont::FaceSize(): %d, continuing\n"),
+                ftFont_->Error ()));
 }
 
 Splot_TextFTGL::~Splot_TextFTGL ()
 {
-  delete ftFont_;
+  if (ftFont_)
+    delete ftFont_;
 }
 
 void
 Splot_TextFTGL::Render (const char* string_in, const int length_in)
 {
-  // FTGL renders the whole string when len == 0
-  // but we don't want any text rendered then.
+  ACE_ASSERT (ftFont_);
+
+  // *NOTE*: FTGL renders the whole string when len == 0
   if (length_in != 0)
-    ftFont_->Render (string_in,
-                     length_in,
-                     FTPoint (),
-                     FTPoint (),
-                     FTGL::RENDER_ALL);
+  {
+    FTPoint new_pen_point = ftFont_->Render (string_in,
+                                             length_in,
+                                             FTPoint (),
+                                             FTPoint (),
+                                             FTGL::RENDER_ALL);
+    ACE_UNUSED_ARG (new_pen_point);
+    FT_Error ft_error = ftFont_->Error ();
+    if (ft_error)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to FTFont::Render(\"%s\"): %d, continuing\n"),
+                  ACE_TEXT (string_in),
+                  ft_error));
+  } // end IF
 }
 
 float
@@ -70,6 +85,9 @@ Splot_TextFTGL::Advance (const char* string_in, const int length_in)
 float
 Splot_TextFTGL::LineHeight (const char* string_in, const int length_in)
 {
+  ACE_UNUSED_ARG (string_in);
+  ACE_UNUSED_ARG (length_in);
+
   return ftFont_->LineHeight ();
 }
 

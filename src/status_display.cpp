@@ -217,13 +217,13 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
   //-- draw fps
   const Configuration_t configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
-  if (configuration.show_fps)
+  if (configuration.show_FPS)
   {
     glPushMatrix ();
     glTranslatef (7.75, 8.0, 25.0);
     glScalef (0.018F, 0.015F, 1.0);
     ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("%3.1f"),
-                     state.fps);
+                     state.FPS);
     state.text->Render (buffer);
     glPopMatrix ();
   } // end IF
@@ -246,7 +246,7 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
 
   //-- draw usable items
   float a;
-  if (configuration.gfx_level > 1)
+  if (configuration.graphics_level > 1)
   {
     glPushMatrix ();
     glColor4f (1.0, 1.0, 1.0, 1.0);
@@ -275,7 +275,7 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
       game_state.ships >= 0)
   {
     glPushMatrix ();
-    glColor4f (1.0, 0.0, 0.0, enemyWarn_+0.15F*sin (state.game_frame*0.7F));
+    glColor4f (1.0, 0.0, 0.0, enemyWarn_+0.15F*::sin (state.game_frame*0.7F));
     glTranslatef (0.0, -8.75, 25.0);
     glBindTexture (GL_TEXTURE_2D, texPlayerAmmoFlash_[0]);
     drawQuad (12.0, 3.0);
@@ -360,7 +360,7 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
   float c2[4] = {1.0F , 0.2F , 0.25F, 0.7F};
   float esz;
   if (player_in->isVisible () &&
-      configuration.gfx_level >= 1)
+      configuration.graphics_level >= 1)
   {
     c1f = 1.0F+dl;
     c2f = -dl;
@@ -415,7 +415,7 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
     glPopMatrix ();
 
     //------ add a bit of Glitter
-    if (configuration.gfx_level > 1 &&
+    if (configuration.graphics_level > 1 &&
         !state.game_pause)
     {
       v[0] = 0.01F*SRAND;
@@ -448,7 +448,7 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
   } // end IF
 
   //---------- Draw ammo flash
-  if (configuration.gfx_level > 1)
+  if (configuration.graphics_level > 1)
   {
     glPushMatrix ();
     glTranslatef (player_in->position_[0],
@@ -548,7 +548,7 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
                Splot_StatusDisplay::statPosShld[2]);
   glEnd ();
 
-  if (configuration.gfx_level > 0)
+  if (configuration.graphics_level > 0)
   {
     //-- Shields 
     if ((sl < -0.7 &&
@@ -631,13 +631,13 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
         superShields)
     {
       glColor4fv (Splot_StatusDisplay::statClrWarn);
-      if (configuration.tex_border)
+      if (configuration.texture_border)
         glTexParameterfv (GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, Splot_StatusDisplay::statClrWarn);
     } // end IF
     else
     {
       glColor4f (0.9F+dc, 0.6F+dc, 0.7F+dc, 0.5F+damageAlpha_);
-      if (configuration.tex_border)
+      if (configuration.texture_border)
         glTexParameterfv (GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, Splot_StatusDisplay::statClrZero);
     } // end ELSE
     glPushMatrix ();
@@ -762,16 +762,16 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
   float off[2];
   if (state.game_pause)
   {
-    off[0] = 2.0F*sin (state.frame*0.01F);
-    off[1] = 1.0F*cos (state.frame*0.011F);
+    off[0] = 2.0F*::sin (state.frame*0.01F);
+    off[1] = 1.0F*::cos (state.frame*0.011F);
     glPushMatrix ();
     glTranslatef (-14.5F, -3.0F, 0.0);
     glScalef (0.21F, 0.21F, 1.0);
     glPushMatrix ();
-    glColor4f (1.0, 1.0, 1.0, 0.1F*fabs (sin (state.frame*0.05F)));
+    glColor4f (1.0, 1.0, 1.0, 0.1F*fabs (::sin (state.frame*0.05F)));
     state.text->Render (ACE_TEXT_ALWAYS_CHAR ("p a u s e d"));
     glPopMatrix ();
-    glColor4f (1.0, 1.0, 1.0, 0.1F*fabs (sin (state.frame*0.03F)) );
+    glColor4f (1.0, 1.0, 1.0, 0.1F*fabs (::sin (state.frame*0.03F)) );
     glTranslatef (off[0], off[1], 0.0);
     state.text->Render (ACE_TEXT_ALWAYS_CHAR ("p a u s e d"));
     glPopMatrix ();

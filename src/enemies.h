@@ -26,7 +26,7 @@ struct EnemyWave_t
    //, position ()
    , xJitter (8.0)
   { position [0] = 0.0; position[1] = 10.0; position[2] = 25.0; }
-#if defined (__GNU_C__)
+#if defined (__GNUC__)
   __attribute__((noinline)) void setInOut (int b, int e) { begin = b; end = e; if (e <= b) end = b + 1; }
 #elif defined (_MSC_VER)
 	void setInOut (int b, int e) { begin = b; end = e; if (e <= b) end = b + 1; }

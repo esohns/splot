@@ -44,16 +44,20 @@ Splot_Audio::Splot_Audio ()
   filename = path_base + ACE_TEXT_ALWAYS_CHAR ("life_add.wav");
   ACE_OS::strcpy (soundFilenames_[SOUND_SHIP_ADD], filename.c_str ());
   filename = path_base + ACE_TEXT_ALWAYS_CHAR ("music_game.wav");
-  ACE_OS::strcpy (soundFilenames_[SOUND_MUSIC_GAME], filename.c_str ());
+  ACE_OS::strcpy (musicFilenames_[MUSICFORMAT_WAV][MUSIC_GAME], filename.c_str ());
   filename = path_base + ACE_TEXT_ALWAYS_CHAR ("music_menu.wav");
-  ACE_OS::strcpy (soundFilenames_[SOUND_MUSIC_MENU], filename.c_str ());
+  ACE_OS::strcpy (musicFilenames_[MUSICFORMAT_WAV][MUSIC_MENU], filename.c_str ());
+  filename = path_base + ACE_TEXT_ALWAYS_CHAR ("GAMEMUSI.MID");
+  ACE_OS::strcpy (musicFilenames_[MUSICFORMAT_MID][MUSIC_GAME], filename.c_str ());
+  filename = path_base + ACE_TEXT_ALWAYS_CHAR ("GAMEMENU.MID");
+  ACE_OS::strcpy (musicFilenames_[MUSICFORMAT_MID][MUSIC_MENU], filename.c_str ());
 
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
   if (configuration.audio_enabled)
   {
 #ifdef WITH_SDL_CDROM
-    if (configuration.use_cdrom)
+    if (configuration.use_CD_audio)
       initCDROM ();
 #endif // WITH_SDL_CDROM
   } // end IF
@@ -118,7 +122,7 @@ Splot_Audio::initCDROM ()
 {
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
-  if (!configuration.use_cdrom)
+  if (!configuration.use_CD_audio)
     return;
 
   int num_cd_drives = SDL_CDNumDrives ();
@@ -136,8 +140,8 @@ Splot_Audio::initCDROM ()
                 num_cd_drives));
 
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-  state.cdrom_count = num_cd_drives;
-  if (state.cdrom_count == 0)
+  state.CDROM_count = num_cd_drives;
+  if (state.CDROM_count == 0)
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("no CDROM drive(s): nothing to do, returning\n")));
@@ -150,19 +154,19 @@ Splot_Audio::initCDROM ()
     SDL_CDClose (CDROM_);
     CDROM_ = NULL;
   } // end IF
-  CDROM_ = SDL_CDOpen (configuration.cdrom_device);
+  CDROM_ = SDL_CDOpen (configuration.CDROM_device);
   if (!CDROM_)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to SDL_CDOpen (%d): \"%s\", returning\n"),
-                configuration.cdrom_device,
+                configuration.CDROM_device,
                 ACE_TEXT (SDL_GetError ())));
 
     return;
   } // end IF
 
-  CDstatus cdrom_status = SDL_CDStatus (CDROM_);
-  if (cdrom_status == CD_ERROR)
+  CDstatus CDROM_status = SDL_CDStatus (CDROM_);
+  if (CDROM_status == CD_ERROR)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to SDL_CDStatus (%@): \"%s\", returning\n"),
@@ -171,11 +175,11 @@ Splot_Audio::initCDROM ()
 
     return;
   } // end IF
-  else if (!CD_INDRIVE (cdrom_status))
+  else if (!CD_INDRIVE (CDROM_status))
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%d: no CD in drive, returning\n"),
-                configuration.cdrom_device));
+                configuration.CDROM_device));
 
     return;
   } // end IF
@@ -185,7 +189,7 @@ Splot_Audio::initCDROM ()
   if (configuration.debug)
     ACE_DEBUG ((LM_INFO,
                 ACE_TEXT ("%d: #track(s): %d\n"),
-                configuration.cdrom_device,
+                configuration.CDROM_device,
                 CDROM_->numtracks));
 
   // sanity check: any audio tracks ?
@@ -195,7 +199,7 @@ Splot_Audio::initCDROM ()
     if (configuration.debug)
       ACE_DEBUG ((LM_INFO,
                   ACE_TEXT ("%d: track #%2d type: \"%s\"\n"),
-                  configuration.cdrom_device,
+                  configuration.CDROM_device,
                   i,
                   trackType (CDROM_->track[i].type)));
 
@@ -209,7 +213,7 @@ Splot_Audio::initCDROM ()
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%d: data tracks only, CD audio not available, returning\n"),
-                configuration.cdrom_device));
+                configuration.CDROM_device));
 
     SDL_CDClose (CDROM_);
     CDROM_ = NULL;
@@ -221,6 +225,16 @@ Splot_Audio::initCDROM ()
                 ACE_TEXT ("Press the \'N\' key to skip to next CD track during a game.\n")));
 }
 #endif // WITH_SDL_CDROM
+
+void
+Splot_Audio::playMusic (MusicMode_t mode_in)
+{
+#ifdef WITH_SDL_CDROM
+  if (!CDROM_)
+    return; // nothing to do
+  setMusicMode (mode_in);
+#endif // WITH_SDL_CDROM
+}
 
 void
 Splot_Audio::stopMusic ()
@@ -243,8 +257,8 @@ Splot_Audio::pauseMusic (bool status_in)
   if (!CDROM_)
     return; // nothing to do
 
-  CDstatus cdrom_status = SDL_CDStatus (CDROM_);
-  if (cdrom_status == CD_ERROR)
+  CDstatus CDROM_status = SDL_CDStatus (CDROM_);
+  if (CDROM_status == CD_ERROR)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to SDL_CDStatus (%@): \"%s\", returning\n"),
@@ -254,7 +268,8 @@ Splot_Audio::pauseMusic (bool status_in)
     return;
   } // end IF
 
-  if (status_in && cdrom_status == CD_PLAYING)
+  if (status_in &&
+      CDROM_status == CD_PLAYING)
   {
     if (SDL_CDPause (CDROM_) == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -262,7 +277,8 @@ Splot_Audio::pauseMusic (bool status_in)
                   CDROM_,
                   ACE_TEXT (SDL_GetError ())));
   } // end IF
-  else if (!status_in && cdrom_status == CD_PAUSED)
+  else if (!status_in &&
+           CDROM_status == CD_PAUSED)
   {
     if (SDL_CDResume (CDROM_) == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -284,7 +300,7 @@ Splot_Audio::pauseMusic (bool status_in)
 }
 
 void
-Splot_Audio::setMusicMode (SoundType_t soundType_in)
+Splot_Audio::setMusicMode (MusicMode_t mode_in)
 {
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
@@ -295,12 +311,12 @@ Splot_Audio::setMusicMode (SoundType_t soundType_in)
   if (!CDROM_)
     return; // nothing to do
 
-  CDstatus cdrom_status = SDL_CDStatus (CDROM_);
+  CDstatus CDROM_status = SDL_CDStatus (CDROM_);
   State_t state = SPLOT_STATE_SINGLETON::instance ()->get ();
-  switch (soundType_in)
+  switch (mode_in)
   {
-    case SOUND_MUSIC_GAME:
-      switch (cdrom_status)
+    case MUSIC_GAME:
+      switch (CDROM_status)
       {
         case CD_PAUSED:
           // resume playback ?
@@ -329,8 +345,8 @@ Splot_Audio::setMusicMode (SoundType_t soundType_in)
           break; // nothing to do
       } // end SWITCH
       break;
-    case SOUND_MUSIC_MENU:
-      if (cdrom_status == CD_PLAYING)
+    case MUSIC_MENU:
+      if (CDROM_status == CD_PLAYING)
         if (SDL_CDPause (CDROM_) == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to SDL_CDPause (%@): \"%s\", continuing\n"),
@@ -340,7 +356,7 @@ Splot_Audio::setMusicMode (SoundType_t soundType_in)
     default:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown music mode (was: %d), returning\n"),
-                  soundType_in));
+                  mode_in));
       return;
   } // end SWITCH
 #endif // WITH_SDL_CDROM
@@ -355,7 +371,7 @@ Splot_Audio::setMusicVolume (float value_in)
     return; // nothing to do
 
 #ifdef WITH_SDL_CDROM
-  if (!configuration.use_cdrom)
+  if (!configuration.use_CD_audio)
     return; // nothing to do
 
 #if !defined (ACE_WIN32) && !defined (ACE_WIN64)

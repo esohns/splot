@@ -73,7 +73,7 @@ Splot_BackgroundMetal::loadTextures ()
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
   float tbc[4] = {0.2F, 0.2F, 0.2F, 1.0};
-  if (configuration.tex_border)
+  if (configuration.texture_border)
     glTexParameterfv (GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, tbc);
   filename = path_base + ACE_TEXT_ALWAYS_CHAR ("gndMetalBlip.png");
   tex_[BACKGROUND_BLIP] =
