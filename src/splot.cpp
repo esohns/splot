@@ -261,7 +261,7 @@ ACE_TMAIN (int argc_in,
   if (ACE::fini () == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT("failed to ACE::fini(): \"%m\", aborting\n")));
+                ACE_TEXT ("failed to ACE::fini(): \"%m\", aborting\n")));
 
     return EXIT_FAILURE;
   } // end IF

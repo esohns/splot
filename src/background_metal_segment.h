@@ -41,11 +41,11 @@ class Splot_BackgroundMetalSegment
  private:
   typedef Splot_BackgroundSegment inherited;
 
-  static float c0_clr[4];
-  static float c1_clr[4];
-  static float r0_clr[4];
-  static float r1_clr[4];
-  static float r2_clr[4];
+  float c0_clr_[4];
+  float c1_clr_[4];
+  float r0_clr_[4];
+  float r1_clr_[4];
+  float r2_clr_[4];
 };
 
 #endif // BACKGROUNDMETALSEGMENT_H

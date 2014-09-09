@@ -16,6 +16,8 @@
     <ClCompile Include="..\..\src\background.cpp" />
     <ClCompile Include="..\..\src\background_metal.cpp" />
     <ClCompile Include="..\..\src\background_metal_segment.cpp" />
+    <ClCompile Include="..\..\src\background_sea.cpp" />
+    <ClCompile Include="..\..\src\background_sea_segment.cpp" />
     <ClCompile Include="..\..\src\background_segment.cpp" />
     <ClCompile Include="..\..\src\common.cpp" />
     <ClCompile Include="..\..\src\configuration.cpp" />
@@ -54,6 +56,8 @@
     <ClInclude Include="..\..\src\background.h" />
     <ClInclude Include="..\..\src\background_metal.h" />
     <ClInclude Include="..\..\src\background_metal_segment.h" />
+    <ClInclude Include="..\..\src\background_sea.h" />
+    <ClInclude Include="..\..\src\background_sea_segment.h" />
     <ClInclude Include="..\..\src\background_segment.h" />
     <ClInclude Include="..\..\src\common.h" />
     <ClInclude Include="..\..\src\configuration.h" />

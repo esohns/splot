@@ -1,33 +1,37 @@
-#ifndef GROUNDMETAL_H
-#define GROUNDMETAL_H
+#ifndef BACKGROUNDMETAL_H
+#define BACKGROUNDMETAL_H
 
-//#ifdef HAVE_CONFIG_H
-//#include "splot-config.h"
-//#endif
+#ifdef HAVE_CONFIG_H
+#include "splot-config.h"
+#endif
 
-//#include "compatibility.h"
-
-//#if defined(HAVE_APPLE_OPENGL_FRAMEWORK) || defined(HAVE_OPENGL_GL_H)
-//#include <OpenGL/gl.h>
-//#else
-//#include "GL/gl.h"
-//#endif
+#if defined(HAVE_APPLE_OPENGL_FRAMEWORK) || defined(HAVE_OPENGL_GL_H)
+#include <OpenGL/gl.h>
+#else
+#include "GL/gl.h"
+#endif
 
 #include "background.h"
 
-// forward declarations
-class Splot_BackgroundSegment;
-class GroundMetalSegment;
+enum MetalBackgroundVariant_t
+{
+  METALBACKGROUNDVARIANT_INVALID = -1,
+  METALBACKGROUNDVARIANT_1 = 0,
+  METALBACKGROUNDVARIANT_2,
+  METALBACKGROUNDVARIANT_3,
+  ///////////////////////////////////////
+  MAX_METALBACKGROUNDVARIANT_TYPES
+};
 
 class Splot_BackgroundMetal
  : public Splot_Background
 {
-  friend class Splot_BackgroundSegment;
-  friend class GroundMetalSegment;
-
  public:
   Splot_BackgroundMetal ();
   virtual ~Splot_BackgroundMetal ();
+
+  static bool init ();
+  static void fini ();
 
   void drawGL ();
   void setVariation (int); // index
@@ -39,6 +43,9 @@ class Splot_BackgroundMetal
 
  private:
   typedef Splot_Background inherited;
+
+  static GLuint texBase[MAX_METALBACKGROUNDVARIANT_TYPES];
+  static GLuint texBlip;
 };
 
-#endif // GROUNDMETAL_H
+#endif // BACKGROUNDMETAL_H

@@ -20,19 +20,40 @@
 #include "state.h"
 #include "background.h"
 
-// init statics
-float Splot_BackgroundMetalSegment::c0_clr[4] = {0.65F, 0.62F, 0.53F, 1.0};
-float Splot_BackgroundMetalSegment::c1_clr[4] = {0.79F, 0.82F, 0.69F, 1.0};
-float Splot_BackgroundMetalSegment::r0_clr[4] = {0.07F, 0.07F, 0.13F, 1.0};
-float Splot_BackgroundMetalSegment::r1_clr[4] = {0.31F, 0.3F , 0.3F , 1.0};
-float Splot_BackgroundMetalSegment::r2_clr[4] = {0.31F, 0.3F , 0.3F , 1.0};
-
 Splot_BackgroundMetalSegment::Splot_BackgroundMetalSegment (const float (&position_in)[3],
                                                             const float (&size_in)[2],
                                                             Splot_Background* parent_in)
  : inherited (position_in, size_in, parent_in)
+ //, c0_clr_ ()
+ //, c1_clr_ ()
+ //, r0_clr_ ()
+ //, r1_clr_ ()
+ //, r2_clr_ ()
 {
+  c0_clr_[0] = 0.65F;
+  c0_clr_[1] = 0.62F;
+  c0_clr_[2] = 0.53F;
+  c0_clr_[3] = 1.0;
 
+  c1_clr_[0] = 0.79F;
+  c1_clr_[1] = 0.82F;
+  c1_clr_[2] = 0.69F;
+  c1_clr_[3] = 1.0;
+
+  r0_clr_[0] = 0.07F;
+  r0_clr_[1] = 0.07F;
+  r0_clr_[2] = 0.13F;
+  r0_clr_[3] = 1.0;
+
+  r1_clr_[0] = 0.31F;
+  r1_clr_[1] = 0.3F;
+  r1_clr_[2] = 0.3F;
+  r1_clr_[3] = 1.0;
+
+  r2_clr_[0] = 0.31F;
+  r2_clr_[1] = 0.3F;
+  r2_clr_[2] = 0.3F;
+  r2_clr_[3] = 1.0;
 }
 
 Splot_BackgroundMetalSegment::~Splot_BackgroundMetalSegment ()
@@ -46,16 +67,16 @@ Splot_BackgroundMetalSegment::drawGL ()
   age_ += 1.0;
 
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-  float clr_sin = 0.5F*sin (state.game_frame*0.001F);
-  Splot_BackgroundMetalSegment::r1_clr[0] = 0.15F+clr_sin;
-  Splot_BackgroundMetalSegment::r2_clr[0] = 0.15F+clr_sin;
-  clr_sin = 0.2F*sin (state.game_frame*0.0005F);
-  Splot_BackgroundMetalSegment::c0_clr[0] = 0.28F+clr_sin;
-  Splot_BackgroundMetalSegment::c0_clr[1] = 0.25F+clr_sin;
-  Splot_BackgroundMetalSegment::c0_clr[2] = 0.16F+clr_sin;
-  Splot_BackgroundMetalSegment::c1_clr[0] = 0.42F+clr_sin;
-  Splot_BackgroundMetalSegment::c1_clr[1] = 0.45F+clr_sin;
-  Splot_BackgroundMetalSegment::c1_clr[2] = 0.34F+clr_sin;
+  float color_factor = 0.5F*::sin (state.game_frame*0.001F);
+  r1_clr_[0] = 0.15F+color_factor;
+  r2_clr_[0] = 0.15F+color_factor;
+  color_factor = 0.2F*::sin (state.game_frame*0.0005F);
+  c0_clr_[0] = 0.28F+color_factor;
+  c0_clr_[1] = 0.25F+color_factor;
+  c0_clr_[2] = 0.16F+color_factor;
+  c1_clr_[0] = 0.42F+color_factor;
+  c1_clr_[1] = 0.45F+color_factor;
+  c1_clr_[2] = 0.34F+color_factor;
 
   float S;
   float tmp;
@@ -64,7 +85,6 @@ Splot_BackgroundMetalSegment::drawGL ()
   bool blipMirrorT = false;
   switch (inherited::parent_->variation_)
   {
-    default:
     case 0:
       rep = 0.26F;
       tilt = 0.1F;
@@ -79,11 +99,16 @@ Splot_BackgroundMetalSegment::drawGL ()
       break;
     case 2:
       S = -state.frame*0.005F;
-      tmp = sin (S);
+      tmp = ::sin (S);
       rep = 0.7F+tmp;
       tilt = 0.5F+tmp;
       blipMirrorT = true;
       break;
+    default:
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown variation (was: %d), returning\n"),
+                  inherited::parent_->variation_));
+      return;
   } // end SWITCH
 
 #ifdef EXPERIMENTAL
@@ -98,11 +123,11 @@ Splot_BackgroundMetalSegment::drawGL ()
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
   if (configuration.graphics_level > 1)
     drawBlip (rep, S, tilt, blipMirrorT);
-  drawSurface (Splot_BackgroundMetalSegment::c0_clr,
-               Splot_BackgroundMetalSegment::c1_clr,
-               Splot_BackgroundMetalSegment::r0_clr,
-               Splot_BackgroundMetalSegment::r1_clr,
-               Splot_BackgroundMetalSegment::r2_clr);
+  drawSurface (c0_clr_,
+               c1_clr_,
+               r0_clr_,
+               r1_clr_,
+               r2_clr_);
 #endif // EXPERIMENTAL
 }
 
@@ -115,7 +140,7 @@ Splot_BackgroundMetalSegment::drawBlip (float rep_in,
   float repA = 0.0;
   float repB = rep_in;
   glColor4f (1.0, 1.0, 1.0, 1.0);
-  glBindTexture (GL_TEXTURE_2D, parent_->tex_[BACKGROUND_BLIP]);
+  glBindTexture (GL_TEXTURE_2D, inherited::parent_->tex_[BACKGROUNDTEXTURE_BLIP]);
   //	glBegin(GL_QUADS);
   glBegin (GL_TRIANGLES);
   glTexCoord2f (rep_in, repA+S_in+tilt_in);
@@ -162,9 +187,9 @@ Splot_BackgroundMetalSegment::drawBlip (float rep_in,
               inherited::position_[1],
               inherited::position_[2]);
   glTexCoord2f (rep_in, repB+S_in+tilt_in);
-  glVertex3f  (inherited::position_[0],
-              -inherited::size_[1]+inherited::position_[1],
-               inherited::position_[2]);
+  glVertex3f  ( inherited::position_[0],
+               -inherited::size_[1]+inherited::position_[1],
+                inherited::position_[2]);
   glTexCoord2f (0.0, repB+S_in);
   glVertex3f ( inherited::size_[0]+inherited::position_[0],
               -inherited::size_[1]+inherited::position_[1],
@@ -208,8 +233,8 @@ Splot_BackgroundMetalSegment::drawBlip (float rep_in,
                inherited::position_[2]);
   glTexCoord2f (0.0, repB+S_in);
   glVertex3f (-inherited::size_[0]+inherited::position_[0],
-              inherited::position_[1],
-              inherited::position_[2]);
+               inherited::position_[1],
+               inherited::position_[2]);
 
   glTexCoord2f (rep_in, repA+S_in+tilt_in);
   glVertex3f (inherited::position_[0],
@@ -217,8 +242,8 @@ Splot_BackgroundMetalSegment::drawBlip (float rep_in,
               inherited::position_[2]);
   glTexCoord2f (0.0, repB+S_in);
   glVertex3f (-inherited::size_[0]+inherited::position_[0],
-              inherited::position_[1],
-              inherited::position_[2]);
+               inherited::position_[1],
+               inherited::position_[2]);
   glTexCoord2f (rep_in, repB+S_in+tilt_in);
   glVertex3f (inherited::position_[0],
               inherited::position_[1],
@@ -235,8 +260,7 @@ Splot_BackgroundMetalSegment::drawSurface (float* c0_clr,
 {
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
-  //float rep = 1.0;
-  glBindTexture (GL_TEXTURE_2D, parent_->tex_[BACKGROUND_BASE]);
+  glBindTexture (GL_TEXTURE_2D, inherited::parent_->tex_[BACKGROUNDTEXTURE_BASE]);
   glBegin (GL_TRIANGLES); //-- use triangles to prevent color popping on Utah
   if (configuration.graphics_level > 0)
   {
@@ -346,7 +370,6 @@ Splot_BackgroundMetalSegment::drawSurface (float* c0_clr,
   } // end IF
   else
   {
-    //float b = -0.1;
     glColor4f (c0_clr[0]+0.1F, c0_clr[1]+0.1F, c0_clr[2]+0.1F, c0_clr[3]);
     glTexCoord2f (1.0, 1.0);
     glVertex3f ( inherited::position_[0],

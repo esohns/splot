@@ -23,7 +23,6 @@ struct Configuration_t
 {
   int    screen_width;
   int    screen_height;
-//  float  screen_aspect;
   float  screen_FOV;
   float  screen_z_near;
   float  screen_z_far;

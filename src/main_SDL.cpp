@@ -29,10 +29,10 @@
 Splot_MainSDL::Splot_MainSDL (int argc_in,
                               ACE_TCHAR** argv_in)
  : inherited (argc_in, argv_in)
-#if SDL_VERSION_ATLEAST (2,0,0)
+#if SDL_VERSION_ATLEAST (2, 0, 0)
  , window_(NULL)
  //, context_ ()
-#endif
+#endif // SDL_VERSION_ATLEAST (2, 0, 0)
 #ifdef WITH_SDL_JOYSTICK
  , joystick_ (NULL)
 #endif
@@ -142,31 +142,31 @@ Splot_MainSDL::Splot_MainSDL (int argc_in,
   //-- Set the window manager icon
   std::string path_base = ACE_TEXT_ALWAYS_CHAR (SPLOT_IMAGE_DATA_DIR);
   path_base += ACE_DIRECTORY_SEPARATOR_STR;
-  std::string filename = path_base + ACE_TEXT_ALWAYS_CHAR (SPLOT_WINDOW_ICON);
+  std::string filename = dataLoc (path_base+ACE_TEXT_ALWAYS_CHAR (SPLOT_WINDOW_ICON));
   SDL_Surface* window_icon = NULL;
 #ifdef USE_SDL_IMAGE
-  window_icon = IMG_Load (dataLoc (filename).c_str ());
+  window_icon = IMG_Load (filename.c_str ());
   if (!window_icon)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMG_Load(\"%s\"): \"%s\", continuing\n"),
-                ACE_TEXT (dataLoc (filename).c_str ()),
+                ACE_TEXT (filename.c_str ()),
                 ACE_TEXT (IMG_GetError ())));
 #endif // USE_SDL_IMAGE
   if (window_icon)
   {
- #if SDL_VERSION_ATLEAST (2,0,0)
+ #if SDL_VERSION_ATLEAST (2, 0, 0)
     SDL_SetWindowIcon (window, window_icon);
 #else
     SDL_WM_SetIcon (window_icon, NULL);
-#endif // SDL_VERSION_ATLEAST (2,0,0)
+#endif // SDL_VERSION_ATLEAST (2, 0, 0)
     SDL_FreeSurface (window_icon);
   } // end IF
 
-#if !(SDL_VERSION_ATLEAST (2,0,0))
+#if !(SDL_VERSION_ATLEAST (2, 0, 0))
   //-- Set the window manager title bar
   SDL_WM_SetCaption (ACE_TEXT_ALWAYS_CHAR (SPLOT_WINDOW_TITLE),
                      ACE_TEXT_ALWAYS_CHAR (SPLOT_ICON_CAPTION));
-#endif // !(SDL_VERSION_ATLEAST (2,0,0))
+#endif // !(SDL_VERSION_ATLEAST (2, 0, 0))
 }
 
 Splot_MainSDL::~Splot_MainSDL ()
@@ -196,11 +196,11 @@ Splot_MainSDL::run ()
   {
     //-- Draw scene and refresh screen
     Splot_OpenGLCommon::draw ();
-#if SDL_VERSION_ATLEAST (2,0,0)
+#if SDL_VERSION_ATLEAST (2, 0, 0)
     SDL_GL_SwapWindow (window);
 #else
     SDL_GL_SwapBuffers ();
-#endif // SDL_VERSION_ATLEAST (2,0,0)
+#endif // SDL_VERSION_ATLEAST (2, 0, 0)
     if (configuration.debug)
       checkErrors ();
 
@@ -258,7 +258,7 @@ Splot_MainSDL::run ()
         {
           float tmp = 50.0F/state.FPS;
           tmp = 0.8F*target_adj + 0.2F*tmp;
-          target_adj = floor (100.0F*(tmp + 0.005F)) / 100.0F;
+          target_adj = ::floor (100.0F*(tmp+0.005F))/100.0F;
 //          if (configuration.debug)
 //            ACE_DEBUG ((LM_INFO,
 //                        ACE_TEXT ("speed calibration: fps: %3.2f, adj: %f, tmp: %f ...\n"),
@@ -266,7 +266,7 @@ Splot_MainSDL::run ()
         } // end IF
       } // end IF
       else if (configuration.auto_speed &&
-               (state.FPS > 30.0 && state.FPS < 100.0))  // discount any wacky fps from pausing
+               (state.FPS > 30.0 && state.FPS < 100.0)) // discount any wacky fps from pausing
       {
         //game->speedAdj = targetAdj;
         // Everything was originally based on 50fps - attempt to adjust
@@ -357,15 +357,15 @@ bool
 Splot_MainSDL::setVideoMode ()
 {
   Uint32 video_flags = 0;
-#if !(SDL_VERSION_ATLEAST (2,0,0))
+#if !(SDL_VERSION_ATLEAST (2, 0, 0))
   SDL_Surface* OpenGL_surface = NULL;
-#endif // !(SDL_VERSION_ATLEAST (2,0,0))
+#endif // !(SDL_VERSION_ATLEAST (2, 0, 0))
 
   //-- Set the flags we want to use for setting the video mode
-#if SDL_VERSION_ATLEAST (2,0,0)
+#if SDL_VERSION_ATLEAST (2, 0, 0)
 #define SDL_OPENGL SDL_WINDOW_OPENGL
 #define SDL_FULLSCREEN SDL_WINDOW_FULLSCREEN
-#endif // SDL_VERSION_ATLEAST (2,0,0)
+#endif // SDL_VERSION_ATLEAST (2, 0, 0)
   video_flags = SDL_OPENGL;
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
@@ -373,24 +373,24 @@ Splot_MainSDL::setVideoMode ()
     video_flags |= SDL_FULLSCREEN;
 
   int rs, gs, bs, ds;
-#if !(SDL_VERSION_ATLEAST (2,0,0))
+#if !(SDL_VERSION_ATLEAST (2, 0, 0))
   int bpp;
-#endif // !(SDL_VERSION_ATLEAST (2,0,0))
+#endif // !(SDL_VERSION_ATLEAST (2, 0, 0))
   if (configuration.true_color)
   {
     //-- 24 bit color
-#if !(SDL_VERSION_ATLEAST (2,0,0))
+#if !(SDL_VERSION_ATLEAST (2, 0, 0))
     bpp = 24;
-#endif // !(SDL_VERSION_ATLEAST (2,0,0))
+#endif // !(SDL_VERSION_ATLEAST (2, 0, 0))
     rs = gs = bs = 8;
     ds = 16;
   } // end IF
   else
   {
     //-- 16 bit color
-#if !(SDL_VERSION_ATLEAST (2,0,0))
+#if !(SDL_VERSION_ATLEAST (2, 0, 0))
     bpp = 16;
-#endif // !(SDL_VERSION_ATLEAST (2,0,0))
+#endif // !(SDL_VERSION_ATLEAST (2, 0, 0))
     rs = bs = 5;
     gs = 6;
     ds = 16;
@@ -422,7 +422,7 @@ Splot_MainSDL::setVideoMode ()
                 ACE_TEXT ("failed to SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1): \"%s\", continuing\n"),
                 ACE_TEXT (SDL_GetError ())));
 
-#if SDL_VERSION_ATLEAST (2,0,0)
+#if SDL_VERSION_ATLEAST (2, 0, 0)
   window_ = SDL_CreateWindow (ACE_TEXT_ALWAYS_CHAR (SPLOT_WINDOW_TITLE),
                               SDL_WINDOWPOS_CENTERED,
                               SDL_WINDOWPOS_CENTERED,
@@ -464,18 +464,20 @@ Splot_MainSDL::setVideoMode ()
   else if (configuration.debug)
     ACE_DEBUG ((LM_INFO,
                 ACE_TEXT ("video mode set\n")));
-#endif // SDL_VERSION_ATLEAST (2,0,0)
+#endif // SDL_VERSION_ATLEAST (2, 0, 0)
 
   SDL_GL_GetAttribute (SDL_GL_RED_SIZE,   &rs);
   SDL_GL_GetAttribute (SDL_GL_GREEN_SIZE, &gs);
   SDL_GL_GetAttribute (SDL_GL_BLUE_SIZE,  &bs);
   SDL_GL_GetAttribute (SDL_GL_DEPTH_SIZE, &ds);
-#if !(SDL_VERSION_ATLEAST (2,0,0))
+#if !(SDL_VERSION_ATLEAST (2, 0, 0))
   if (configuration.debug)
     ACE_DEBUG ((LM_INFO,
                 ACE_TEXT ("(bpp=%d RGB=%d%d%d depth=%d)\n"),
-                OpenGL_surface->format->BitsPerPixel, rs, gs, bs, ds));
-#endif
+                OpenGL_surface->format->BitsPerPixel,
+                rs, gs, bs,
+                ds));
+#endif // SDL_VERSION_ATLEAST (2, 0, 0)
 
   if (!Splot_OpenGLCommon::initScreen ())
   {

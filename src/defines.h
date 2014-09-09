@@ -185,6 +185,8 @@
 #define DEBUG_NO_ENEMY_FIRE                  0
 #define DEBUG_NO_AMMUNITION                  0
 #define DEBUG_NO_POWERUPS                    0
+#define DEBUG_LAZY_LOADING                   0
+#define DEBUG_BACKGROUND                     1
 
 #define WOBBLE_0                             45
 #define WOBBLE_1                             75

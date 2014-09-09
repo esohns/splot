@@ -37,9 +37,12 @@ bool Splot_OpenGLCommon::initialized_ = false;
 bool
 Splot_OpenGLCommon::init ()
 {
+  bool result = true;
+
   if (!Splot_OpenGLCommon::initialized_)
   {
-    if (!Splot_OpenGLCommon::initTextToolkit ())
+    result = Splot_OpenGLCommon::initTextToolkit ();
+    if (!result)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Splot_OpenGLCommon::initTextToolkit(), aborting\n")));
@@ -47,15 +50,26 @@ Splot_OpenGLCommon::init ()
       return false;
     } // end IF
 
+    result = Splot_Background::init ();
+    if (!result)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Splot_Background::init(), aborting\n")));
+
+      return false;
+    } // end IF
+
     Splot_OpenGLCommon::initialized_ = true;
   } // end IF
 
-  return Splot_OpenGLCommon::initialized_;
+  return result;
 }
 
 void
 Splot_OpenGLCommon::fini ()
 {
+  Splot_Background::fini ();
+
   Splot_OpenGLCommon::finiTextToolkit ();
 }
 

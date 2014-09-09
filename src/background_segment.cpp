@@ -2,11 +2,6 @@
 
 #include "background_segment.h"
 
-//#include "Splot_BackgroundSegment.h"
-//
-//#include "Global.h"
-//#include "Ground.h"
-
 Splot_BackgroundSegment::Splot_BackgroundSegment (const float (&position_in)[3],
                                                   const float (&size_in)[2],
                                                   Splot_Background* parent_in)

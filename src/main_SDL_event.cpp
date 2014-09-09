@@ -12,8 +12,9 @@
 #include "player_aircraft.h"
 #include "menu.h"
 #include "audio.h"
+#include "background.h"
 
-#if SDL_VERSION_ATLEAST (2,0,0)
+#if SDL_VERSION_ATLEAST (2, 0, 0)
 #define SDLK_KP1 SDLK_KP_1
 #define SDLK_KP2 SDLK_KP_2
 #define SDLK_KP3 SDLK_KP_3
@@ -341,17 +342,11 @@ Splot_MainSDL::keyDown (SDL_Event* event_in)
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
   switch (event_in->key.keysym.sym)
   {
-    case SDLK_q:
-      state.game_quit = true;
-      break;
     case SDLK_g:
       grabMouse (!mouseToggle_);
       break;
-    case SDLK_0:
-      state.player->useItem (0);
-      break;
-    case SDLK_9:
-      state.player->useItem (1);
+    case SDLK_q:
+      state.game_quit = true;
       break;
     case SDLK_ESCAPE:
       if (state.game_mode == GAMEMODE_MENU)
@@ -404,7 +399,24 @@ Splot_MainSDL::keyDown (SDL_Event* event_in)
             case SDLK_KP_ENTER:
             case SDLK_RETURN:
               key = KEY_ENTER; break;
-            case SDLK_KP5:
+#if defined (DEBUG_BACKGROUND) && (DEBUG_BACKGROUND == 1)
+            case SDLK_b:
+            {
+              int background_type = state.background->type_;
+              if (++background_type == MAX_BACKGROUND_TYPES)
+                background_type = 0;
+              delete state.background;
+              state.background = Splot_Background::make ((BackgroundType_t)background_type);
+              if (!state.background)
+                ACE_DEBUG ((LM_ERROR,
+                            ACE_TEXT ("failed to Splot_Background::make(%d), continuing\n"),
+                            background_type));
+              break;
+            }
+            case SDLK_n:
+              state.background->nextVariation ();
+              break;
+#endif
             default:
               return;
           } // end SWITCH
@@ -440,7 +452,23 @@ Splot_MainSDL::keyDownGame (SDL_Event* event_in)
       state.game_pause = !state.game_pause;
       state.audio->pauseMusic (state.game_pause);
       break;
+#if defined (DEBUG_BACKGROUND) && (DEBUG_BACKGROUND == 1)
+    case SDLK_b:
+    {
+      int background_type = state.background->type_;
+      if (++background_type == MAX_BACKGROUND_TYPES)
+        background_type = 0;
+      delete state.background;
+      state.background = Splot_Background::make ((BackgroundType_t)background_type);
+      if (!state.background)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Splot_Background::make(%d), continuing\n"),
+                    background_type));
+      break;
+    }
     case SDLK_n:
+      state.background->nextVariation ();
+#endif
       state.audio->nextMusicIndex ();
       break;
     case SDLK_KP7:
@@ -477,6 +505,12 @@ Splot_MainSDL::keyDownGame (SDL_Event* event_in)
       break;
     case SDLK_SPACE:
       state.player->fireGun (true);
+      break;
+    case SDLK_0:
+      state.player->useItem (0);
+      break;
+    case SDLK_9:
+      state.player->useItem (1);
       break;
     default:
       const Configuration_t& configuration =
@@ -534,14 +568,14 @@ Splot_MainSDL::keyMove ()
 #define KP8 SDLK_KP8
 #define KP9 SDLK_KP9
 #endif
-  if (keystate[LEFT]  || keystate[KP4]) key_speed_[0] -= 2.0F+abs (key_speed_[0])*0.3F;
-  if (keystate[RIGHT] || keystate[KP6]) key_speed_[0] += 2.0F+abs (key_speed_[0])*0.3F;
-  if (keystate[UP]    || keystate[KP8]) key_speed_[1] -= 2.0F+abs (key_speed_[1])*0.3F;
-  if (keystate[DOWN]  || keystate[KP2]) key_speed_[1] += 2.0F+abs (key_speed_[1])*0.3F;
-  if (keystate[KP7]) {key_speed_[0] -= 2.0F+abs (key_speed_[0])*0.3F; key_speed_[1] -= 2.0F+abs (key_speed_[1])*0.3F;}
-  if (keystate[KP9]) {key_speed_[0] += 2.0F+abs (key_speed_[0])*0.3F; key_speed_[1] -= 2.0F+abs (key_speed_[1])*0.3F;}
-  if (keystate[KP3]) {key_speed_[0] += 2.0F+abs (key_speed_[0])*0.3F; key_speed_[1] += 2.0F+abs (key_speed_[1])*0.3F;}
-  if (keystate[KP1]) {key_speed_[0] -= 2.0F+abs (key_speed_[0])*0.3F; key_speed_[1] += 2.0F+abs (key_speed_[1])*0.3F;}
+  if (keystate[LEFT]  || keystate[KP4]) key_speed_[0] -= 2.0F+::fabs (key_speed_[0])*0.3F;
+  if (keystate[RIGHT] || keystate[KP6]) key_speed_[0] += 2.0F+::fabs (key_speed_[0])*0.3F;
+  if (keystate[UP]    || keystate[KP8]) key_speed_[1] -= 2.0F+::fabs (key_speed_[1])*0.3F;
+  if (keystate[DOWN]  || keystate[KP2]) key_speed_[1] += 2.0F+::fabs (key_speed_[1])*0.3F;
+  if (keystate[KP7]) {key_speed_[0] -= 2.0F+::fabs (key_speed_[0])*0.3F; key_speed_[1] -= 2.0F+::fabs (key_speed_[1])*0.3F;}
+  if (keystate[KP9]) {key_speed_[0] += 2.0F+::fabs (key_speed_[0])*0.3F; key_speed_[1] -= 2.0F+::fabs (key_speed_[1])*0.3F;}
+  if (keystate[KP3]) {key_speed_[0] += 2.0F+::fabs (key_speed_[0])*0.3F; key_speed_[1] += 2.0F+::fabs (key_speed_[1])*0.3F;}
+  if (keystate[KP1]) {key_speed_[0] -= 2.0F+::fabs (key_speed_[0])*0.3F; key_speed_[1] += 2.0F+::fabs (key_speed_[1])*0.3F;}
   //float s = (1.0-game->speedAdj)+(game->speedAdj*0.7);
   //float s = 0.7F;
   key_speed_[0] *= 0.6F;
