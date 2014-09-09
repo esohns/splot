@@ -13,6 +13,7 @@
 #include "state.h"
 #include "player_aircraft.h"
 #include "enemy_bullets.h"
+#include "screen.h"
 
 // init statics
 unsigned int Splot_EnemyAircraft::count = 0;
@@ -922,11 +923,97 @@ Splot_EnemyAircraft::update ()
       break;
     }
     case ENEMYAIRCRAFT_RAYGUN:
-    case ENEMYAIRCRAFT_TANK:
-    case ENEMYAIRCRAFT_BOSS_0:
-    case ENEMYAIRCRAFT_BOSS_1:
-      shootInterval_ = 1;
+    {
+      float* position = (target_ ? target_->position_ : inherited::position_);
+      float diff[2] = {position[0]-inherited::position_[0],
+                       position[1]-inherited::position_[1]};
+      float tmpd = 0.0;
+      float tmps = 0.0;
+      if ((tmpd = ::fabs (diff[0])) < 3.0)
+        tmps = ((3.0F-tmpd)/3.0F)*(0.1F*::sin (age_*0.25F));
+      if (::fabs (diff[1]) < 7.0)
+        diff[1] *= 0.1F;
+      lastMove_[0] = (0.975F*lastMove_[0])+(0.002F*diff[0]);
+      lastMove_[1] = (0.9F  *lastMove_[1])+(0.001F*diff[1]);
+      inherited::position_[0] += state.speed_adj*(randomMoveX_*lastMove_[0]*((state.game_skill+0.1F)+tmps));
+      inherited::position_[1] += state.speed_adj*(lastMove_[1]+translationVector_[1]*(state.game_skill+0.1F));
       break;
+    }
+    case ENEMYAIRCRAFT_TANK:
+    {
+      float* position = (target_ ? target_->position_ : inherited::position_);
+      float diff[2] = {position[0]-inherited::position_[0],
+                       position[1]-inherited::position_[1]};
+      float v1 = 0.04F;
+      if (::fabs (diff[0]) <= 8.0)
+        v1 *= (::fabs (diff[0])/8.0F);
+      translationVector_[1] = 0.99F*translationVector_[1] + 0.01F*v1;
+
+      if (inherited::position_[1] < -3.0)
+        translationVector_[1] = -0.1F;
+      else if (inherited::position_[1] < 0.0)
+        translationVector_[1] *= 0.99F;
+
+      const Configuration_t& configuration =
+        SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
+      if (inherited::position_[0] < 0.0)
+        inherited::position_[0] = state.speed_adj*(0.998F*inherited::position_[0] + 0.002F*(-configuration.screen_bound[0]+2.85F));
+      else
+        inherited::position_[0] = state.speed_adj*(0.998F*inherited::position_[0] + 0.002F*( configuration.screen_bound[0]-2.85F));
+
+      switch ((age_/50)%8)
+      {
+        case 2:
+          inherited::position_[1] += state.speed_adj*(0.05F);
+          break;
+        default:
+          inherited::position_[1] -= state.speed_adj*(translationVector_[1]);
+          break;
+      } // end SWITCH
+      break;
+    }
+    case ENEMYAIRCRAFT_BOSS_0:
+    {
+      float* position = (target_ ? target_->position_ : inherited::position_);
+      float diff[2] = {position[0]-inherited::position_[0],
+                       position[1]-inherited::position_[1]};
+      float approach_dist = 7.0F*(2.0F-state.game_skill);
+      if (::fabs (diff[1]) < (approach_dist + 0.0*::sin (state.frame*0.05)))
+        diff[1] = diff[1]*diff[1]/approach_dist;
+      diff[0] += 5.0F*::sin (age_*0.1F);
+      lastMove_[0] = (0.98F*lastMove_[0]) + (0.0005F*state.game_skill*diff[0]);
+      lastMove_[1] = (0.9F *lastMove_[1]) + (0.001F *state.game_skill*diff[1]);
+      inherited::position_[0] += state.speed_adj*(lastMove_[0]);
+      inherited::position_[1] += state.speed_adj*(lastMove_[1]+translationVector_[1]);
+      break;
+    }
+    case ENEMYAIRCRAFT_BOSS_1:
+    {
+      float* position = (target_ ? target_->position_ : inherited::position_);
+      float diff[2] = {position[0]-inherited::position_[0],
+                       position[1]-inherited::position_[1]};
+      diff[0] += 5.0F*::sin (age_*0.1F);
+      float approach_dist;
+      if ((((age_+25)/512)%2))
+        approach_dist = 9.0F*(2.0F-state.game_skill);
+      else
+        approach_dist = 12.0F*(2.0F-state.game_skill);
+      if (::fabs (diff[1]) < (approach_dist + 2.0*::sin (state.frame*0.05)))
+        diff[1] = diff[1]*diff[1]/approach_dist;
+      if (((age_/512)%2))
+      {
+        lastMove_[0] = (0.98F*lastMove_[0]) + (0.001F*state.game_skill*diff[0]);
+        lastMove_[1] = (0.9F *lastMove_[1]) + (0.002F*state.game_skill*diff[1]);
+      } // end IF
+      else //-- release gnats
+      {
+        lastMove_[0] = (0.9F*lastMove_[0]) + (0.0003F*state.game_skill*diff[0]);
+        lastMove_[1] = (0.9F*lastMove_[1]) + (0.001F *state.game_skill*diff[1]);
+      } // end ELSE
+      inherited::position_[0] += state.speed_adj*(lastMove_[0]);
+      inherited::position_[1] += state.speed_adj*(lastMove_[1]+translationVector_[1]);
+      break;
+    }
     default:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown enemy aircraft type (was: %d), returning\n"),
@@ -961,8 +1048,8 @@ Splot_EnemyAircraft::update ()
       if (!shootInterval_)
       {
         calcShootInterval ();
-        float diff[2] = {state.player->position_[0] - inherited::position_[0],
-                         state.player->position_[1] - inherited::position_[1]};
+        float diff[2] = {state.player->position_[0]-inherited::position_[0],
+                         state.player->position_[1]-inherited::position_[1]};
         if (::fabs (diff[0]) < 2.0 &&
             diff[1] < 0.0) //-- 
         {
@@ -1003,11 +1090,201 @@ Splot_EnemyAircraft::update ()
       break;
     }
     case ENEMYAIRCRAFT_RAYGUN:
-    case ENEMYAIRCRAFT_TANK:
-    case ENEMYAIRCRAFT_BOSS_0:
-    case ENEMYAIRCRAFT_BOSS_1:
-      shootInterval_ = 1;
+    {
+      float translation_step[3] = {0.0, -0.2F, 0.0};
+      float diffX = state.player->position_[0]-inherited::position_[0];
+      if (::fabs (diffX) < 1.5) //-- big center gun
+      {
+        translation_step[1] = -0.6F;
+        position[1] = inherited::position_[1]-0.5F;
+        state.enemy_bullets->add (3, position, translation_step);
+      } // end IF
       break;
+    }
+    case ENEMYAIRCRAFT_TANK:
+    {
+      float translation_step[3] = {0.0, -0.2F, 0.0};
+      float diff[2] = {state.player->position_[0]-inherited::position_[0],
+                       state.player->position_[1]-inherited::position_[1]};
+      position[1] = inherited::position_[1]-1.7F;
+      if (::fabs (diff[0]) < 4.0)
+      {
+        if (shootSwap_ == 0 ||
+            shootSwap_ == 8 ||
+            shootSwap_ == 16)
+        {
+          position[0] = inherited::position_[0]+1.5F;
+          state.enemy_bullets->add (0, position, translation_step);
+          position[0] = inherited::position_[0]-1.5F;
+          state.enemy_bullets->add (0, position, translation_step);
+        } // end IF
+        shootSwap_++;
+        shootSwap_ %= 100;
+      } // end IF
+
+      int tmpInt;
+      if (!((tmpInt = age_/200)%2)) //-- omni shooters
+      {
+        tmpInt = age_%200;
+        if (tmpInt < 100)
+          preFire_ = (float)tmpInt/100.0f;
+        else if (tmpInt < 170)
+        {
+          if (!(age_%10))
+          {
+            position[0] = inherited::position_[0];
+            diff[0] = state.player->position_[0]-position[0];
+            position[1] = inherited::position_[1]-0.45F;
+            diff[1] = state.player->position_[1] - position[1];
+            float dist = ::fabs (diff[0])+::fabs (diff[1]);
+            float ammunition_speed = 0.35F*state.speed_adj;
+            shootVec_[0] = 2.0F*ammunition_speed*diff[0]/dist;
+            shootVec_[1] = 2.0F*ammunition_speed*diff[1]/dist;
+            secondaryMove_[0] -= shootVec_[0]*0.1F;
+            secondaryMove_[1] -= shootVec_[1]*0.1F;
+            state.enemy_bullets->add (2, position, shootVec_);
+            preFire_ -= 0.4F;
+            if (preFire_ < 0.0)
+              preFire_ = 0.0;
+          } // end IF
+          else
+            preFire_ += 0.035F;
+        } // end IF
+        else
+          preFire_ = 0.0;
+      } // end IF
+      break;
+    }
+    case ENEMYAIRCRAFT_BOSS_0:
+    {
+      float translation_step[3] = {0.0, -0.2F, 0.0};
+      float diff[2] = {state.player->position_[0]-inherited::position_[0],
+                       state.player->position_[1]-inherited::position_[1]};
+      if (::fabs (diff[0]) < 1.6) //-- big center gun
+      {
+        translation_step[1] = -0.6F;
+        position[1] = inherited::position_[1]-1.7F;
+        state.enemy_bullets->add (3, position, translation_step);
+      } // end IF
+      if (!(age_%5)) //-- side cannons
+      {
+        shootSwap_++;
+        shootSwap_ %= 15;
+        if (shootSwap_ < 6)
+        {
+          translation_step[1] = -0.2F;
+          position[0] = inherited::position_[0]+2.0F+((shootSwap_%3)*0.4F);
+          position[1] = inherited::position_[1]-1.9F;
+          state.enemy_bullets->add (0, position, translation_step);
+          position[0] = inherited::position_[0]-2.0F-((shootSwap_%3)*0.4F);
+          state.enemy_bullets->add (0, position, translation_step);
+        } // end IF
+      } // end IF
+      float dist;
+      float ammunition_speed = 0.35F*state.speed_adj;
+      if (!((age_-1)%7))
+      {
+        dist = ::fabs (diff[0])+::fabs (diff[1]);
+        shootVec_[0] = ammunition_speed*diff[0]/dist;
+        shootVec_[1] = ammunition_speed*diff[1]/dist;
+      } // end IF
+      if (!((age_/200)%2)) //-- omni shooters
+      {
+        if (!((age_/100)%2))
+        {
+          if (!((age_/50)%2))
+          {
+            position[0] = inherited::position_[0]-1.1F;
+            position[1] = inherited::position_[1]-0.45F;
+            state.enemy_bullets->add (1, position, shootVec_);
+            position[0] = inherited::position_[0]+1.1F;
+            state.enemy_bullets->add (1, position, shootVec_);
+          } // end IF
+          preFire_ = (age_%100)/100.0f;
+        } // end IF
+        else if (!(age_%10))
+        {
+          position[0] = inherited::position_[0]-1.1F;
+          diff[0] = state.player->position_[0]-position[0];
+          position[1] = inherited::position_[1]-0.45F;
+          diff[1] = state.player->position_[1]-position[1];
+          dist = ::fabs (diff[0])+::fabs (diff[1]);
+          shootVec_[0] = 2.0F*ammunition_speed*diff[0]/dist;
+          shootVec_[1] = 2.0F*ammunition_speed*diff[1]/dist;
+          state.enemy_bullets->add (2, position, shootVec_);
+          position[0] = inherited::position_[0]+1.1F;
+          diff[0] = state.player->position_[0]-position[0];
+          dist = ::fabs (diff[0])+::fabs (diff[1]);
+          shootVec_[0] = 2.0F*ammunition_speed*diff[0]/dist;
+          shootVec_[1] = 2.0F*ammunition_speed*diff[1]/dist;
+          state.enemy_bullets->add (2, position, shootVec_);
+          preFire_ -= 0.4F;
+          if (preFire_ < 0.0)
+            preFire_ = 0.0;
+        } // end IF
+        else
+          preFire_ += 0.035F;
+      } // end IF
+      else
+        preFire_ = 0.0;
+      break;
+    }
+    case ENEMYAIRCRAFT_BOSS_1:
+    {
+      float diff = state.player->position_[0] - inherited::position_[0];
+      if (::fabs (diff) < 5.0)
+      {
+        shootVec_[1] = -0.65F;
+        preFire_ = (age_%6)/6.0F;
+        if (!(age_%6))
+        {
+          shootSwap_ = !shootSwap_;
+          if (shootSwap_)
+          {
+            position[0] = inherited::position_[0]+0.55F;
+            position[1] = inherited::position_[1]-1.7F;
+            state.enemy_bullets->add (0, position, shootVec_);
+            position[1] += 0.5;
+            state.enemy_bullets->add (0, position, shootVec_);
+          } // end IF
+          else
+          {
+            position[0] = inherited::position_[0]-1.22F;
+            position[1] = inherited::position_[1]-1.22F;
+            state.enemy_bullets->add (0, position, shootVec_);
+            position[1] += 0.5;
+            state.enemy_bullets->add (0, position, shootVec_);
+          } // end ELSE
+        } // end IF
+      } // end IF
+      else
+      {
+        if (preFire_ > 0.0) preFire_ -= 0.05F;
+        else preFire_ = 0.0;
+      } // end ELSE
+
+      //-- add Gnats
+      if (!((age_/512)%2))
+      {
+        if (!((age_/64)%2) && !(age_%5))
+        {
+          position[0] += 1.7F;
+          position[1] += 1.2F;
+          Splot_EnemyAircraft* tmp_aircraft =
+            Splot_Screen::makeAdd (ENEMYAIRCRAFT_GNAT, position, state.game_frame+2);
+          if (!tmp_aircraft)
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to Splot_Screen::makeAdd(%d), continuing\n"),
+                        ENEMYAIRCRAFT_GNAT));
+          else
+          {
+            tmp_aircraft->over_ = this;
+            tmp_aircraft->target_ = this;
+          } // end ELSE
+        } // end IF
+      } // end IF
+      break;
+    }
     default:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown enemy aircraft type (was: %d), returning\n"),

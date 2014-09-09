@@ -226,7 +226,7 @@ Splot_MainSDL::run ()
     //			if(write)
     //				saveEvent(&event);
       done = this->process (&event);
-      if (!done) break;
+      if (done) break;
     } // end WHILE
     this->joystickMove ();
     this->keyMove ();

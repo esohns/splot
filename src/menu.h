@@ -97,7 +97,7 @@ class Splot_Menu
   int   msgCount_;
   bool  msgHelpOverride_;
 
-  static char msgHelpText_[NUM_HELP_MESSAGE_LINES][BUFSIZ];
+  static char hints[NUM_HELP_MESSAGE_LINES][BUFSIZ];
 };
 
 #endif // MENU_H

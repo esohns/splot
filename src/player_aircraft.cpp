@@ -260,7 +260,7 @@ Splot_PlayerAircraft::useItem ()
     case 0: // self destruct
       for (int i = 0; i < NUM_PLAYER_AMMUNITION_TYPES; i++)
       {
-        //eject all ammo - return remaining ammo to game->powerUps
+        // eject all ammo - return remaining ammo to the game
         if (game_state.ammo_stock[i] > 1.0)
         {
           direction[0] = SRAND*0.15F;
@@ -915,13 +915,13 @@ Splot_PlayerAircraft::drawGL ()
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   } // end IF
 
-  // check OpenGL error(s)
-  GLenum OpenGL_error = glGetError ();
-  //while ((OpenGL_error = glGetError ()) != GL_NO_ERROR)
-  if (OpenGL_error != GL_NO_ERROR)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("OpenGL error: \"%s\", continuing\n"),
-                gluErrorString (OpenGL_error)));
+  //// check OpenGL error(s)
+  //GLenum OpenGL_error = glGetError ();
+  ////while ((OpenGL_error = glGetError ()) != GL_NO_ERROR)
+  //if (OpenGL_error != GL_NO_ERROR)
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("OpenGL error: \"%s\", continuing\n"),
+  //              gluErrorString (OpenGL_error)));
 }
 
 void
@@ -971,8 +971,8 @@ Splot_PlayerAircraft::deathExplosions ()
   {
     a = FRAND+2.0F*(float)M_PI*((float)i/(float)DEATH_SPIKES);
     s = 0.5F+0.5F*FRAND;
-    deathCircle_[i][0] = sin (a)*s;
-    deathCircle_[i][1] = cos (a)*s;
+    deathCircle_[i][0] = ::sin (a)*s;
+    deathCircle_[i][1] = ::cos (a)*s;
     position[0] = inherited::position_[0]+deathCircle_[i][0];
     position[1] = inherited::position_[1]+deathCircle_[i][1];
     position[2] = inherited::position_[2];

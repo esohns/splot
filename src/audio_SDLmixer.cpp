@@ -34,13 +34,14 @@ Splot_AudioSDLMixer::~Splot_AudioSDLMixer ()
 void
 Splot_AudioSDLMixer::init ()
 {
+  // sanity check(s)
   Uint32 SDL_init_flags = SDL_WasInit (0);
   if (!(SDL_init_flags & SDL_INIT_AUDIO))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("SDL audio not initialized, returning\n")));
 
-    SPLOT_CONFIGURATION_SINGLETON::instance ()->setAudio (false);
+    SPLOT_CONFIGURATION_SINGLETON::instance ()->setAudioEnabled (false);
 
     return;
   } // end IF
@@ -54,7 +55,7 @@ Splot_AudioSDLMixer::init ()
                 ACE_TEXT ("failed to Mix_OpenAudio(): \"%s\", returning\n"),
                 ACE_TEXT (Mix_GetError ())));
     
-    SPLOT_CONFIGURATION_SINGLETON::instance ()->setAudio (false);
+    SPLOT_CONFIGURATION_SINGLETON::instance ()->setAudioEnabled (false);
 
     return;
   } // end IF

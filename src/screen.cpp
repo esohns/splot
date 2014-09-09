@@ -294,21 +294,21 @@ Splot_Screen::add (const EnemyWave_t& wave_in)
   return num;
 }
 
-bool
+Splot_EnemyAircraft*
 Splot_Screen::makeAdd (EnemyAircraftType_t type_in,
                        const float (&position_in)[3],
                        int releaseTime_in)
 {
-  Splot_EnemyAircraft* enemy_aircraft = Splot_EnemyAircraft::make (type_in,
-                                                                   position_in,
-                                                                   1.0F);
-  if (!enemy_aircraft)
+  Splot_EnemyAircraft* result = Splot_EnemyAircraft::make (type_in,
+                                                           position_in,
+                                                           1.0F);
+  if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Splot_EnemyAircraft::make(%d), aborting\n"),
                 type_in));
 
-    return false;
+    return NULL;
   } // end IF
 
   //if (deadPool[et]->next)
@@ -318,9 +318,9 @@ Splot_Screen::makeAdd (EnemyAircraftType_t type_in,
   //  addEnemy->init(pos);
   //} // end IF
   //else
-  Splot_Screen::add (releaseTime_in, enemy_aircraft);
+  Splot_Screen::add (releaseTime_in, result);
 
-  return true;
+  return result;
 }
 
 void

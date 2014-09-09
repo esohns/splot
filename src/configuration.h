@@ -22,7 +22,7 @@ class Splot_Configuration
              Mode_t&);    // return value: mode
 
   static std::string getFileName ();
-  //static std::string getOldFileName ();
+
   bool  save ();
 
   const Configuration_t& get () const;
@@ -31,9 +31,8 @@ class Splot_Configuration
   void setScreenSize(int w, int h);
   int approxScreenSize ();
 
-  void setFullScreen (bool set_in) { configuration_.full_screen = set_in; }
-  void setBlend (bool set_in) { configuration_.blend_enabled = set_in; }
-  void setGfxLevel(int level_in)
+  void setFullScreen (bool fullScreen_in) { configuration_.full_screen = fullScreen_in; }
+  void setGfxLevel (int level_in)
   {
     configuration_.graphics_level = level_in;
     if (configuration_.graphics_level < 0)
@@ -41,12 +40,7 @@ class Splot_Configuration
     if (configuration_.graphics_level > 2)
       configuration_.graphics_level = 2;
   }
-  void setTrueColor (bool set_in) { configuration_.true_color = set_in; }
-  void setTextureBorder (bool set_in) { configuration_.texture_border = set_in; }
-  void setShowFPS (bool set_in) { configuration_.show_FPS = set_in; }
-  void setViewGamma (float gamma_in) { configuration_.view_gamma = gamma_in; }
 
-  void setAutoSpeed (bool set_in) { configuration_.auto_speed = set_in; }
   void setMovementSpeed (float speed_in) {
     configuration_.movement_speed = speed_in;
     if (configuration_.movement_speed < MOVEMENT_SPEED_MIN)
@@ -55,7 +49,7 @@ class Splot_Configuration
       configuration_.movement_speed = MOVEMENT_SPEED_MAX;
   }
 
-  void setAudio (bool enabled_in) { configuration_.audio_enabled = enabled_in; }
+  void setAudioEnabled (bool audioEnabled_in) { configuration_.audio_enabled = audioEnabled_in; };
   void setVolSound (float volume_in) {
     configuration_.volume_sound = volume_in;
     if (configuration_.volume_sound < 0.0)
@@ -88,7 +82,6 @@ class Splot_Configuration
   ACE_UNIMPLEMENTED_FUNC (Splot_Configuration (const Splot_Configuration&));
   ACE_UNIMPLEMENTED_FUNC (Splot_Configuration& operator= (const Splot_Configuration&));
 
-  //void readValues (FILE* file);
   bool load (const std::string&); // FQ filename
 };
 

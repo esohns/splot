@@ -300,8 +300,22 @@ Splot_MainSDL::activation (bool minimizedRestored_in,
     grabMouse (grab_mouse, grab_mouse);
   else if (mouseFocus_in) // (re-)gained/lost mouse focus
   {
-    Uint8 button_state = SDL_GetMouseState (&last_[0], &last_[1]);
-    ACE_UNUSED_ARG (button_state);
+    int x, y;
+    SDL_GetMouseState (&x, &y);
+    if (!gained_in)
+    {
+      last_[0] = x;
+      last_[1] = y;
+    } // end IF
+    else if (grab_mouse)
+    {
+#if SDL_VERSION_ATLEAST (2, 0, 0)
+      SDL_WarpMouseInWindow (window_,
+                             x, y);
+#else
+      SDL_WarpMouse (x, y);
+#endif
+    } // end IF
   } // end IF
   else if (inputFocus_in) // (re-)gained/lost input focus
     grabMouse (grab_mouse, grab_mouse);
@@ -577,13 +591,14 @@ Splot_MainSDL::mouseMotion (SDL_Event* event_in)
 void
 Splot_MainSDL::mouseButtonDown (SDL_Event* event_in)
 {
+  ACE_ASSERT (event_in);
+
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
   switch (state.game_mode)
   {
     case GAMEMODE_GAME:
     {
-      SDL_MouseButtonEvent* mEv = (SDL_MouseButtonEvent*)event_in;
-      switch (mEv->button)
+      switch (event_in->button.button)
       {
         case SDL_BUTTON_LEFT:
           //				game->hero->fireGun(++fire);
@@ -601,7 +616,12 @@ Splot_MainSDL::mouseButtonDown (SDL_Event* event_in)
       break;
     }
     case GAMEMODE_GAME_OVER:
-      state.menu->keyHit (KEY_ENTER);
+      //state.menu->keyHit (KEY_ENTER);
+      state.game_mode = GAMEMODE_MENU;
+      state.menu->startMenu ();
+      state.audio->setMusicMode (MUSIC_MENU);
+      grabMouse (false);
+      break;
     default:
       break;
   } // end SWITCH
@@ -610,27 +630,34 @@ Splot_MainSDL::mouseButtonDown (SDL_Event* event_in)
 void
 Splot_MainSDL::mouseButtonUp (SDL_Event* event_in)
 {
+  ACE_ASSERT (event_in);
+
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
-  SDL_MouseButtonEvent* mEv = (SDL_MouseButtonEvent*)event_in;
   switch (state.game_mode)
   {
     case GAMEMODE_MENU:
-      switch (mEv->button)
+      switch (event_in->button.button)
       {
         case SDL_BUTTON_LEFT:
-          state.menu->mousePress (BUTTON_LEFT, mEv->x, mEv->y);
+          state.menu->mousePress (BUTTON_LEFT,
+                                  event_in->button.x,
+                                  event_in->button.y);
           break;
         case SDL_BUTTON_MIDDLE:
-          state.menu->mousePress (BUTTON_MIDDLE, mEv->x, mEv->y);
+          state.menu->mousePress (BUTTON_MIDDLE,
+                                  event_in->button.x,
+                                  event_in->button.y);
           break;
         case SDL_BUTTON_RIGHT:
-          state.menu->mousePress (BUTTON_RIGHT, mEv->x, mEv->y);
+          state.menu->mousePress (BUTTON_RIGHT,
+                                  event_in->button.x,
+                                  event_in->button.y);
           break;
         default:
           break;
       } // end SWITCH
     default:
-      switch (mEv->button)
+      switch (event_in->button.button)
       {
         case  SDL_BUTTON_LEFT:
       //				game->hero->fireGun(--fire);
@@ -656,8 +683,8 @@ Splot_MainSDL::grabMouse (bool status_in, bool warpmouse_in)
 
   const Configuration_t& configuration =
     SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
-  mid_[0] = configuration.screen_width / 2;
-  mid_[1] = configuration.screen_height / 2;
+  mid_[0] = configuration.screen_width/2;
+  mid_[1] = configuration.screen_height/2;
 
   //State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
   //int x, y;

@@ -28,7 +28,7 @@
 #include "textGeometry.h"
 
 // init statics
-char Splot_Menu::msgHelpText_[NUM_HELP_MESSAGE_LINES][BUFSIZ] = {
+char Splot_Menu::hints[NUM_HELP_MESSAGE_LINES][BUFSIZ] = {
 ACE_TEXT_ALWAYS_CHAR ("  d o   n o t   a l l o w  -a n y-   e n e m i e s   g e t   p a s t   y o u !"),
 ACE_TEXT_ALWAYS_CHAR ("  e v e r y   e n e m y   t h a t   g e t s   b y   c o s t s   y o u   a   l i f e !"),
 ACE_TEXT_ALWAYS_CHAR ("  a l l o w   p o w e r - u p s   t o   p a s s   b y   f o r   b i g   p o i n t s !"),
@@ -427,7 +427,7 @@ Splot_Menu::drawGL ()
     int interval = (msgCount_++)%500;
     if (!interval)
     {
-      ACE_OS::strcpy (msgText_, gettext (msgHelpText_[msgIndex_%NUM_HELP_MESSAGE_LINES]));
+      ACE_OS::strcpy (msgText_, gettext (Splot_Menu::hints[msgIndex_%NUM_HELP_MESSAGE_LINES]));
       msgIndex_++;
     } // end IF
     if (interval < 150)
@@ -784,6 +784,8 @@ Splot_Menu::activateItem ()
       SPLOT_STATE_SINGLETON::instance ()->deleteTextures ();
       if (!state.toolkit->setVideoMode ())
       {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Splot_Main::setVideoMode(), continuing\n")));
         msgHelpOverride_ = true;
         msgAlpha_ = 1.1F;
         if (configuration.full_screen)
@@ -982,7 +984,7 @@ Splot_Menu::mousePress (Button_t button_in, int x_in, int y_in)
     elecOff_[0] = 0.0;
 
     p = p/s;
-    mSel = (int)floor(p);
+    mSel = (int)::floor (p);
     if (mSel >= 0                     &&
         mSel < (int)MAX_MENU_TYPES    &&
         mSel != (int)currentSelection_)

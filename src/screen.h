@@ -18,9 +18,9 @@ class Splot_Screen
   static void clear ();
 
   static bool load ();
-  static bool makeAdd (EnemyAircraftType_t, // type
-                       const float (&)[3],  // position
-                       int);                // release time
+  static Splot_EnemyAircraft* makeAdd (EnemyAircraftType_t, // type
+                                       const float (&)[3],  // position
+                                       int);                // release time
 
  private:
   //void clearDeadPool();
