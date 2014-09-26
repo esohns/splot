@@ -10,7 +10,7 @@
 std::string dataLoc (const std::string& filename, bool doCheck = true);
 std::string alterPathForPlatform (char *filename);
 void printExtensions (FILE *fstream, const char* extstr_in);
-
+std::string getHomeDirectory ();
 bool initLogging(const std::string& programName_in,
                  const std::string& logFile_in,
                  bool logToSyslog_in,

@@ -55,7 +55,7 @@ Splot_State::Splot_State ()
   state_.game_speed         = STATE_DEFAULT_GAME_SPEED;
   state_.game_skill         = STATE_DEFAULT_GAME_SKILL;
   state_.game_level         = 1;
-  state_.max_level          = 1;
+  state_.maximum_level      = 1;
   state_.speed_adj          = STATE_DEFAULT_SPEED_ADJUSTMENT;
 
   state_.CDROM_count        = 1;
@@ -86,7 +86,7 @@ Splot_State::Splot_State ()
   state_.cursor_position[1] = 0.0;
   state_.cursor_position[2] = HERO_Z;
 
-  state_.event_file         = NULL;
+  //state_.event_file         = NULL;
 
   state_.tip_ship_past      = 0;
   state_.tip_super_shield   = 0;
@@ -231,10 +231,10 @@ Splot_State::newGame ()
 
   state_.audio->setMusicIndex (state_.game_level-1);
 
-  if (state_.event_file)
-    if (ACE_OS::fclose (state_.event_file))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to fclose () event file: \"%m\", continuing\n")));
+  //if (state_.event_file)
+  //  if (ACE_OS::fclose (state_.event_file))
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("failed to fclose () event file: \"%m\", continuing\n")));
   //	//-- cheezy, partially functional record mechanism
   //	Splot_State::eventFile = fopen("EVENT_FILE.txt", "w");
   //	Splot_State::eventFile = fopen("EVENT_FILE.txt", "r");
@@ -282,12 +282,11 @@ Splot_State::gotoNextLevel ()
     SPLOT_CONFIGURATION_SINGLETON::instance ();
   ACE_ASSERT (configuration);
 
-  if (state_.game_level > MAX_LEVEL)
-    state_.game_level++;
-  if (state_.max_level < state_.game_level)
-    state_.max_level = state_.game_level;
-  if (state_.max_level > MAX_LEVEL)
-    state_.max_level = MAX_LEVEL;
+  state_.game_level++;
+  if (state_.maximum_level < state_.game_level)
+    state_.maximum_level = state_.game_level;
+  if (state_.maximum_level > MAX_LEVEL)
+    state_.maximum_level = MAX_LEVEL;
 
   state_.game_skill += SKILL_LEVEL_INCREMENT;
   if (state_.game_skill > SKILL_MAX)
@@ -308,7 +307,7 @@ Splot_State::gotoNextLevel ()
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Splot_Screen::load (), continuing\n")));
 
-  // when more than one ground is used, check here if it need to be created
+  // when more than one ground is used, check here if it needs to be created
   state_.background->nextVariation ();
 
   state_.audio->nextMusicIndex ();

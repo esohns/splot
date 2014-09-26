@@ -8,6 +8,8 @@
 #ifdef USE_SDL
 #include "SDL.h"
 
+#include "ace/config-lite.h"
+
 #include "main.h"
 
 class Splot_MainSDL
@@ -22,6 +24,7 @@ class Splot_MainSDL
   bool checkErrors ();
 
   bool setVideoMode ();
+  bool setFullScreen (bool); // full-screen ? : windowed
 
   void grabMouse (bool,         // grab cursor ? : release
                   bool = true); // warp ?

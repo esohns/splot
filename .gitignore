@@ -27,3 +27,7 @@ ipch
 build
 autom4te.cache
 ipch
+
+# Temporary files
+Makefile.in
+*~

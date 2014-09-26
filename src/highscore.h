@@ -32,9 +32,9 @@ class Splot_HighScore
                int,    // rank
                float); // score
 
-  float  highScore_[MAX_LEVEL][HI_SCORE_HIST];
-  char   highScoreName_[MAX_LEVEL][HI_SCORE_HIST][MAX_PLAYER_NAME_LENGTH+1];
-  time_t highScoreDate_[MAX_LEVEL][HI_SCORE_HIST];
+  float  highScore_[SKILL_LEVEL_MAX_INT][HI_SCORE_HIST];
+  char   highScoreName_[SKILL_LEVEL_MAX_INT][HI_SCORE_HIST][MAX_PLAYER_NAME_LENGTH + 1];
+  time_t highScoreDate_[SKILL_LEVEL_MAX_INT][HI_SCORE_HIST];
 
   bool initialized_;
 };

@@ -14,6 +14,7 @@ class Splot_Main
   virtual bool checkErrors () = 0;
 
   virtual bool setVideoMode () = 0;
+  virtual bool setFullScreen (bool) = 0;
 
   virtual void grabMouse (bool, bool = true) = 0;
 };

@@ -14,9 +14,9 @@
 unsigned int Bullet_t::count = 0;
 
 std::string
-alterPathForPlatform (char* filename_in)
+alterPathForPlatform (char* filename_inout)
 {
-  char* walker = filename_in;
+  char* walker = filename_inout;
 #ifdef macintosh
   while (*walker)
   {
@@ -35,11 +35,12 @@ alterPathForPlatform (char* filename_in)
   ACE_UNUSED_ARG (walker);
 #endif
 
-  return filename_in;
+  return filename_inout;
 }
 
 std::string
-dataLoc (const std::string& filename_in, bool doCheck_in)
+dataLoc (const std::string& filename_in,
+         bool doCheck_in)
 {
   char buffer[PATH_MAX + 1];
   ACE_OS::memset (buffer, 0, sizeof (buffer));
@@ -105,7 +106,9 @@ check:
   return buffer;
 }
 
-void printExtensions (FILE* fstream_in, const char* extstr_in)
+void
+printExtensions (FILE* fstream_in,
+                 const char* extstr_in)
 {
   char* walker = NULL;
   char* space = NULL;
@@ -138,6 +141,31 @@ void printExtensions (FILE* fstream_in, const char* extstr_in)
   delete [] extstr;
 }
 
+std::string
+getHomeDirectory ()
+{
+  char home_directory[PATH_MAX];
+  ACE_OS::memset (&home_directory, 0, sizeof (home_directory));
+  const char* home_directory_p =
+    ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (SPLOT_HOME_ENV_SYMBOL));
+  if (!home_directory_p)
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("failed to getenv(\"%s\"): \"%m\", continuing\n"),
+                ACE_TEXT (SPLOT_HOME_ENV_SYMBOL)));
+
+    if (!ACE_OS::getcwd (home_directory, sizeof (home_directory)))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to getcwd(): \"%m\", aborting\n")));
+  } // end IF
+  else
+    ACE_OS::strcpy (home_directory, home_directory_p);
+
+  alterPathForPlatform (home_directory);
+
+  return home_directory;
+}
+
 bool
 initLogging (const std::string& programName_in,
              const std::string& logFile_in,
@@ -159,7 +187,7 @@ initLogging (const std::string& programName_in,
   {
     options_flags |= ACE_Log_Msg::OSTREAM;
 
-    ACE_OSTREAM_TYPE* log_stream;
+    ACE_OSTREAM_TYPE* log_stream = NULL;
     std::ios_base::openmode open_mode = (std::ios_base::out |
                                          std::ios_base::trunc);
     ACE_NEW_NORETURN (log_stream,
@@ -178,7 +206,7 @@ initLogging (const std::string& programName_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to initialize logfile (was: \"%s\"): \"%m\", aborting\n"),
-                  logFile_in.c_str ()));
+                  ACE_TEXT (logFile_in.c_str ())));
 
       // clean up
       delete log_stream;
@@ -195,7 +223,7 @@ initLogging (const std::string& programName_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Log_Msg::open(\"%s\", %u): \"%m\", aborting\n"),
-                programName_in.c_str (),
+                ACE_TEXT (programName_in.c_str ()),
                 options_flags));
 
     return false;

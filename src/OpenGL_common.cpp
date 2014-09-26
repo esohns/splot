@@ -313,22 +313,25 @@ Splot_OpenGLCommon::drawGameOver ()
   state.status_display->drawGL (state.player);
 
   float score = SPLOT_STATE_SINGLETON::instance ()->gameState ().score;
-  int rank = state.highscore->check (SPLOT_CONFIGURATION_SINGLETON::instance ()->intSkill (), score);
+  int rank = state.highscore->check (SPLOT_CONFIGURATION_SINGLETON::instance ()->intSkill (),
+                                     score);
   char buffer[BUFSIZ];
   ACE_OS::memset (&buffer, 0, sizeof (buffer));
   float scale = 0.15F;
   float pulse = (float)state.player_death;
   if (rank == 1)
-    ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("new high score!\n\n%d"),
+    ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("new high score !\n\n%d"),
                      (int)score);
   else if (rank > 1)
-    ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("not bad!\nrank: %d\n%d"),
+    ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("not bad !\nrank: %d\n%d"),
                      rank, (int)score);
   else
   {
     scale = 0.10F;
     ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("G A M E   O V E R\nmissed a rank by: %d\n%d"),
-                     (int)(state.highscore->getScore (SPLOT_CONFIGURATION_SINGLETON::instance ()->intSkill (), HI_SCORE_HIST-1)-score), (int)score);
+                     (int)(state.highscore->getScore (SPLOT_CONFIGURATION_SINGLETON::instance ()->intSkill (),
+                                                      HI_SCORE_HIST-1)-score),
+                     (int)score);
   } // end ELSE
   Splot_OpenGLCommon::drawText (buffer, pulse, scale);
 }

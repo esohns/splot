@@ -29,6 +29,8 @@ include_HEADERS = \
 	background.h \
 	background_metal.h \
 	background_metal_segment.h \
+  background_sea.h \
+  background_sea_segment.h \
 	background_segment.h \
 	common.h \
 	configuration.h \
@@ -67,6 +69,10 @@ splot_SOURCES = \
 	background_metal.h \
 	background_metal_segment.cpp \
 	background_metal_segment.h \
+  background_sea.cpp \
+  background_sea.h \
+  background_sea_segment.cpp \
+  background_sea_segment.h \
 	background_segment.cpp \
 	background_segment.h \
 	common.cpp \

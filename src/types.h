@@ -120,7 +120,7 @@ struct State_t
   float            game_speed;
   float            game_skill;
   unsigned int     game_level;
-  unsigned int     max_level;
+  unsigned int     maximum_level;
   float            speed_adj;
 
   int              CDROM_count;
@@ -159,7 +159,7 @@ struct State_t
   //float            randomS[256];
   //int              random_index;
 
-  FILE*            event_file;
+  //FILE*            event_file;
 
   int              tip_ship_past;
   int              tip_super_shield;

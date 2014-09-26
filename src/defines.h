@@ -25,9 +25,10 @@
 #define SPLOT_HOME_ENV_SYMBOL               "HOME"
 #endif
 
-#define SPLOT_HIGHSCORE_HEADER_LINE         "# splot high scores file: skill rank score date time(UTC) name (do not remove this comment line)"
-#define SPLOT_HIGHSCORE_DEFAULT_NAME        "nobody"
-#define SPLOT_HIGHSCORE_ENV_SYMBOL          "SPLOT_SCORE"
+#define SPLOT_HIGHSCORE_HEADER_LINE          "# splot high scores file: skill rank score date time(UTC) name (do not remove this comment line)"
+#define SPLOT_HIGHSCORE_MAXIMUM_LEVEL_PREFIX "maximum level attained: "
+#define SPLOT_HIGHSCORE_DEFAULT_NAME         "nobody"
+#define SPLOT_HIGHSCORE_ENV_SYMBOL           "SPLOT_SCORE"
 
 #define CONFIGURATION_DEFAULT_SCREEN_WIDTH     1024
 #define CONFIGURATION_DEFAULT_SCREEN_HEIGHT    786
@@ -84,7 +85,7 @@
 #define OPTIONS_LONG_OPTION_VERSION          "version"
 #define OPTIONS_LONG_OPTION_WINDOWED         "window"
 
-#define MAX_LEVEL                            10
+#define MAX_LEVEL                            4
 
 #define MAX_PLAYER_NAME_LENGTH               100
 
@@ -95,7 +96,7 @@
 #define SKILL_BASE_MAX                       0.9F
 #define SKILL_LEVEL_INCREMENT                0.05F
 #define SKILL_MAX                            1.9F
-#define SKILL_LEVEL_MAX_INT                  MAX_LEVEL
+#define SKILL_LEVEL_MAX_INT                  10
 
 #define STATE_DEFAULT_FPS                    50.0
 
@@ -158,11 +159,19 @@
 #ifdef _APPLE_
 #define CONFIG_EXT                           ".cfg"
 #define CONFIG_FILE                          PACKAGE".cfg"
+#define CONFIG_LOG_FILE                      PACKAGE"-log.txt"
 #define CONFIG_SCORE_FILE                    PACKAGE"-score.cfg"
 #define CONFIG_MUSIC_FILE                    PACKAGE"-music.cfg"
+#elif defined (_MSC_VER)
+#define CONFIG_EXT
+#define CONFIG_FILE                          PACKAGE"-configuration"
+#define CONFIG_LOG_FILE                      PACKAGE"-log"
+#define CONFIG_SCORE_FILE                    PACKAGE"-score"
+#define CONFIG_MUSIC_FILE                    PACKAGE"-music"
 #else
 #define CONFIG_EXT
 #define CONFIG_FILE                          "."PACKAGE
+#define CONFIG_LOG_FILE                      "."PACKAGE"-log"
 #define CONFIG_SCORE_FILE                    "."PACKAGE"-score"
 #define CONFIG_MUSIC_FILE                    "."PACKAGE"-music"
 #endif // _APPLE_
@@ -172,7 +181,7 @@
 #define NUM_EXPLO                            2
 #define NUM_EXPLO_POP                        6
 #define MAX_MUSIC                            32
-#define MAX_MIXING_CHANNELS                  20
+#define MAX_MIXING_CHANNELS                  32
 
 #define AUDIO_FREQUENCY                      22050
 #define AUDIO_SDL_FORMAT                     AUDIO_S16

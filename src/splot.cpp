@@ -156,8 +156,11 @@ ACE_TMAIN (int argc_in,
   } // end IF
 
   // step2: initialize logging and/or tracing
-  std::string log_file;
-  if (!initLogging (ACE::basename(argv_in[0]),                                // program name
+  std::string home_directory = getHomeDirectory ();
+  std::string log_file = home_directory;
+  log_file += ACE_DIRECTORY_SEPARATOR_STR;
+  log_file += ACE_TEXT_ALWAYS_CHAR (CONFIG_LOG_FILE);
+  if (!initLogging (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])),        // program name
                     log_file,                                                 // logfile
                     false,                                                    // log to syslog ?
                     false,                                                    // trace messages ?

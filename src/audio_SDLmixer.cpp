@@ -107,7 +107,7 @@ Splot_AudioSDLMixer::init ()
   {
 #if defined (_MSC_VER)
     ACE_DEBUG ((LM_INFO,
-                ACE_TEXT ("*** audio capabilities (driver: \"%s\") ***\nfrequency:\t%d\nformat:\t\t%s\nchannels:\t%s\nCD:\t\t%s\n"),
+                ACE_TEXT ("*** audio capabilities (driver: \"%s\") ***\nfrequency:\t%d\nformat:\t\t\t%s\nchannels:\t\t%s\nCD:\t\t\t\t\t%s\n"),
                 ACE_TEXT (driver),
                 frequency,
                 ACE_TEXT (format_string.c_str ()),

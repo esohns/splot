@@ -50,7 +50,7 @@ Splot_MainSDL::process (SDL_Event* event_in)
   bool iconified_restored, mouse_focus, input_focus, gained = false;
   switch (event_in->type) 
   {
-#if SDL_VERSION_ATLEAST (2,0,0)
+#if SDL_VERSION_ATLEAST (2, 0, 0)
     case SDL_WINDOWEVENT:
       switch (event->window.event) {
         case SDL_WINDOWEVENT_RESTORED: iconified_restored = true; gained = true; break;
@@ -340,6 +340,8 @@ void
 Splot_MainSDL::keyDown (SDL_Event* event_in)
 {
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
+  const Configuration_t& configuration =
+    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
   switch (event_in->key.keysym.sym)
   {
     case SDLK_g:
@@ -348,6 +350,55 @@ Splot_MainSDL::keyDown (SDL_Event* event_in)
     case SDLK_q:
       state.game_quit = true;
       break;
+    case SDLK_MINUS:
+    case SDLK_PLUS:
+      if (event_in->key.keysym.mod & KMOD_LCTRL ||
+          event_in->key.keysym.mod & KMOD_RCTRL)
+      {
+        int modifier = ((event_in->key.keysym.sym == SDLK_MINUS) ? -1 : 1);
+        SPLOT_CONFIGURATION_SINGLETON::instance ()->setScreenSize (SPLOT_CONFIGURATION_SINGLETON::instance ()->approxScreenSize ()+modifier);
+        SPLOT_STATE_SINGLETON::instance() ->deleteTextures ();
+        if (!state.toolkit->setVideoMode ())
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to Splot_Main::setVideoMode(), continuing\n")));
+
+          SPLOT_CONFIGURATION_SINGLETON::instance ()->setScreenSize (SPLOT_CONFIGURATION_SINGLETON::instance ()->approxScreenSize ()-modifier);
+        } // end IF
+        SPLOT_STATE_SINGLETON::instance ()->loadTextures ();
+        break;
+      } // end IF
+      else if (event_in->key.keysym.mod & KMOD_LSHIFT ||
+               event_in->key.keysym.mod & KMOD_RSHIFT)
+      {
+        int modifier = ((event_in->key.keysym.sym == SDLK_MINUS) ? -1 : 1);
+        SPLOT_CONFIGURATION_SINGLETON::instance ()->setGfxLevel (configuration.graphics_level+modifier);
+        break;
+      } // end IF
+      goto default_case;
+    case SDLK_RETURN:
+    case SDLK_KP_ENTER:
+      if (event_in->key.keysym.mod & KMOD_LALT ||
+          event_in->key.keysym.mod & KMOD_RALT)
+      {
+        SPLOT_CONFIGURATION_SINGLETON::instance ()->setFullScreen (!configuration.full_screen);
+        SPLOT_STATE_SINGLETON::instance ()->deleteTextures ();
+        if (!state.toolkit->setVideoMode ())
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to Splot_Main::setVideoMode(), continuing\n")));
+
+          SPLOT_CONFIGURATION_SINGLETON::instance ()->setFullScreen (!configuration.full_screen);
+        } // end IF
+        SPLOT_STATE_SINGLETON::instance ()->loadTextures ();
+//        SPLOT_CONFIGURATION_SINGLETON::instance ()->setFullScreen (!configuration.full_screen);
+//        SPLOT_STATE_SINGLETON::instance ()->deleteTextures ();
+//        if (!state.toolkit->setFullScreen (configuration.full_screen))
+//          SPLOT_CONFIGURATION_SINGLETON::instance ()->setFullScreen (!configuration.full_screen);
+//        SPLOT_STATE_SINGLETON::instance ()->loadTextures ();
+        break;
+      } // end IF
+      goto default_case;
     case SDLK_ESCAPE:
       if (state.game_mode == GAMEMODE_MENU)
         state.game_quit = true;
@@ -360,6 +411,7 @@ Splot_MainSDL::keyDown (SDL_Event* event_in)
       } // end ELSE
       break;
     default:
+default_case:
       switch (state.game_mode)
       {
         case GAMEMODE_GAME:
@@ -608,14 +660,14 @@ Splot_MainSDL::mouseMotion (SDL_Event* event_in)
   if (xDiff || yDiff)
   {
     state.player->moveEvent (xDiff, yDiff);
-//#if SDL_VERSION_ATLEAST (2,0,0)
-//    SDL_WarpMouseInWindow (window_,
-//                           mid_[0],
-//                           mid_[1]);
-//#else
-//    SDL_WarpMouse (mid_[0],
-//                   mid_[1]);
-//#endif
+#if SDL_VERSION_ATLEAST (2, 0, 0)
+    SDL_WarpMouseInWindow (window_,
+                           mid_[0],
+                           mid_[1]);
+#else
+    SDL_WarpMouse (mid_[0],
+                   mid_[1]);
+#endif
   } // end IF
 
   last_[0] = event_in->motion.x;
@@ -693,7 +745,7 @@ Splot_MainSDL::mouseButtonUp (SDL_Event* event_in)
     default:
       switch (event_in->button.button)
       {
-        case  SDL_BUTTON_LEFT:
+        case SDL_BUTTON_LEFT:
       //				game->hero->fireGun(--fire);
       //				game->hero->fireGun(SDL_GetMouseState(NULL, NULL)&SDL_BUTTON(1));
           state.player->fireGun (false);
@@ -706,11 +758,14 @@ Splot_MainSDL::mouseButtonUp (SDL_Event* event_in)
 }
 
 void
-Splot_MainSDL::grabMouse (bool status_in, bool warpmouse_in)
+Splot_MainSDL::grabMouse (bool status_in,
+                          bool warpmouse_in)
 {
   mouseToggle_ = status_in;
-//  int status_before = SDL_ShowCursor ((int)!status_in); // toggle ?
-//  ACE_UNUSED_ARG (status_before);
+
+  // show/hide mouse cursor
+  int status_before = SDL_ShowCursor ((int)!status_in); // toggle ?
+  ACE_UNUSED_ARG (status_before);
 
   if (!warpmouse_in)
     return;
@@ -724,7 +779,7 @@ Splot_MainSDL::grabMouse (bool status_in, bool warpmouse_in)
   //int x, y;
   //Uint8 button_state = SDL_GetMouseState (&x, &y);
   //ACE_UNUSED_ARG (button_state);
-#if SDL_VERSION_ATLEAST (2,0,0)
+#if SDL_VERSION_ATLEAST (2, 0, 0)
   SDL_WarpMouseInWindow (window_,
                          mid_[0],
                          mid_[1]);

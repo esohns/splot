@@ -15,7 +15,7 @@ class Splot_BackgroundSeaSegment
                               Splot_Background*); // parent
   virtual ~Splot_BackgroundSeaSegment ();
 
-	virtual void	drawGL ();
+  virtual void drawGL ();
 
  private:
   typedef Splot_BackgroundSegment inherited;

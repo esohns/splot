@@ -378,18 +378,10 @@ Splot_Configuration::getFileName ()
   char configuration_filename[PATH_MAX];
   ACE_OS::memset (&configuration_filename, 0, sizeof (configuration_filename));
 
-  char home_directory[PATH_MAX];
-  ACE_OS::memset (&home_directory, 0, sizeof (home_directory));
-  const char* home_directory_p =
-    ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (SPLOT_HOME_ENV_SYMBOL));
-  if (!home_directory_p)
-    ACE_OS::getcwd (home_directory, sizeof (home_directory));
-  else
-    ACE_OS::strcpy (home_directory, home_directory_p);
-
+  std::string home_directory = getHomeDirectory ();
   ACE_OS::sprintf (configuration_filename,
                    ACE_TEXT_ALWAYS_CHAR ("%s%s%s"),
-                   home_directory, ACE_DIRECTORY_SEPARATOR_STR, CONFIG_FILE);
+                   home_directory.c_str (), ACE_DIRECTORY_SEPARATOR_STR, CONFIG_FILE);
   alterPathForPlatform (configuration_filename);
 
   return configuration_filename;

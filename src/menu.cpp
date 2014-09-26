@@ -823,20 +823,20 @@ Splot_Menu::incItem ()
       activateItem ();
       break;
     case MENU_SKILL_LEVEL:
-      SPLOT_CONFIGURATION_SINGLETON::instance ()->setSkillBase (configuration.skill_base + 0.1F);
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setSkillBase (configuration.skill_base+0.1F);
       if (configuration.debug)
         state.highscore->print (SPLOT_CONFIGURATION_SINGLETON::instance ()->intSkill ());
       SPLOT_STATE_SINGLETON::instance ()->newGame ();
       break;
     case MENU_GAME_LEVEL:
       state.game_level++;
-      if (state.game_level > state.max_level)
+      if (state.game_level > state.maximum_level)
       {
         msgHelpOverride_ = true;
         msgAlpha_ = 1.1F;
         ACE_OS::sprintf (msgText_, ACE_TEXT_ALWAYS_CHAR ("---- you must complete level %d before you can select level %d ----"),
-                         state.max_level, state.game_level);
-        state.game_level = state.max_level;
+                         state.maximum_level, state.game_level);
+        state.game_level = state.maximum_level;
       } // end IF
       else
         SPLOT_STATE_SINGLETON::instance ()->newGame ();
@@ -845,14 +845,14 @@ Splot_Menu::incItem ()
       SPLOT_CONFIGURATION_SINGLETON::instance ()->setGfxLevel (configuration.graphics_level+1);
       break;
     case MENU_SCREENSIZE:
-      SPLOT_CONFIGURATION_SINGLETON::instance ()->setScreenSize (SPLOT_CONFIGURATION_SINGLETON::instance ()->approxScreenSize () + 1);
+      SPLOT_CONFIGURATION_SINGLETON::instance ()->setScreenSize (SPLOT_CONFIGURATION_SINGLETON::instance ()->approxScreenSize ()+1);
       SPLOT_STATE_SINGLETON::instance() ->deleteTextures ();
       if (!state.toolkit->setVideoMode ())
       {
         msgHelpOverride_ = true;
         msgAlpha_ = 1.1F;
         ACE_OS::sprintf (msgText_, ACE_TEXT_ALWAYS_CHAR ("---- error setting screen size ----"));
-        SPLOT_CONFIGURATION_SINGLETON::instance ()->setScreenSize (SPLOT_CONFIGURATION_SINGLETON::instance ()->approxScreenSize () - 1);
+        SPLOT_CONFIGURATION_SINGLETON::instance ()->setScreenSize (SPLOT_CONFIGURATION_SINGLETON::instance ()->approxScreenSize ()-1);
       } // end IF
       SPLOT_STATE_SINGLETON::instance ()->loadTextures ();
       break;
@@ -909,7 +909,7 @@ Splot_Menu::decItem ()
       SPLOT_STATE_SINGLETON::instance ()->newGame ();
       break;
     case MENU_GAME_LEVEL:
-      state.game_level -= 1;
+      state.game_level--;
       if (state.game_level < 1)
         state.game_level = 1;
       SPLOT_STATE_SINGLETON::instance ()->newGame ();

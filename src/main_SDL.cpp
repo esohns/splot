@@ -10,7 +10,9 @@
 #include "SDL_image.h"
 #endif
 
-#if defined(HAVE_APPLE_OPENGL_FRAMEWORK) || (defined(HAVE_OPENGL_GL_H) && defined(HAVE_OPENGL_GLU_H))
+#ifdef USE_SDL
+#include "SDL_opengl.h"
+#elif defined (HAVE_APPLE_OPENGL_FRAMEWORK) || defined (HAVE_OPENGL_GL_H)
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #else
@@ -30,7 +32,7 @@ Splot_MainSDL::Splot_MainSDL (int argc_in,
                               ACE_TCHAR** argv_in)
  : inherited (argc_in, argv_in)
 #if SDL_VERSION_ATLEAST (2, 0, 0)
- , window_(NULL)
+ , window_ (NULL)
  //, context_ ()
 #endif // SDL_VERSION_ATLEAST (2, 0, 0)
 #ifdef WITH_SDL_JOYSTICK
@@ -310,7 +312,7 @@ Splot_MainSDL::run ()
   //-- Destroy our GL context, etc.
   if (configuration.debug)
     ACE_DEBUG ((LM_INFO,
-                ACE_TEXT ("left event dispatching loop...")));
+                ACE_TEXT ("left event dispatching loop...\n")));
 
   return true;
 }
@@ -354,12 +356,44 @@ Splot_MainSDL::checkErrors ()
 }
 
 bool
+Splot_MainSDL::setFullScreen (bool status_in)
+{
+  SDL_Surface* screen = SDL_GetVideoSurface ();
+  if (!screen)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to SDL_GetVideoSurface(): \"%s\", aborting\n"),
+                ACE_TEXT (SDL_GetError ())));
+
+    return false;
+  } // end IF
+  screen->flags = (status_in ? screen->flags | SDL_FULLSCREEN
+                             : screen->flags ^ SDL_FULLSCREEN);
+
+  const Configuration_t& configuration =
+    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
+  screen =
+    SDL_SetVideoMode (configuration.screen_width, configuration.screen_height,
+                      screen->format->BitsPerPixel,
+                      screen->flags);
+
+  if (!screen)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to SDL_SetVideoMode(%d,%d): \"%s\", aborting\n"),
+                configuration.screen_width, configuration.screen_height,
+                ACE_TEXT (SDL_GetError ())));
+
+    return false;
+  } // end IF
+
+  return true;
+}
+
+bool
 Splot_MainSDL::setVideoMode ()
 {
   Uint32 video_flags = 0;
-#if !(SDL_VERSION_ATLEAST (2, 0, 0))
-  SDL_Surface* OpenGL_surface = NULL;
-#endif // !(SDL_VERSION_ATLEAST (2, 0, 0))
 
   //-- Set the flags we want to use for setting the video mode
 #if SDL_VERSION_ATLEAST (2, 0, 0)
@@ -422,13 +456,26 @@ Splot_MainSDL::setVideoMode ()
                 ACE_TEXT ("failed to SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1): \"%s\", continuing\n"),
                 ACE_TEXT (SDL_GetError ())));
 
+  if (!SDL_VideoModeOK (configuration.screen_width, configuration.screen_height,
+                        bpp,
+                        video_flags))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("video mode (%d,%d,%d,%d) not available, aborting\n"),
+                configuration.screen_width, configuration.screen_height,
+                bpp,
+                video_flags));
+
+    return false;
+  } // end IF
+
 #if SDL_VERSION_ATLEAST (2, 0, 0)
   window_ = SDL_CreateWindow (ACE_TEXT_ALWAYS_CHAR (SPLOT_WINDOW_TITLE),
                               SDL_WINDOWPOS_CENTERED,
                               SDL_WINDOWPOS_CENTERED,
                               configuration.screen_width, configuration.screen_height,
                               video_flags);
-  if (!window)
+  if (!window_)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to SDL_CreateWindow(%d, %d): \"%s\", aborting\n"),
@@ -438,8 +485,8 @@ Splot_MainSDL::setVideoMode ()
     return false;
   } // end IF
 
-  context = SDL_GL_CreateContext (window);
-  if (!context)
+  context_ = SDL_GL_CreateContext (window);
+  if (!context_)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to SDL_GL_CreateContext(): \"%s\", aborting\n"),
@@ -448,11 +495,14 @@ Splot_MainSDL::setVideoMode ()
     return false;
   } // end IF
 #else
-  OpenGL_surface =
+  SDL_Surface* screen_window = SDL_GetVideoSurface ();
+  if (screen_window)
+    SDL_FreeSurface (screen_window);
+  screen_window =
     SDL_SetVideoMode (configuration.screen_width, configuration.screen_height,
                       bpp,
                       video_flags);
-  if (!OpenGL_surface)
+  if (!screen_window)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to SDL_SetVideoMode(%d,%d): \"%s\", aborting\n"),
@@ -470,11 +520,12 @@ Splot_MainSDL::setVideoMode ()
   SDL_GL_GetAttribute (SDL_GL_GREEN_SIZE, &gs);
   SDL_GL_GetAttribute (SDL_GL_BLUE_SIZE,  &bs);
   SDL_GL_GetAttribute (SDL_GL_DEPTH_SIZE, &ds);
-#if !(SDL_VERSION_ATLEAST (2, 0, 0))
+#if SDL_VERSION_ATLEAST (2, 0, 0)
+#else
   if (configuration.debug)
     ACE_DEBUG ((LM_INFO,
                 ACE_TEXT ("(bpp=%d RGB=%d%d%d depth=%d)\n"),
-                OpenGL_surface->format->BitsPerPixel,
+                screen_window->format->BitsPerPixel,
                 rs, gs, bs,
                 ds));
 #endif // SDL_VERSION_ATLEAST (2, 0, 0)
