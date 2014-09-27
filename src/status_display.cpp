@@ -8,26 +8,11 @@
 //
 //#include "gettext.h"
 //
-//#include "Splot_StatusDisplay.h"
-//
-//#include <cstdio>
-//#include <cstdlib>
-//#include <cstring>
-//#include <cmath>
-//
 #include <string>
 
 #include "ace/OS.h"
 #include "ace/Log_Msg.h"
 
-//#include "compatibility.h"
-//
-//#if defined(HAVE_APPLE_OPENGL_FRAMEWORK) || defined(HAVE_OPENGL_GL_H)
-//#include <OpenGL/gl.h>
-//#else
-//#include <GL/gl.h>
-//#endif
-//
 #include "defines.h"
 #include "common.h"
 #include "configuration.h"
@@ -37,6 +22,7 @@
 #include "text.h"
 #include "player_aircraft.h"
 
+// init statics
 float Splot_StatusDisplay::statPosAmmo[3] = {-10.5, 8.00, 25.0};
 float Splot_StatusDisplay::statPosShld[3] = {-10.4F, -7.80F, 25.0F};
 float Splot_StatusDisplay::statClrWarn[4] = {1.1F, 0.6F, 0.1F, 1.1F};
@@ -203,8 +189,34 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
     shields = PLAYER_DEFAULT_SHIELDS;
   } // end IF
 
-  //-- draw score
+  //-- draw frame #
   static char buffer[BUFSIZ];
+  const Configuration_t configuration =
+    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
+  if (configuration.debug)
+  {
+    glPushMatrix ();
+    glTranslatef (-9.0, 8.0, 25.0);
+    glScalef (0.018F, 0.015F, 1.0);
+    ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("%d"),
+                     state.game_frame);
+    state.text->Render (buffer);
+    glPopMatrix ();
+  } // end IF
+
+  //-- draw fps
+  if (configuration.show_FPS)
+  {
+    glPushMatrix ();
+    glTranslatef (8.0, 8.0, 25.0);
+    glScalef (0.018F, 0.015F, 1.0);
+    ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("%3.1f"),
+                     state.FPS);
+    state.text->Render (buffer);
+    glPopMatrix ();
+  } // end IF
+
+  //-- draw score
   glColor4f (1.0, 1.0, 1.0, 0.4F);
   glPushMatrix ();
   ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("%07d"),
@@ -214,29 +226,15 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
   state.text->Render (buffer);
   glPopMatrix ();
 
-  //-- draw fps
-  const Configuration_t configuration =
-    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
-  if (configuration.show_FPS)
-  {
-    glPushMatrix ();
-    glTranslatef (7.75, 8.0, 25.0);
-    glScalef (0.018F, 0.015F, 1.0);
-    ACE_OS::sprintf (buffer, ACE_TEXT_ALWAYS_CHAR ("%3.1f"),
-                     state.FPS);
-    state.text->Render (buffer);
-    glPopMatrix ();
-  } // end IF
-
   //-- draw remaining player ships
   glPushMatrix ();
   glColor4f (0.6F, 0.6F, 0.7F, 1.0);
   glBindTexture (GL_TEXTURE_2D, state.player->texAircraft_);
   glTranslatef (10.2F, 7.4F, 25.0F);
-  float size[2] = {
-    state.player->getSize (0)*0.5F,
-    state.player->getSize (1)*0.5F
-  };
+  float size[2];
+  state.player->getSize (size);
+  size[0] *= 0.5F;
+  size[1] *= 0.5F;
   for (int i = 0; i < game_state.ships; i++)
   {
     drawQuad (size[0], size[1]);
@@ -283,18 +281,17 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
     enemyWarn_ = 0.0;
   } // end IF
 
-  //-- draw AMMO
+  //-- draw ammunition
   glPushMatrix ();
+
   glTranslatef (Splot_StatusDisplay::statPosAmmo[0],
                 Splot_StatusDisplay::statPosAmmo[1],
                 Splot_StatusDisplay::statPosAmmo[2]);
-
-  //--draw ammo reserves
+  //--draw ammunition reserves
+  float x, y, y3;
+  bool statClrWarnAmmo = false;
   glBindTexture (GL_TEXTURE_2D, texStat_);
   glBegin (GL_QUADS);
-  float x = 0.0, y, y3;
-  bool  statClrWarnAmmo = false;
-  float w = 0.1F;
   for (int i = 0; i < NUM_PLAYER_AMMUNITION_TYPES; i++)
   {
     glColor4fv (Splot_StatusDisplay::statClrAmmo[i]);
@@ -311,10 +308,10 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
         glColor4fv (Splot_StatusDisplay::statClrWarn);
       } // end ELSE
 
-      glTexCoord2f (1.0, 0.0); glVertex3f (x+w, -y3, 0.0);
-      glTexCoord2f (1.0,   y); glVertex3f (x+w, 0.0, 0.0);
-      glTexCoord2f (0.0,   y); glVertex3f (x-w, 0.0, 0.0);
-      glTexCoord2f (0.0, 0.0); glVertex3f (x-w, -y3, 0.0);
+      glTexCoord2f (1.0, 0.0); glVertex3f (x+0.1F, -y3, 0.0);
+      glTexCoord2f (1.0,   y); glVertex3f (x+0.1F, 0.0, 0.0);
+      glTexCoord2f (0.0,   y); glVertex3f (x-0.1F, 0.0, 0.0);
+      glTexCoord2f (0.0, 0.0); glVertex3f (x-0.1F, -y3, 0.0);
     } // end IF
   } // end FOR
   glEnd ();
@@ -333,7 +330,7 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
   glTexCoord2f (0.0, 0.0); glVertex3f (-0.75F,  0.47F, 0.0);
   glTexCoord2f (0.0, 1.0); glVertex3f (-0.75F, -2.85F, 0.0);
   glEnd ();
-  x += w*1.5F;
+  x += 0.1F*1.5F;
 
   glPopMatrix ();
 
@@ -403,8 +400,10 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
   float c[4] = {1.0, 1.0, 0.7F, c3};
   if (superShields)
   {
+    float size[2];
+    player_in->getSize (size);
     glPushMatrix ();
-    sz = player_in->getSize (1)*1.3F;
+    sz = size[1]*1.3F;
     glColor4f (1.0, 1.0, 1.0, 1.0F-sls*sls);
     glBindTexture (GL_TEXTURE_2D, texPlayerSuper_);
     glTranslatef (player_in->position_[0],
@@ -795,7 +794,7 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
     glTranslatef (-16.0F, 13.0F, 0.0);
     glScalef (0.035F, 0.035F, 1.0);
     glColor4f (1.0, 1.0, 1.0, tipShipShow_/300.0F);
-    state.text->Render (ACE_TEXT_ALWAYS_CHAR ("do not let -any- ships past you! each one costs you a life!"));
+    state.text->Render (ACE_TEXT_ALWAYS_CHAR ("do not let -any- ships past you! each one costs you a life !"));
     glPopMatrix ();
   } // end IF
   if (tipSuperShow_ > 0)
@@ -805,7 +804,7 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
     glTranslatef (-16.0F, 13.0F, 0.0);
     glScalef (0.035F, 0.035F, 1.0);
     glColor4f (1.0, 1.0, 1.0, tipSuperShow_/300.0F);
-    state.text->Render (ACE_TEXT_ALWAYS_CHAR ("let super shields pass by for an extra life!"));
+    state.text->Render (ACE_TEXT_ALWAYS_CHAR ("let super shields pass by for an extra life !"));
     glPopMatrix ();
   } // end IF
 }

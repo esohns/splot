@@ -5,6 +5,8 @@
 #include "splot-config.h"
 #endif
 
+#include <algorithm>
+
 #ifdef USE_SDL
 #include "SDL_opengl.h"
 #elif defined (HAVE_APPLE_OPENGL_FRAMEWORK) || defined (HAVE_OPENGL_GL_H)
@@ -59,7 +61,7 @@ class Splot_PlayerAircraft
 
   inline bool isVisible() { return !dontShow_; }
 
-  inline float getSize (int i) { return size_[i]; }
+  inline void getSize (float (&size_out)[2]) { std::copy (size_, size_+(sizeof (size_)/sizeof (size_[0])), size_out); }
 
   GLuint texAircraft_;
   GLuint texBomb_;
@@ -89,13 +91,13 @@ class Splot_PlayerAircraft
   float move_[2];
   float secondaryMove_[2];
 
-  inline void drawQuad (float szx, float szy)
+  inline void drawQuad (float szx_in, float szy_in)
   {
     glBegin (GL_TRIANGLE_STRIP);
-    glTexCoord2f (1.0, 0.0); glVertex3f ( szx,  szy, 0.0);
-    glTexCoord2f (0.0, 0.0); glVertex3f (-szx,  szy, 0.0);
-    glTexCoord2f (1.0, 1.0); glVertex3f ( szx, -szy, 0.0);
-    glTexCoord2f (0.0, 1.0); glVertex3f (-szx, -szy, 0.0);
+    glTexCoord2f (1.0, 0.0); glVertex3f ( szx_in,  szy_in, 0.0);
+    glTexCoord2f (0.0, 0.0); glVertex3f (-szx_in,  szy_in, 0.0);
+    glTexCoord2f (1.0, 1.0); glVertex3f ( szx_in, -szy_in, 0.0);
+    glTexCoord2f (0.0, 1.0); glVertex3f (-szx_in, -szy_in, 0.0);
     glEnd ();
   }
 

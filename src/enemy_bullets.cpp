@@ -194,7 +194,9 @@ Splot_EnemyBullets::checkForHits (Splot_PlayerAircraft* aircraft_in)
   if (!aircraft_in->isVisible ())
     return; // nothing to do
 
-  float min_dist = (aircraft_in->getSize (0)+aircraft_in->getSize (1))*0.5F;
+  float size[2];
+  aircraft_in->getSize (size);
+  float min_dist = (size[0]+size[1])*0.5F;
   float dist;
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
   Explosion_t* explosion;

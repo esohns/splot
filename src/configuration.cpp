@@ -29,7 +29,7 @@ Splot_Configuration::Splot_Configuration ()
 
   configuration_.full_screen = CONFIGURATION_DEFAULT_FULLSCREEN;
   configuration_.blend_enabled = CONFIGURATION_DEFAULT_BLEND_ENABLED;
-  configuration_.graphics_level = 2;
+  configuration_.graphics_level = CONFIGURATION_DEFAULT_GRAPHICS_LEVEL;
   configuration_.true_color = CONFIGURATION_DEFAULT_TRUE_COLOR;
   configuration_.texture_border = CONFIGURATION_DEFAULT_TEXTURE_BORDER;
   configuration_.show_FPS = CONFIGURATION_DEFAULT_SHOW_FPS;
@@ -152,6 +152,16 @@ Splot_Configuration::init (int argc_in,
 
     return false;
   } // end IF
+  if (argument_parser.long_option (ACE_TEXT (OPTIONS_LONG_OPTION_SHOWFPS),
+                                   's',
+                                   ACE_Get_Opt::NO_ARG) == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Get_Opt::long_option (\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (OPTIONS_LONG_OPTION_SHOWFPS)));
+
+    return false;
+  } // end IF
   if (argument_parser.long_option (ACE_TEXT (OPTIONS_LONG_OPTION_NOTEXTUREBORDER),
                                    't',
                                    ACE_Get_Opt::NO_ARG) == -1)
@@ -241,6 +251,9 @@ Splot_Configuration::init (int argc_in,
       case 'M':
         configuration_.use_MIDI_music = true;
         break;
+      case 's':
+        configuration_.show_FPS = true;
+        break;
       case 't':
         configuration_.texture_border = false;
         break;
@@ -283,6 +296,8 @@ Splot_Configuration::init (int argc_in,
             configuration_.use_CD_audio = true;
           else if (long_option == ACE_TEXT_ALWAYS_CHAR (OPTIONS_LONG_OPTION_MIDIMUSIC))
             configuration_.use_MIDI_music = true;
+          else if (long_option == ACE_TEXT_ALWAYS_CHAR (OPTIONS_LONG_OPTION_SHOWFPS))
+            configuration_.show_FPS = true;
           else if (long_option == ACE_TEXT_ALWAYS_CHAR (OPTIONS_LONG_OPTION_DEBUG))
             configuration_.debug = true;
           else if (long_option == ACE_TEXT_ALWAYS_CHAR (OPTIONS_LONG_OPTION_NOTEXTUREBORDER))
@@ -327,8 +342,9 @@ usage:
                     ACE_TEXT ("\t[-d/--%s] debug (defaults to false)\n")
                     ACE_TEXT ("\t[-f/--%s] run in full-screen mode (defaults to true)\n")
                     ACE_TEXT ("\t[-i/--%s] configuration file\n")
-                    ACE_TEXT ("\t[-m/--%s <mode>]\n\t\tmode\t0 =  512 x  384\n\t\t\t1 =  640 x  480\n\t\t\2 =  800 x  600\n\t\t\t3 = 1024 x  768\n\t\t\t4 = 1280 x  960\n")
+                    ACE_TEXT ("\t[-m/--%s <mode>]\n\t\tmode\t0 = 320 x  200\n\t\t\t1 =  512 x  384\n\t\t\t2 =  640 x  400\n\t\t\t3 =  640 x  480\n\t\t\t4 =  800 x  600\n\t\t\t5 = 1024 x  768\n\t\t\t6 = 1280 x  800\n\t\t\t7 = 1280 x  960\n\t\t\t8 = 1280 x  1024\n")
                     ACE_TEXT ("\t[-M/--%s] MIDI music (defaults to false)\n")
+                    ACE_TEXT ("\t[-s/--%s] show FPS (defaults to false)\n")
                     ACE_TEXT ("\t[-t/--%s] do not set tex border color (OpenGL) (defaults to false)\n")
                     ACE_TEXT ("\t[-v/--%s] show version information (defaults to false)\n")
                     ACE_TEXT ("\t[-w/--%s] run in windowed mode (defaults to true)\n")
@@ -342,6 +358,7 @@ usage:
                     ACE_TEXT (OPTIONS_LONG_OPTION_INIFILE),
                     ACE_TEXT (OPTIONS_LONG_OPTION_VIDEOMODE),
                     ACE_TEXT (OPTIONS_LONG_OPTION_MIDIMUSIC),
+                    ACE_TEXT (OPTIONS_LONG_OPTION_SHOWFPS),
                     ACE_TEXT (OPTIONS_LONG_OPTION_NOTEXTUREBORDER),
                     ACE_TEXT (OPTIONS_LONG_OPTION_VERSION),
                     ACE_TEXT (OPTIONS_LONG_OPTION_WINDOWED)));

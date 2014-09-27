@@ -440,6 +440,7 @@ Splot_HighScore::load (const std::string& filename_in)
   int maximum_level = 1;
   converter >> maximum_level;
   SPLOT_STATE_SINGLETON::instance ()->get ().maximum_level = maximum_level;
+  delete [] byte_stream;
 
   converter.clear ();
   converter << MAX_PLAYER_NAME_LENGTH;

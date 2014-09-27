@@ -31,3 +31,8 @@ ipch
 # Temporary files
 Makefile.in
 *~
+
+# MSVC files
+*.pch
+*.pdb
+*.tlog

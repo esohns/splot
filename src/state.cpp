@@ -212,7 +212,7 @@ Splot_State::newGame ()
   game_state_.score = 0;
   ACE_ASSERT (state_.player);
   state_.player->reset ();
-  state_.player->setShips (STATE_DEFAULT_PLAYER_SHIPS);
+  //state_.player->setShips (STATE_DEFAULT_PLAYER_SHIPS);
 
   state_.game_pause = false;
 

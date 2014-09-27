@@ -488,6 +488,8 @@ void
 Splot_MainSDL::keyDownGame (SDL_Event* event_in)
 {
   State_t& state = SPLOT_STATE_SINGLETON::instance ()->get ();
+  const Configuration_t& configuration =
+    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
   switch (event_in->key.keysym.sym)
   {
     case SDLK_KP_PLUS:
@@ -507,22 +509,30 @@ Splot_MainSDL::keyDownGame (SDL_Event* event_in)
 #if defined (DEBUG_BACKGROUND) && (DEBUG_BACKGROUND == 1)
     case SDLK_b:
     {
-      int background_type = state.background->type_;
-      if (++background_type == MAX_BACKGROUND_TYPES)
-        background_type = 0;
-      delete state.background;
-      state.background = Splot_Background::make ((BackgroundType_t)background_type);
-      if (!state.background)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Splot_Background::make(%d), continuing\n"),
-                    background_type));
+      if (configuration.debug)
+      {
+        int background_type = state.background->type_;
+        if (++background_type == MAX_BACKGROUND_TYPES)
+          background_type = 0;
+        delete state.background;
+        state.background = Splot_Background::make ((BackgroundType_t)background_type);
+        if (!state.background)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to Splot_Background::make(%d), continuing\n"),
+                      background_type));
+      } // end IF
       break;
     }
+#endif
     case SDLK_n:
-      state.background->nextVariation ();
+    {
+#if defined (DEBUG_BACKGROUND) && (DEBUG_BACKGROUND == 1)
+      if (configuration.debug)
+        state.background->nextVariation ();
 #endif
       state.audio->nextMusicIndex ();
       break;
+    }
     case SDLK_KP7:
       key_speed_[0] -= 4.0;
       key_speed_[1] -= 4.0;
