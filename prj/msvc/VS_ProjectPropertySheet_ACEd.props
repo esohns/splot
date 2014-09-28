@@ -9,7 +9,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>D:\projects\ACE_wrappers\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ACE.lib</AdditionalDependencies>
+      <AdditionalDependencies>ACEd.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup />

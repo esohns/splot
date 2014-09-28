@@ -16,11 +16,8 @@
 *.lib
 
 # Executables
-*.exe
 *.out
 *.app
-Debug
-ipch
 *.sdf
 
 # Directories
@@ -33,6 +30,9 @@ Makefile.in
 *~
 
 # MSVC files
+Debug
+Release
+ipch
 *.pch
 *.pdb
 *.tlog

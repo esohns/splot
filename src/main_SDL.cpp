@@ -143,8 +143,10 @@ Splot_MainSDL::Splot_MainSDL (int argc_in,
 
   //-- Set the window manager icon
   std::string path_base = ACE_TEXT_ALWAYS_CHAR (SPLOT_IMAGE_DATA_DIR);
-  path_base += ACE_DIRECTORY_SEPARATOR_STR;
-  std::string filename = dataLoc (path_base+ACE_TEXT_ALWAYS_CHAR (SPLOT_WINDOW_ICON));
+  std::string icon_file = path_base;
+  icon_file += ACE_DIRECTORY_SEPARATOR_STR;
+  icon_file += ACE_TEXT_ALWAYS_CHAR (SPLOT_WINDOW_ICON);
+  std::string filename = dataLoc (icon_file);
   SDL_Surface* window_icon = NULL;
 #ifdef USE_SDL_IMAGE
   window_icon = IMG_Load (filename.c_str ());

@@ -156,10 +156,15 @@ ACE_TMAIN (int argc_in,
   } // end IF
 
   // step2: initialize logging and/or tracing
-  std::string home_directory = getHomeDirectory ();
-  std::string log_file = home_directory;
-  log_file += ACE_DIRECTORY_SEPARATOR_STR;
-  log_file += ACE_TEXT_ALWAYS_CHAR (CONFIG_LOG_FILE);
+  std::string log_file;
+  const Configuration_t& configuration =
+    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
+  if (configuration.debug)
+  {
+    log_file = getHomeDirectory ();
+    log_file += ACE_DIRECTORY_SEPARATOR_STR;
+    log_file += ACE_TEXT_ALWAYS_CHAR (CONFIG_LOG_FILE);
+  } // end IF
   if (!initLogging (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])),        // program name
                     log_file,                                                 // logfile
                     false,                                                    // log to syslog ?
@@ -195,8 +200,6 @@ ACE_TMAIN (int argc_in,
   ACE_OS::setenv ("SDL_VIDEO_X11_DGAMOUSE", "0", false);
 #endif
 
-  const Configuration_t& configuration =
-    SPLOT_CONFIGURATION_SINGLETON::instance ()->get ();
   if (configuration.debug)
     if (ACE_OS::atexit (Splot_EnemyAircraft::printNumAllocated,
                         NULL))

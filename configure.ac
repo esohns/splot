@@ -5,7 +5,10 @@ AC_PREREQ([2.69])
 
 #AC_CONFIG_AUX_DIR([aux_config])
 
-AC_INIT([splot],[0.0.1],[http://github/esohns/splot],[splot])
+# define version information
+AC_SUBST([SPLOT_VERSION], [0.1])
+
+AC_INIT([splot], [SPLOT_VERSION], [http://github/esohns/splot],[splot])
 AM_INIT_AUTOMAKE([foreign])
 
 AC_CONFIG_SRCDIR([src/splot.cpp])

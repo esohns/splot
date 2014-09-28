@@ -10,7 +10,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>D:\projects\freetype-2.5.3\objs\win32\vc2010;D:\projects\ftgl-2.1.3~rc5\msvc\Build;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>freetype253.lib;ftgl.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>freetype253_D.lib;ftgl_D.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup />

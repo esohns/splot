@@ -112,17 +112,17 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="VS_ProjectPropertySheet_ACE.props" />
-    <Import Project="VS_ProjectPropertySheet_SDL.props" />
-    <Import Project="VS_ProjectPropertySheet_FTGL.props" />
+    <Import Project="VS_ProjectPropertySheet_ACEd.props" />
     <Import Project="VS_ProjectPropertySheet_OpenGL.props" />
+    <Import Project="VS_ProjectPropertySheet_SDLd.props" />
+    <Import Project="VS_ProjectPropertySheet_FTGLd.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="VS_ProjectPropertySheet_ACE.props" />
+    <Import Project="VS_ProjectPropertySheet_OpenGL.props" />
     <Import Project="VS_ProjectPropertySheet_SDL.props" />
     <Import Project="VS_ProjectPropertySheet_FTGL.props" />
-    <Import Project="VS_ProjectPropertySheet_OpenGL.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -145,6 +145,11 @@
       <IgnoreSpecificDefaultLibraries>msvcrt.lib</IgnoreSpecificDefaultLibraries>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>"C:\Program Files (x86)\NSIS\makensis.exe" /Drelease=$(Configuration) .\..\..\misc\splot.nsi
+move /Y .\..\..\misc\$(SolutionName)*.exe .\..\..\releases</Command>
+      <Message>generating installer...</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -157,11 +162,16 @@
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <PostBuildEvent>
+      <Command>"C:\Program Files (x86)\NSIS\makensis.exe" /Drelease=$(Configuration) .\..\..\misc\splot.nsi
+move /Y .\..\..\misc\$(SolutionName)*.exe .\..\..\releases</Command>
+      <Message>generating installer...</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

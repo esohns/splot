@@ -7,7 +7,7 @@ $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
     <LocalDebuggerCommandArguments>-d -M</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LocalDebuggerEnvironment>SPLOT_DATA=$(SolutionDir)..\data
+    <LocalDebuggerEnvironment>SPLOT_DATA=$(SolutionDir)..\..\data
 $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommandArguments>-d</LocalDebuggerCommandArguments>

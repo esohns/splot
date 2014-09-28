@@ -7,6 +7,7 @@
 
 #include "ace/OS.h"
 #include "ace/OS_Memory.h"
+#include "ace/ACE.h"
 
 #include "types.h"
 
@@ -42,43 +43,48 @@ std::string
 dataLoc (const std::string& filename_in,
          bool doCheck_in)
 {
-  char buffer[PATH_MAX + 1];
+  std::string return_value;
+
+  char buffer[PATH_MAX];
   ACE_OS::memset (buffer, 0, sizeof (buffer));
 
   const char* data_p =
     ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (SPLOT_DATA_DIR_ENV_SYMBOL));
-  if (data_p &&
-      ((ACE_OS::strlen (data_p)+filename_in.size ()+1) < PATH_MAX))
+  if (data_p)
+    return_value = data_p;
+  else
   {
-    ACE_OS::sprintf (buffer,
-                     ACE_TEXT_ALWAYS_CHAR ("%s%s%s"),
-                     data_p, ACE_DIRECTORY_SEPARATOR_STR, filename_in.c_str ());
+#ifdef PKGDATADIR
+    return_value = ACE_TEXT_ALWAYS_CHAR (PKGDATADIR);
+    return_value += ACE_DIRECTORY_SEPARATOR_STR;
+    return_value += filename_in;
+#else
+    if (!ACE_OS::getcwd (buffer, sizeof (buffer)))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to getcwd(): \"%m\", aborting\n")));
 
-    goto check;
+      return return_value;
+    } // end IF
+    return_value = buffer;
   } // end IF
+  return_value += ACE_DIRECTORY_SEPARATOR_STR;
+  return_value += filename_in;
+#endif
+  if (ACE_OS::strcmp (ACE::basename (filename_in.c_str (), ACE_DIRECTORY_SEPARATOR_CHAR),
+                      filename_in.c_str ()))
+    goto check;
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   const char* home_directory_p =
     ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (SPLOT_HOME_ENV_SYMBOL));
-  if (home_directory_p &&
-      ((ACE_OS::strlen (home_directory_p)+filename_in.size ()+1) < PATH_MAX))
+  if (home_directory_p)
   {
-    ACE_OS::sprintf (buffer,
-                     ACE_TEXT_ALWAYS_CHAR ("%s%s."PACKAGE"-data%s%s"),
-                     home_directory_p, ACE_DIRECTORY_SEPARATOR_STR, ACE_DIRECTORY_SEPARATOR_STR, filename_in.c_str ());
+    return_value = home_directory_p;
+    return_value += ACE_DIRECTORY_SEPARATOR_STR;
+    return_value += filename_in;
 
     goto check;
   } // end IF
-#elif defined (PKGDATADIR)
-  if (((ACE_OS::strlen (PKGDATADIR)+filename_in.size ()) < PATH_MAX))
-  {
-    ACE_OS::sprintf (buffer,
-                     ACE_TEXT_ALWAYS_CHAR ("%s%s%s"),
-                     PKGDATADIR, ACE_DIRECTORY_SEPARATOR_STR, filename_in.c_str ());
-
-    goto check;
-  } // end IF
-#endif
 
 //#ifdef macintosh
 //#define DATADIR "::data"
@@ -94,16 +100,18 @@ dataLoc (const std::string& filename_in,
 //  } // end IF
 
 check:
+  ACE_OS::strcpy (buffer, return_value.c_str ());
   alterPathForPlatform (buffer);
+  return_value = buffer;
 
   if (doCheck_in)
   {
     ACE_stat file_stat;
-    if (ACE_OS::stat (buffer, &file_stat))
-      return NULL;
+    if (ACE_OS::stat (return_value.c_str (), &file_stat))
+      return_value.clear ();
   } // end IF
 
-  return buffer;
+  return return_value;
 }
 
 void
