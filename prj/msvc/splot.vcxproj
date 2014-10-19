@@ -88,6 +88,12 @@
     <ClInclude Include="..\..\src\text_FTGL.h" />
     <ClInclude Include="..\..\src\types.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\misc\splot.6" />
+    <None Include="..\..\misc\splot.desktop" />
+    <None Include="..\..\misc\splot.nsi" />
+    <None Include="..\..\misc\splot.spec" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D98EB260-BDA7-40EA-983F-CF8CF67E7A41}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

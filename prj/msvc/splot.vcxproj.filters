@@ -13,6 +13,10 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Scripts">
+      <UniqueIdentifier>{c92396f7-76f7-4145-aeb0-9722ef6ade5c}</UniqueIdentifier>
+      <Extensions>6;desktop;nsi;spec</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\audio.cpp">
@@ -230,5 +234,19 @@
     <ClInclude Include="..\..\src\background_sea_segment.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\misc\splot.6">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="..\..\misc\splot.desktop">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="..\..\misc\splot.nsi">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="..\..\misc\splot.spec">
+      <Filter>Scripts</Filter>
+    </None>
   </ItemGroup>
 </Project>
