@@ -87,3 +87,5 @@ ipch
 /missing
 /prj/msvc/UpgradeLog.htm
 /splot-config.h.in
+*.suo
+*.user
