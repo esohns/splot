@@ -337,19 +337,19 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
   //--draw Shields
   damageAlpha_ *= 0.94F;
   shieldAlpha_ *= 0.94F;
-  float dc = damageAlpha_*0.5F;
-  float sc = shieldAlpha_*0.5F;
+  float dc = damageAlpha_ * 0.5F;
+  float sc = shieldAlpha_ * 0.5F;
   float sl, sls, dl, dls;
   float szx = 0.5;
   float szy = 6.0;
   static float rot = 0;
-  rot += 2.0F*state.speed_adj;
-  float rot2 = 2.0F*((int)rot%180);
+  rot += 2.0F * state.speed_adj;
+  float rot2 = 2.0F * ((int)rot % 180);
 
-  sl = sls = (shields          /PLAYER_DEFAULT_SHIELDS)-1.0F;
-  dl = dls = (game_state.damage/PLAYER_DEFAULT_DAMAGE) -1.0F;
+  sl = sls = (shields           / PLAYER_DEFAULT_SHIELDS) - 1.0F;
+  dl = dls = (game_state.damage / PLAYER_DEFAULT_DAMAGE)  - 1.0F;
   if (superShields)
-    sls = dls = ((shields+superShields)/PLAYER_DEFAULT_SHIELDS)-1.0F;
+    sls = dls = ((shields + superShields) / PLAYER_DEFAULT_SHIELDS) - 1.0F;
 
   //------ draw Engine
   float c1f, c2f;
@@ -357,9 +357,9 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
   float c2[4] = {1.0F , 0.2F , 0.25F, 0.7F};
   float esz;
   if (player_in->isVisible () &&
-      configuration.graphics_level >= 1)
+      (configuration.graphics_level >= 1))
   {
-    c1f = 1.0F+dl;
+    c1f = 1.0F + dl;
     c2f = -dl;
     //		glColor4f(0.9, 0.7, 1.0, 0.7);
     glColor4f (c1[0]*c1f+c2[0]*c2f,
@@ -369,13 +369,13 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
     glBindTexture (GL_TEXTURE_2D, texPlayerAmmoFlash_[0]);
     glPushMatrix ();
     glTranslatef (player_in->position_[0],
-                  player_in->position_[1]-0.625F,
+                  player_in->position_[1] - 0.625F,
                   player_in->position_[2]);
-    esz = 1.0F+c2f;
-    drawQuad (1.3F, 0.5F*esz);
+    esz = 1.0F + c2f;
+    drawQuad (1.3F, 0.5F * esz);
     glTranslatef (0.0, -0.18F, 0.0);
     glRotatef ((float)IRAND, 0.0, 0.0, 1.0);
-    drawQuad (0.85F*esz, 0.6F*esz);
+    drawQuad (0.85F * esz, 0.6F * esz);
     glPopMatrix ();
   } // end IF
 
@@ -396,7 +396,7 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
   float p[3] = {0.0, 0.0, player_in->position_[2]};
   //float v0;
   float v[3] = {0.0, 0.0, 0.0};
-  float c3 = 1.0F-sls*sls;
+  float c3 = 1.0F - (sls * sls);
   float c[4] = {1.0, 1.0, 0.7F, c3};
   if (superShields)
   {
@@ -404,7 +404,7 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
     player_in->getSize (size);
     glPushMatrix ();
     sz = size[1]*1.3F;
-    glColor4f (1.0, 1.0, 1.0, 1.0F-sls*sls);
+    glColor4f (1.0, 1.0, 1.0, 1.0F - (sls * sls));
     glBindTexture (GL_TEXTURE_2D, texPlayerSuper_);
     glTranslatef (player_in->position_[0],
                   player_in->position_[1],
@@ -421,20 +421,20 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
       switch (state.game_frame%2)
       {
         case 0:
-          v[1] = -0.3F+FRAND*0.05F;
+          v[1] = -0.3F + (FRAND * 0.05F);
           p[0] = player_in->position_[0];
-          p[1] = player_in->position_[1]-0.8F;
-          state.explosions->addEffect (EXPLOSION_EFFECT_GLITTER, p, v, c, 0, 0.4F+0.4F*FRAND);
-          v[1] = -0.25F+FRAND*0.05F;
-          p[0] = player_in->position_[0]+0.95F;
-          p[1] = player_in->position_[1]+0.1F;
-          state.explosions->addEffect (EXPLOSION_EFFECT_GLITTER, p, v, c, 0, 0.4F+0.4F*FRAND);
+          p[1] = player_in->position_[1] - 0.8F;
+          state.explosions->addEffect (EXPLOSION_EFFECT_GLITTER, p, v, c, 0, 0.4F + (0.4F * FRAND));
+          v[1] = -0.25F + (FRAND * 0.05F);
+          p[0] = player_in->position_[0] + 0.95F;
+          p[1] = player_in->position_[1] + 0.1F;
+          state.explosions->addEffect (EXPLOSION_EFFECT_GLITTER, p, v, c, 0, 0.4F + (0.4F * FRAND));
           p[0] = player_in->position_[0]-0.95F;
           p[1] = player_in->position_[1]+0.1F;
-          state.explosions->addEffect (EXPLOSION_EFFECT_GLITTER, p, v, c, 0, 0.4F+0.4F*FRAND);
+          state.explosions->addEffect (EXPLOSION_EFFECT_GLITTER, p, v, c, 0, 0.4F + (0.4F * FRAND));
           break;
         case 1:
-          v[1] = -0.25F+FRAND*0.05F;
+          v[1] = -0.25F + (FRAND * 0.05F);
           p[0] = player_in->position_[0]+0.95F;
           p[1] = player_in->position_[1]+0.1F;
           state.explosions->addEffect (EXPLOSION_EFFECT_GLITTER, p, v, c, 0, 0.4F+0.4F*FRAND);
