@@ -9,7 +9,7 @@
 #include "ace/Log_Msg.h"
 
 #ifdef HAVE_CONFIG_H
-#include "splot-config.h"
+#include "splot_config.h"
 #endif
 
 #include "gettext.h"

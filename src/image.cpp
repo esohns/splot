@@ -3,7 +3,7 @@
 #include "image.h"
 
 #ifdef HAVE_CONFIG_H
-#include "splot-config.h"
+#include "splot_config.h"
 #endif
 
 //#if defined (HAVE_APPLE_OPENGL_FRAMEWORK) || defined (HAVE_OPENGL_GLU_H)

@@ -3,9 +3,10 @@
 #include "player_aircraft.h"
 
 #ifdef HAVE_CONFIG_H
-#include "splot-config.h"
+#include "splot_config.h"
 #endif
 
+#include <cmath>
 #include <string>
 
 #if defined(HAVE_APPLE_OPENGL_FRAMEWORK) || defined(HAVE_OPENGL_GL_H)

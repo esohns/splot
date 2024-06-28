@@ -67,8 +67,10 @@ dataLoc (const std::string& filename_in,
       return return_value;
     } // end IF
     return_value = buffer;
+    return_value += ACE_DIRECTORY_SEPARATOR_STR_A;
+    return_value += ACE_TEXT_ALWAYS_CHAR (SPLOT_DATA_DIR);
   } // end IF
-  return_value += ACE_DIRECTORY_SEPARATOR_STR;
+  return_value += ACE_DIRECTORY_SEPARATOR_STR_A;
   return_value += filename_in;
 #endif
   if (ACE_OS::strcmp (ACE::basename (filename_in.c_str (), ACE_DIRECTORY_SEPARATOR_CHAR),
@@ -80,7 +82,7 @@ dataLoc (const std::string& filename_in,
   if (home_directory_p)
   {
     return_value = home_directory_p;
-    return_value += ACE_DIRECTORY_SEPARATOR_STR;
+    return_value += ACE_DIRECTORY_SEPARATOR_STR_A;
     return_value += filename_in;
 
     goto check;
@@ -120,7 +122,7 @@ printExtensions (FILE* fstream_in,
 {
   char* walker = NULL;
   char* space = NULL;
-  int len = ACE_OS::strlen (extstr_in);
+  int len = static_cast<int> (ACE_OS::strlen (extstr_in));
   int cnt = 0;
   char* extstr = NULL;
   ACE_NEW (extstr,

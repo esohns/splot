@@ -2,7 +2,7 @@
 #define AUDIOSDLMIXER_H
 
 #ifdef HAVE_CONFIG_H
-#include "splot-config.h"
+#include "splot_config.h"
 #endif
 
 #ifdef USE_SDLMIXER_AUDIO

@@ -398,7 +398,7 @@ Splot_Configuration::getFileName ()
   std::string home_directory = getHomeDirectory ();
   ACE_OS::sprintf (configuration_filename,
                    ACE_TEXT_ALWAYS_CHAR ("%s%s%s"),
-                   home_directory.c_str (), ACE_DIRECTORY_SEPARATOR_STR, CONFIG_FILE);
+                   home_directory.c_str (), ACE_DIRECTORY_SEPARATOR_STR_A, CONFIG_FILE);
   alterPathForPlatform (configuration_filename);
 
   return configuration_filename;

@@ -288,7 +288,7 @@ Splot_StatusDisplay::drawGL (Splot_PlayerAircraft* player_in)
                 Splot_StatusDisplay::statPosAmmo[1],
                 Splot_StatusDisplay::statPosAmmo[2]);
   //--draw ammunition reserves
-  float x, y, y3;
+  float x = 0.0f, y, y3;
   bool statClrWarnAmmo = false;
   glBindTexture (GL_TEXTURE_2D, texStat_);
   glBegin (GL_QUADS);

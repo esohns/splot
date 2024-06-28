@@ -3,7 +3,7 @@
 #include "background_sea_segment.h"
 
 #ifdef HAVE_CONFIG_H
-#include "splot-config.h"
+#include "splot_config.h"
 #endif
 
 #include <cmath>

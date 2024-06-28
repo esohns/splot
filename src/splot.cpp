@@ -23,7 +23,7 @@
 #include "SDL.h"
 
 #ifdef HAVE_CONFIG_H
-#include "splot-config.h"
+#include "splot_config.h"
 #endif
 
 #include "defines.h"
@@ -100,6 +100,7 @@ do_printVersion (const std::string& programName_in)
 #ifdef __cplusplus
 extern "C"
 {
+FILE __iob_func[3] = {*stdin, *stdout, *stderr};
 #endif /* __cplusplus */
 int
 SDL_main (int argc_in,

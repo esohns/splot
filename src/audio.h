@@ -2,7 +2,7 @@
 #define AUDIO_H
 
 #ifdef HAVE_CONFIG_H
-#include "splot-config.h"
+#include "splot_config.h"
 #endif
 
 #include "ace/OS.h"

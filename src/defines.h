@@ -1,8 +1,8 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
-#ifdef HAVE_CONFIG_H
-#include "splot-config.h"
+#if defined (HAVE_CONFIG_H)
+#include "splot_config.h"
 #endif
 
 #include "ace/config-lite.h"
@@ -111,6 +111,7 @@
 #define STATE_DEFAULT_PLAYER_SHIPS           4
 #define MAX_PLAYER_SHIPS                     9
 
+#define SPLOT_DATA_DIR                       "data"
 #define SPLOT_FONT_DATA_DIR                  "fnt"
 #define SPLOT_IMAGE_DATA_DIR                 "png"
 #define SPLOT_AUDIO_DATA_DIR                 "wav"
