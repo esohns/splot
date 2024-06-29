@@ -269,15 +269,27 @@ install (TARGETS ${PROJECT_NAME}
 
 if (WIN32)
  install (FILES
+          ${LIB_ROOT}\\\\ACE_TAO\\\\ACE\\\\lib\\\\ACE${LIB_FILE_SUFFIX}.dll
+          DESTINATION bin
+          COMPONENT bin)
+ file (TO_NATIVE_PATH "$ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows/bin/ftgl.dll" FTGL_DLL_PATH)
+ string (REPLACE "\\" "\\\\" FTGL_DLL_PATH ${FTGL_DLL_PATH})
+ install (FILES
+          ${FTGL_DLL_PATH}
+          DESTINATION bin
+          COMPONENT bin)
+ install (FILES
           ${LIB_ROOT}\\\\zlib\\\\build\\\\${CMAKE_BUILD_TYPE}\\\\zlib${LIB_FILE_SUFFIX}.dll
-          DESTINATION bin COMPONENT bin)
+          DESTINATION bin
+          COMPONENT bin)
  if (SDL1_USE)
   install (FILES
            ${LIB_ROOT}\\\\SDL\\\\lib\\\\${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}\\\\SDL.dll
            ${LIB_ROOT}\\\\SDL_mixer\\\\lib\\\\${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}\\\\SDL_mixer.dll
-           ${LIB_ROOT}\\\\SDL_mixer\\\\lib\\\\${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}\\\\libmikmod-2.dll
+           #${LIB_ROOT}\\\\SDL_mixer\\\\lib\\\\${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}\\\\libmikmod-2.dll
 #           ${LIB_ROOT}\\\\SDL_ttf\\\\lib\\\\${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}\\\\SDL_ttf.dll
-           ${LIB_ROOT}\\\\SDL_net\\\\lib\\\\${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}\\\\SDL_net.dll
+           ${LIB_ROOT}\\\\SDL_image\\\\lib\\\\${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}\\\\SDL_image.dll
+           ${LIB_ROOT}\\\\SDL_image\\\\lib\\\\${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}\\\\libpng15-15.dll
            DESTINATION bin
            COMPONENT bin)
  elseif (SDL2_USE)
@@ -285,7 +297,7 @@ if (WIN32)
            ${LIB_ROOT}\\\\SDL2\\\\lib\\\\${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}\\\\SDL2.dll
            ${LIB_ROOT}\\\\SDL2_mixer\\\\lib\\\\${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}\\\\SDL2_mixer.dll
  #          ${LIB_ROOT}\\\\SDL2_ttf\\\\lib\\\\${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}\\\\SDL2_ttf.dll
-           ${LIB_ROOT}\\\\SDL2_net\\\\lib\\\\${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}\\\\SDL2_net.dll
+           ${LIB_ROOT}\\\\SDL2_image\\\\lib\\\\${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}\\\\SDL2_image.dll
            DESTINATION bin
            COMPONENT bin)
  endif ()
@@ -298,11 +310,87 @@ install (FILES
 
 install (FILES
          ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/check.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/chrome.jpg
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/cursor.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/darken.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/elect.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/electric.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/enemy00.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/enemy01.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/enemy01-extra.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/enemy01-rot.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/enemy02.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/enemy03.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/enemy03-extra.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/enemy04.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/enemy05.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/enemy06.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/enemyAmmo00.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/enemyAmmo01.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/enemyAmmo02.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/enemyAmmo03.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/enemyAmmo04.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/enemyAmmoExplo00.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/enemyAmmoExplo01.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/enemyAmmoExplo02.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/enemyAmmoExplo03.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/enemyAmmoExplo04.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/enemyExplo.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/explo.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/glitter.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/gndBaseSea.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/gndMetalBase00.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/gndMetalBase01.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/gndMetalBase02.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/gndMetalBlip.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/hero.ico
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/hero.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/heroAmmo00.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/heroAmmo01.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/heroAmmo02.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/heroAmmoExplo00.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/heroAmmoExplo01.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/heroAmmoExplo02.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/heroAmmoFlash00.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/heroAmmoFlash01.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/heroAmmoFlash02.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/heroExplo00.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/heroExplo01.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/heroExplo02.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/heroShields.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/heroSuper.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/icon32.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/life.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/menu_back.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/menu_updown.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/powerUpAmmo.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/powerUpShield.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/powerUpTex.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/reflect.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/reflect-blend.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/reflect-gnd.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/shields.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/statBar.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/stat-top.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/superBomb.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/useFocus.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/useItem00.png
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/png/useItem01.png
          DESTINATION data/png
          COMPONENT data)
 
 install (FILES
          ${CMAKE_CURRENT_SOURCE_DIR}/../data/wav/boom.wav
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/wav/exploBig.wav
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/wav/exploPop.wav
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/wav/exploStd.wav
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/wav/GAMEMENU.MID
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/wav/GAMEMUSI.MID
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/wav/life_add.wav
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/wav/life_lose.wav
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/wav/music_game.wav
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/wav/music_menu.wav
+         ${CMAKE_CURRENT_SOURCE_DIR}/../data/wav/power.wav
          DESTINATION data/wav
          COMPONENT data)
 
